@@ -48,7 +48,9 @@ export function renderSecurityPreview() {
     const px1 = r(x(alert.firstTs) - 1.5);
     const px2 = r(Math.max(x(alert.lastTs) + 1.5, x(alert.firstTs) + 3));
     const width = r(px2 - px1);
-    paths[RULE_KEY[alert.rule]].push(`M${px1} ${TOP + lane * LANE}h${width}v${LANE}h-${width}z`);
+    // R1 fills the lane, R2 its upper half and R3 its lower half, as on the lab's timeline.
+    const [top, height] = alert.rule === 'repeatedFailures' ? [0, LANE] : alert.rule === 'passwordSpray' ? [0, LANE / 2] : [LANE / 2, LANE / 2];
+    paths[RULE_KEY[alert.rule]].push(`M${px1} ${TOP + lane * LANE + top}h${width}v${height}h-${width}z`);
   }
   const grid = sources.map((source, i) => `M${X0} ${TOP + (i + 1) * LANE}H${X1}`).join('');
   return {

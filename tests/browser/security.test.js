@@ -220,6 +220,7 @@ describe('security lab: initial state and investigation (desktop)', () => {
       assert.equal(await count(page, '#timeline .tl-alert'), MIXED.alerts.length, 'one timeline span per alert');
       assert.equal(await revealedMarks(page), MIXED.events.length, 'all events are shown initially');
       assert.equal(await stat(page, 'eval-precision'), `${(MIXED.evaluation.precision * 100).toFixed(1)}%`);
+      assert.equal(await stat(page, 'eval-precision-strict'), `${(MIXED.evaluation.precisionStrict * 100).toFixed(MIXED.evaluation.precisionStrict === 1 || MIXED.evaluation.precisionStrict === 0 ? 0 : 1)}%`);
       assert.equal(await stat(page, 'eval-recall'), '100%');
       assert.equal(number(await stat(page, 'eval-fp')), MIXED.evaluation.alerts.falsePositive);
       assert.equal(await count(page, '#scenario-rows tr'), MIXED.dataset.scenarios.length);
@@ -431,14 +432,23 @@ describe('security lab: thresholds and comparison', () => {
       assert.equal(row('False positives')[2], String(evalB.alerts.falsePositive));
       const diff = D.diffAlerts(MIXED.alerts, B.alerts);
       const boxes = await page.$$eval('#comparison-diff h4', (hs) => hs.map((h) => h.textContent));
-      assert.deepEqual(boxes, [`Only under A · ${diff.onlyA.length}`, `Only under B · ${diff.onlyB.length}`, `Under both · ${diff.both.length}`]);
+      assert.deepEqual(boxes, [`Only under A · ${diff.onlyA.length}`, `Only under B · ${diff.onlyB.length}`, `Under both (same rule, subject and overlapping span) · ${diff.both.length} A ↔ ${diff.bothB.length} B`]);
+      assert.equal(row('Strict precision')[2], `${(evalB.precisionStrict * 100).toFixed(evalB.precisionStrict === 1 || evalB.precisionStrict === 0 ? 0 : 1)}%`);
       await page.locator('#copy-to-b').click();
       assert.equal(await page.inputValue('#b-r2-window'), '120');
       assert.ok((await page.locator('#comparison-note').textContent()).includes('identical'));
       await setNumber(page, 'b-r1-threshold', -2);
       assert.ok((await page.locator('#config-errors-b').textContent()).includes('Set B was not applied'));
+      assert.ok(await page.locator('#comparison').isVisible(), 'the comparison keeps showing the last valid set B');
       await page.locator('#compare').uncheck();
-      assert.ok(await page.locator('#comparison').isHidden());
+      assert.ok(await page.locator('#comparison').isHidden() && await page.locator('#compare-fields').isHidden());
+      // Regression: switching comparison mode back on while set B is invalid must show the fields, the errors and the table.
+      await page.locator('#compare').check();
+      assert.ok(await page.locator('#compare-fields').isVisible() && await page.locator('#comparison').isVisible() && await page.locator('#config-errors-b').isVisible());
+      assert.ok((await status(page)).includes('set B contains invalid values'));
+      await setNumber(page, 'b-r1-threshold', 5);
+      assert.equal(await count(page, '#config-errors-b li'), 0);
+      assert.ok((await page.locator('#comparison-note').textContent()).includes('identical'));
     } finally {
       await close();
     }
@@ -494,12 +504,29 @@ describe('security lab: datasets, seeds and export', () => {
       await page.locator('#page-next').click();
       assert.ok((await page.locator('#page-status').textContent()).startsWith(`Page 2 of ${pages.toLocaleString('en-US')}`));
       assert.equal(await page.locator('#event-rows tr td').first().textContent(), '51');
-      await page.locator('#page-prev').click();
+      await page.locator('#page-prev').focus();
+      await page.keyboard.press('Enter');
       assert.equal(await page.locator('#event-rows tr td').first().textContent(), '1');
+      assert.equal(await page.evaluate(() => document.activeElement.id), 'page-next', 'a pager button that disables itself hands focus to its counterpart');
       await page.locator('#reset').click();
       assert.equal(await count(page, '#timeline .tl-bin:not(.is-future)'), 0);
       await page.locator('#skip').click();
       assert.equal(await count(page, '#timeline .tl-bin.is-future'), 0);
+      // Loose thresholds raise hundreds of alerts: the list shows 200 per rule with a show-more control, the spans are capped.
+      await setNumber(page, 'r3-failures', 1);
+      await setNumber(page, 'r3-window', 86400);
+      const loose = D.detect(LARGE.dataset.events, { successAfterFailures: { failures: 1, windowSeconds: 86400 } });
+      const r3 = loose.alerts.filter((a) => a.rule === 'successAfterFailures').length;
+      assert.ok(r3 > 200, `the loose rule raises ${r3} R3 alerts`);
+      assert.equal(number(await stat(page, 'stat-alerts')), loose.alerts.length);
+      const r3Buttons = () => count(page, 'section[aria-labelledby="alerts-successAfterFailures"] .alert-button');
+      assert.equal(await r3Buttons(), 200);
+      const more = page.locator('section[aria-labelledby="alerts-successAfterFailures"] button.button');
+      assert.ok((await more.textContent()).includes(`of ${(r3 - 200).toLocaleString('en-US')} remaining R3 alerts`));
+      await more.click();
+      assert.equal(await r3Buttons(), Math.min(400, r3));
+      assert.equal(await page.evaluate(() => document.activeElement.className.includes('alert-button')), true, 'focus moves to the first newly shown alert');
+      assert.ok((await count(page, '#timeline .tl-alert')) <= 3000);
       assert.deepEqual(problems, []);
     } finally {
       await close();
@@ -617,6 +644,15 @@ describe('security lab: local import', () => {
       await page.locator('#import-file').setInputFiles({ name: 'huge.json', mimeType: 'application/json', buffer: Buffer.alloc(D.LIMITS.maxImportBytes + 1, 0x20) });
       await page.waitForFunction(() => document.getElementById('import-result').textContent.includes('limit is'));
       assert.equal(number(await stat(page, 'stat-events')), 7, 'an oversized file is refused without being read');
+      // A century-long span must not explode the axis: the tick count stays bounded and ticks carry dates.
+      await page.locator('#import-text').fill(JSON.stringify([sample({ time: '2000-01-01T00:00:00Z' }), sample({ time: '2099-12-31T23:59:59Z', outcome: 'success', reason: undefined })]));
+      await page.locator('#import-load').click();
+      assert.equal(number(await stat(page, 'stat-events')), 2);
+      const ticks = await count(page, '#timeline .tl-axis-label');
+      assert.ok(ticks >= 2 && ticks <= 20, `${ticks} axis ticks`);
+      assert.match(await page.locator('#timeline .tl-axis-label').first().textContent(), /^\d{4}-\d{2}-\d{2}$/, 'ticks carry dates when the step reaches a day');
+      assert.ok((await page.locator('#timeline-summary').textContent()).includes('from 2000-01-01 00:00:00 UTC to 2099-12-31 23:59:59 UTC'));
+      assert.equal(await page.evaluate(() => document.activeElement.id), 'dataset-label', 'focus follows the loaded dataset');
       await page.locator('#import-text').fill('[]');
       await page.locator('#import-load').click();
       assert.equal(number(await stat(page, 'stat-events')), 0);
@@ -629,6 +665,32 @@ describe('security lab: local import', () => {
       await page.locator('#import-clear').click();
       assert.equal(await page.inputValue('#import-text'), '');
       assert.equal(await page.locator('#import-result').textContent(), '');
+    } finally {
+      await close();
+    }
+  });
+});
+
+describe('security lab: long identifiers at narrow widths', () => {
+  it('wraps long accounts and truncates long lane labels instead of clipping them', async () => {
+    const { page, problems, close } = await open(LAB, { viewport: VIEWPORTS.narrow });
+    try {
+      const account = 'a'.repeat(64);
+      const source = '2001:db8:aaaa:bbbb:cccc:dddd:eeee:ffff';
+      const events = [0, 1, 2, 3, 4].map((k) => sample({ time: `2026-03-02T08:00:0${k}Z`, account, source }));
+      events.push(sample({ time: '2026-03-02T08:00:09Z', outcome: 'success', reason: undefined, account, source }));
+      await page.locator('#import-text').fill(JSON.stringify(events));
+      await page.locator('#import-load').click();
+      assert.equal(number(await stat(page, 'stat-events')), 6);
+      const right = await page.locator('.alert-subject-label strong').first().evaluate((el) => el.getBoundingClientRect().right);
+      assert.ok(right <= 320, `long account label stays inside the viewport (right edge ${right})`);
+      const label = page.locator('#timeline .tl-lane-label').first();
+      assert.ok((await label.evaluate((el) => el.firstChild.textContent)).startsWith('…'), 'the lane label is truncated');
+      assert.equal(await label.locator('title').textContent(), source, 'the full source is available as a tooltip');
+      assert.ok((await label.evaluate((el) => el.getBBox().x)) >= 0, 'the truncated label fits the label column');
+      const overflow = await noOverflow(page);
+      assert.equal(overflow.docOverflow, 0);
+      assert.deepEqual(problems, []);
     } finally {
       await close();
     }

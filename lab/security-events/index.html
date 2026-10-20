@@ -75,7 +75,7 @@
           </div>
           <div class="lab-layout">
             <div class="lab-stage">
-              <p class="dataset-label" id="dataset-label">Loading the laboratory…</p>
+              <p class="dataset-label" id="dataset-label" tabindex="-1">Loading the laboratory…</p>
               <dl class="lab-stats" role="group" aria-label="Summary of the current dataset">
                 <div><dt>Events</dt><dd id="stat-events">—<small>synthetic</small></dd></div>
                 <div><dt>Successes</dt><dd id="stat-successes">—<small>sign-ins</small></dd></div>
@@ -182,13 +182,13 @@
                   <select id="r3-scope"><option value="account" selected>any source (account scope)</option><option value="source">the same source only (source scope)</option></select>
                 </div>
               </fieldset>
-              <ul class="config-errors" id="config-errors" aria-live="polite"></ul>
+              <ul class="config-errors" id="config-errors"></ul>
               <div class="panel-actions">
                 <button type="button" class="button button-outline button-small" id="reset-thresholds">Reset thresholds</button>
               </div>
               <hr />
               <h2 id="compare-heading">Comparison mode</h2>
-              <div class="field field-check"><input type="checkbox" id="compare" /><label for="compare">Compare with a second threshold set (B)</label></div>
+              <div class="field field-check"><input type="checkbox" id="compare" autocomplete="off" /><label for="compare">Compare with a second threshold set (B)</label></div>
               <p class="lab-panel-note">Both sets run on the same events. The comparison table under <a href="#evaluation" class="text-link">Evaluation</a> shows how the alerts and scores differ.</p>
               <div id="compare-fields" class="compare-fields" hidden>
                 <div class="panel-actions"><button type="button" class="button button-outline button-small" id="copy-to-b">Copy current thresholds into B</button></div>
@@ -220,7 +220,7 @@
                     <select id="b-r3-scope"><option value="account" selected>any source (account scope)</option><option value="source">the same source only (source scope)</option></select>
                   </div>
                 </fieldset>
-                <ul class="config-errors" id="config-errors-b" aria-live="polite"></ul>
+                <ul class="config-errors" id="config-errors-b"></ul>
               </div>
               <details class="lab-help">
                 <summary>Keyboard help</summary>
@@ -260,7 +260,7 @@
           </div>
           <div class="pager" role="group" aria-label="Table pages">
             <button type="button" class="button button-outline button-small" id="page-prev">Previous page</button>
-            <span class="pager-status" id="page-status"></span>
+            <span class="pager-status" id="page-status" tabindex="-1"></span>
             <button type="button" class="button button-outline button-small" id="page-next">Next page</button>
           </div>
         </div>
@@ -278,6 +278,7 @@
             <div><dt>True positives</dt><dd id="eval-tp">—<small>alerts citing a suspicious event</small></dd></div>
             <div><dt>False positives</dt><dd id="eval-fp">—<small>alerts citing only benign events</small></dd></div>
             <div><dt>Precision</dt><dd id="eval-precision">—<small>true positives ÷ alerts</small></dd></div>
+            <div><dt>Strict precision</dt><dd id="eval-precision-strict">—<small>alerts triggered by a suspicious event ÷ alerts</small></dd></div>
             <div><dt>Recall</dt><dd id="eval-recall">—<small>suspicious scenarios with any alert</small></dd></div>
             <div><dt>Strict recall</dt><dd id="eval-recall-strict">—<small>alert triggered on the scenario's own event</small></dd></div>
             <div><dt>Missed scenarios</dt><dd id="eval-missed">—<small>false negatives</small></dd></div>
@@ -306,10 +307,10 @@
             <div class="rules-block"><span class="case-block-num">HOW THE SCORES ARE DEFINED</span><h3>Precise, and deliberately modest.</h3>
               <ul>
                 <li><strong>True positive</strong>: an alert whose evidence includes at least one event from a scenario labelled suspicious. <strong>False positive</strong>: an alert whose evidence is entirely benign.</li>
-                <li><strong>Precision</strong> = true-positive alerts ÷ all alerts. Undefined when no alert was raised, and shown as such rather than as 0 or 100%.</li>
+                <li><strong>Precision</strong> = true-positive alerts ÷ all alerts. Undefined when no alert was raised, and shown as such rather than as 0 or 100%. <strong>Strict precision</strong> counts only alerts whose trigger event was itself planted as suspicious, so an alert raised on a victim's own routine sign-in after an attack counts towards precision but not towards strict precision.</li>
                 <li><strong>Recall</strong> = suspicious scenarios touched by any alert ÷ suspicious scenarios. Undefined when the data contains no suspicious scenario. <strong>Strict recall</strong> additionally requires an alert whose trigger event belongs to the scenario, so a single attack event caught inside an alert raised on a victim's own later login does not count.</li>
                 <li><strong>Missed scenarios</strong> are the false negatives. <strong>Benign flagged</strong> counts benign scenarios cited by a false-positive alert; a benign scenario cited only by a true-positive alert (for example the victim's routine login that completes a brute-force sequence) is not counted against the rules.</li>
-                <li>Imported data is scored only when every event carries a verdict; otherwise the scores are reported as unavailable.</li>
+                <li>Imported data is scored only when every event carries a verdict; otherwise the scores are reported as unavailable. Events labelled with a verdict but no scenario form one pseudo-scenario per verdict, so recall over such data can only be 0 or 100%.</li>
               </ul>
             </div>
             <div class="rules-block"><span class="case-block-num">WHAT THE SCORES DO NOT MEAN</span><h3>Synthetic performance only.</h3>
@@ -323,11 +324,11 @@
         <div class="container">
           <div class="section-heading">
             <div><p class="section-index">04 / LOCAL IMPORT</p><h2 id="import-heading">Bring your own <em>synthetic events.</em></h2></div>
-            <p class="section-intro">Optional. Paste JSON or choose a local file to run the rules on your own synthetic events. Processing is entirely local: nothing is uploaded, stored or transmitted, and the page has no network access at all.</p>
+            <p class="section-intro">Optional. Paste JSON or choose a local file to run the rules on your own synthetic events. Processing is entirely local: nothing is uploaded, stored or transmitted. The page requests nothing but its own files, and its content security policy forbids every other connection.</p>
           </div>
           <div class="import-layout">
             <div class="import-form">
-              <p class="project-disclosure import-warning"><span aria-hidden="true">i</span> Do not paste sensitive real-world production logs here or anywhere else in a browser tool. The schema accepts only pseudonymous account strings and reserved documentation IP addresses, so real routable addresses are rejected by design. Limits: 2 MB and 20,000 events. Every field is treated as untrusted text and is rendered as text, never interpreted as markup or code.</p>
+              <p class="project-disclosure import-warning"><span aria-hidden="true">i</span> Do not paste sensitive real-world production logs here or anywhere else in a browser tool. The schema accepts only pseudonymous account strings and reserved documentation IP addresses, so real routable addresses are rejected by design. Limits: 4 MB and 20,000 events. Every field is treated as untrusted text and is rendered as text, never interpreted as markup or code.</p>
               <div class="field">
                 <label for="import-text">JSON text</label>
                 <textarea id="import-text" rows="8" spellcheck="false" autocomplete="off"></textarea>
@@ -399,7 +400,7 @@
             <span class="principle-top">R3 / ACCOUNT-BASED, SEQUENCE</span>
             <h3>Success following repeated failures</h3>
             <p>Raise an alert when a successful authentication for an account is preceded, earlier in event order and within the previous <strong>W</strong> seconds (inclusive), by at least <strong>F</strong> failures for the same account. In <strong>account scope</strong> the failures may come from any source; in <strong>source scope</strong> only failures from the source of the success count.</p>
-            <p>Every qualifying success raises its own alert; failures are never "consumed", so a second success shortly after the first is reported too. A failure and a success with the same timestamp are ordered by their position in the input, which the event table shows.</p>
+            <p>The first qualifying success raises the alert. Further successes for the same account that arrive within W seconds of the previous success, and the failures in between, are absorbed into it, so one incident is one alert rather than one alert per sign-in; a longer pause closes the episode. A failure and a success with the same timestamp are ordered by their position in the input, which the event table shows.</p>
             <p>Why the sequence is suspicious rather than proof: a guessed password produces failures then a success, and so does a user who mistypes a password and then remembers it. The rule reports an ambiguity worth checking, with the sources side by side, and explicitly does not claim that the account was compromised.</p>
             <dl class="explain-meta"><dt>Subject</dt><dd>Account (and the source of the success)</dd><dt>Counts</dt><dd>Preceding failures</dd><dt>Defaults</dt><dd>3 failures within 600 s, account scope</dd><dt>Work</dt><dd>O(1) amortised per event</dd></dl>
           </article>
@@ -411,8 +412,8 @@
               <li><strong>Ordering</strong>: events are sorted by timestamp, then by their position in the input. Equal timestamps therefore have a defined order, and the same input always yields the same alerts, whether it arrives sorted or shuffled.</li>
               <li><strong>Windows</strong> are inclusive, <code>[t − W, t]</code>, evaluated at every event with amortised O(1) work: each event enters a per-source or per-account queue once and leaves it once.</li>
               <li><strong>Duplicates</strong>: identical events with different ids are two events; duplicate ids are rejected before anything runs.</li>
-              <li><strong>Alert identity</strong>: alerts are numbered in trigger order (then rule order), and comparison mode matches alerts across threshold sets by rule and subject, so the same burst is recognised under both sets.</li>
-              <li><strong>Cost</strong>: O(n log n) to sort plus O(n) to detect; the largest preset (about fifteen thousand events) is detected in tens of milliseconds on a laptop, and the table and timeline are paginated and binned so the page never renders every event at once.</li>
+              <li><strong>Alert identity</strong>: alerts are numbered in trigger order (then rule order). Comparison mode matches alerts across threshold sets by incident: the same rule, the same subject and overlapping time spans, so three short episodes under a narrow window can match one long episode under a wide one.</li>
+              <li><strong>Cost</strong>: O(n log n) to sort plus O(n) to detect, with every event cited by at most two episodes of a rule, so the alerts hold O(n) evidence even on adversarial input. The largest preset (about fifteen thousand events) is detected in tens of milliseconds on a laptop; the table is paginated, the timeline is binned, at most 3,000 alert spans are drawn and the alert list shows 200 alerts per rule at a time.</li>
             </ul>
           </div>
           <div class="rules-block"><span class="case-block-num">SYNTHETIC SCENARIOS</span><h3>Labelled before the rules run.</h3>

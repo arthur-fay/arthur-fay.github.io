@@ -37,12 +37,16 @@
  *
  * Window semantics. Events are processed in (ts, seq) order. For an event at
  * time t the window is [t − W, t]: an event exactly W seconds earlier counts.
- * R1 and R2 raise one alert per "episode": the alert is created when the
- * sliding count first reaches the threshold and then absorbs every further
- * failure from the same source that arrives within W seconds of the previous
- * one; a longer pause closes the episode. R3 raises one alert per qualifying
- * success. Each rule is a streaming state machine with O(1) amortised work per
- * event, so a dataset of n events costs O(n log n) for the sort plus O(n).
+ * Every rule raises one alert per "episode". R1 and R2: the alert is created
+ * when the sliding count first reaches the threshold and then absorbs every
+ * further failure from the same source that arrives within W seconds of the
+ * previous one; a longer pause closes the episode. R3: the first qualifying
+ * success raises the alert, which then absorbs every further success for the
+ * same account that arrives within W seconds of the previous success (and the
+ * failures in between); a longer pause closes it. Each rule is a streaming
+ * state machine with O(1) amortised work per event and every event is cited
+ * by at most two episodes of a rule, so a dataset of n events costs
+ * O(n log n) for the sort plus O(n), and the alerts hold O(n) evidence.
  */
 
 /* ----------------------------------------------------------------- constants */
@@ -56,7 +60,7 @@ export const MAX_SEED = 0xFFFFFFFF;
 /** Hard limits that bound memory and CPU for generated and imported data. */
 export const LIMITS = Object.freeze({
   maxEvents: 20000,
-  maxImportBytes: 2 * 1024 * 1024,
+  maxImportBytes: 4 * 1024 * 1024,
   maxThreshold: 1000,
   maxWindowSeconds: 86400,
   minTs: Date.UTC(2000, 0, 1),
@@ -93,7 +97,7 @@ export const RULES = Object.freeze({
     name: 'Success following repeated failures',
     subject: 'account',
     trigger: 'success',
-    definition: 'Raise an alert when a successful authentication for an account is preceded, earlier in event order and within the previous W seconds (inclusive), by at least F failed authentication events for the same account. Scope "account" counts failures from any source; scope "source" counts only failures from the source of the success. Every qualifying success raises its own alert.',
+    definition: 'Raise an alert when a successful authentication for an account is preceded, earlier in event order and within the previous W seconds (inclusive), by at least F failed authentication events for the same account. Scope "account" counts failures from any source; scope "source" counts only failures from the source of the success. The first qualifying success raises the alert; further successes for the same account that arrive within W seconds of the previous success, and the failures in between, are absorbed into it, so one incident is one alert. A longer pause closes it.',
     parameters: Object.freeze(['failures', 'windowSeconds', 'scope']),
   }),
 });
@@ -433,7 +437,7 @@ export function validateEvents(input, options = {}) {
       return;
     }
     for (const key of Object.keys(record)) {
-      if (!EVENT_KEYS.includes(key)) fail(index, key, `unknown field "${key}"`);
+      if (!EVENT_KEYS.includes(key)) fail(index, key.slice(0, 64), `unknown field "${key.slice(0, 64)}${key.length > 64 ? '…' : ''}"`);
     }
     let id = record.id;
     if (id === undefined) id = `imp-${pad(index + 1, 5)}`;
@@ -508,12 +512,14 @@ export function serialiseEvents(events, meta = {}) {
     if (event.verdict !== null && event.verdict !== undefined) record.verdict = event.verdict;
     return record;
   });
-  return JSON.stringify({
+  const head = {
     format: 'security-events-lab/v1',
     note: 'Synthetic authentication events generated locally for the Security Event Detection & Investigation Lab. Pseudonymous accounts, reserved documentation IP ranges, synthetic timestamps. Not real log data.',
     ...meta,
-    events: records,
-  }, null, 2);
+  };
+  // One event per line keeps the file readable while staying compact enough for the largest preset to re-import.
+  const lines = [...Object.entries(head).map(([key, value]) => `  ${JSON.stringify(key)}: ${JSON.stringify(value)},`), '  "events": [', records.map((record) => `    ${JSON.stringify(record)}`).join(',\n'), '  ]'];
+  return `{\n${lines.join('\n')}\n}\n`;
 }
 
 /** Minimal structural check for events handed directly to detect(); throws TypeError on programming errors. */
@@ -553,11 +559,19 @@ export function subjectKey(alert) {
   return alert.rule === 'successAfterFailures' ? `account:${alert.subject.account}` : `source:${alert.subject.source}`;
 }
 
-/** Identity of an alert across threshold configurations (for comparison mode). */
+/** Rule plus subject: the identity of an alert's subject across threshold configurations. */
 export function alertKey(alert) {
-  return alert.rule === 'successAfterFailures'
-    ? `${alert.rule}|${alert.subject.account}|${alert.triggerEventId}`
-    : `${alert.rule}|${alert.subject.source}`;
+  return `${alert.rule}|${subjectKey(alert)}`;
+}
+
+/** True when two alerts of the same rule and subject cover overlapping time spans (the same burst seen under two configurations). */
+export function sameIncident(a, b) {
+  return a.rule === b.rule && subjectKey(a) === subjectKey(b) && a.firstTs <= b.lastTs && b.firstTs <= a.lastTs;
+}
+
+/** The first alert among `candidates` that describes the same incident as `alert`, or null. */
+export function findCounterpart(alert, candidates) {
+  return candidates.find((candidate) => sameIncident(alert, candidate)) ?? null;
 }
 
 /**
@@ -590,7 +604,7 @@ export function createDetector(configInput = DEFAULT_CONFIG) {
   const accountState = (account) => {
     let state = accounts.get(account);
     if (!state) {
-      state = { failures: new Fifo() };
+      state = { failures: new Fifo(), openR3: null };
       accounts.set(account, state);
     }
     return state;
@@ -692,24 +706,56 @@ export function createDetector(configInput = DEFAULT_CONFIG) {
           }
         }
       }
-      if (r3.enabled) accountState(event.account).failures.push(event);
+      if (r3.enabled) {
+        const state = accountState(event.account);
+        state.failures.push(event);
+        const open = state.openR3;
+        if (open) {
+          if (event.ts - open.metrics.lastSuccessTs <= w3) {
+            open.evidence.push(event.id);
+            open.evidenceIndices.push(event.index);
+            open.metrics.total += 1;
+            open.metrics.laterFailures += 1;
+            open.lastTs = event.ts;
+            open.metrics.durationMs = open.lastTs - open.firstTs;
+            updated.push(open);
+          } else state.openR3 = null;
+        }
+      }
     } else if (r3.enabled) {
       const state = accountState(event.account);
       const fifo = state.failures;
       while (fifo.size > 0 && fifo.front().ts < event.ts - w3) fifo.shift();
-      const inWindow = fifo.values();
-      const candidates = r3.scope === 'source' ? inWindow.filter((e) => e.source === event.source) : inWindow;
-      if (candidates.length >= r3.failures) {
-        const sourceSet = new Set(candidates.map((e) => e.source));
-        const sameSource = candidates.filter((e) => e.source === event.source).length;
-        const evidence = [...candidates, event];
-        const alert = makeAlert('successAfterFailures', { account: event.account, source: event.source }, event, evidence, {
-          failures: r3.failures, windowSeconds: r3.windowSeconds, scope: r3.scope, failureCount: candidates.length,
-          sameSource, distinctSources: sourceSet.size, sourceSet,
-          firstFailureTs: candidates[0].ts, lastFailureTs: candidates[candidates.length - 1].ts, successTs: event.ts,
-          spanMs: event.ts - candidates[0].ts, durationMs: event.ts - candidates[0].ts, total: evidence.length,
-        });
-        created.push(alert);
+      const open = state.openR3;
+      if (open && event.ts - open.metrics.lastSuccessTs <= w3) {
+        // Same incident: the account keeps signing in within W of its previous success.
+        open.evidence.push(event.id);
+        open.evidenceIndices.push(event.index);
+        open.metrics.total += 1;
+        open.metrics.successCount += 1;
+        open.metrics.successSourceSet.add(event.source);
+        open.metrics.lastSuccessTs = event.ts;
+        open.lastTs = event.ts;
+        open.metrics.durationMs = open.lastTs - open.firstTs;
+        updated.push(open);
+      } else {
+        state.openR3 = null;
+        const inWindow = fifo.values();
+        const candidates = r3.scope === 'source' ? inWindow.filter((e) => e.source === event.source) : inWindow;
+        if (candidates.length >= r3.failures) {
+          const sourceSet = new Set(candidates.map((e) => e.source));
+          const sameSource = candidates.filter((e) => e.source === event.source).length;
+          const evidence = [...candidates, event];
+          const alert = makeAlert('successAfterFailures', { account: event.account, source: event.source }, event, evidence, {
+            failures: r3.failures, windowSeconds: r3.windowSeconds, scope: r3.scope, failureCount: candidates.length,
+            sameSource, distinctSources: sourceSet.size, sourceSet,
+            firstFailureTs: candidates[0].ts, lastFailureTs: candidates[candidates.length - 1].ts, successTs: event.ts,
+            spanMs: event.ts - candidates[0].ts, durationMs: event.ts - candidates[0].ts, total: evidence.length,
+            successCount: 1, successSourceSet: new Set([event.source]), lastSuccessTs: event.ts, laterFailures: 0,
+          });
+          state.openR3 = alert;
+          created.push(alert);
+        }
       }
     }
     return { created, updated };
@@ -727,11 +773,16 @@ export function createDetector(configInput = DEFAULT_CONFIG) {
         metrics.sources = [...metrics.sourceSet].sort();
         delete metrics.sourceSet;
       }
+      if (metrics.successSourceSet) {
+        metrics.successSources = [...metrics.successSourceSet].sort();
+        delete metrics.successSourceSet;
+      }
     }
     for (const state of sources.values()) {
       state.openR1 = null;
       state.openR2 = null;
     }
+    for (const state of accounts.values()) state.openR3 = null;
     return alerts;
   }
 
@@ -793,14 +844,28 @@ export function groupAlerts(alerts) {
   });
 }
 
-/** Set difference of alert identities between two detection results. */
+/**
+ * Compares the alerts of two detection results over the same events. Alerts
+ * are matched by incident (same rule, same subject, overlapping time span),
+ * so three short episodes under one window can match one long episode under
+ * another. Returns alerts only in A, only in B, and the matched alerts of
+ * each side (`both` from A, `bothB` from B).
+ */
 export function diffAlerts(alertsA, alertsB) {
-  const keysA = new Set(alertsA.map(alertKey));
-  const keysB = new Set(alertsB.map(alertKey));
-  const onlyA = [...keysA].filter((k) => !keysB.has(k)).sort();
-  const onlyB = [...keysB].filter((k) => !keysA.has(k)).sort();
-  const both = [...keysA].filter((k) => keysB.has(k)).sort();
-  return { onlyA, onlyB, both };
+  const onlyA = [];
+  const onlyB = [];
+  const both = [];
+  const matchedB = new Set();
+  for (const a of alertsA) {
+    const partners = alertsB.filter((b) => sameIncident(a, b));
+    if (partners.length === 0) onlyA.push(a);
+    else {
+      both.push(a);
+      for (const b of partners) matchedB.add(b.id);
+    }
+  }
+  for (const b of alertsB) if (!matchedB.has(b.id)) onlyB.push(b);
+  return { onlyA, onlyB, both, bothB: alertsB.filter((b) => matchedB.has(b.id)) };
 }
 
 /* ------------------------------------------------------------ explanations */
@@ -835,9 +900,14 @@ export function explainAlert(alert) {
     };
   }
   const scopeText = m.scope === 'source' ? 'counting only failures from the same source' : 'counting failures from any source';
+  const successSources = m.successSources ?? [...(m.successSourceSet ?? [])].sort();
+  const more = m.successCount - 1;
+  const followUp = more > 0
+    ? ` The account then signed in successfully ${more} more time${more === 1 ? '' : 's'}, each within ${formatWindow(m.windowSeconds)} of the previous success, until ${when(m.lastSuccessTs)}${m.laterFailures > 0 ? `, with ${m.laterFailures} further failure${m.laterFailures === 1 ? '' : 's'} in between` : ''}; ${successSources.length === 1 ? 'all from the same source' : `the successes came from ${successSources.length} distinct sources (${list(successSources)})`}. Those sign-ins are part of this alert.`
+    : '';
   return {
     headline: `Successful sign-in for ${alert.subject.account} from ${alert.subject.source} after ${m.failureCount} failed attempts`,
-    detail: `Rule R3 fires when a success is preceded by at least ${m.failures} failures for the same account within ${formatWindow(m.windowSeconds)} (${scopeText}). Account ${alert.subject.account} failed ${m.failureCount} times between ${when(m.firstFailureTs)} and ${when(m.lastFailureTs)} (${m.sameSource} from ${alert.subject.source}; ${m.distinctSources === 1 ? 'one source' : `${m.distinctSources} distinct sources`}: ${list(sources)}), then succeeded from ${alert.subject.source} at ${when(m.successTs)}.`,
+    detail: `Rule R3 fires when a success is preceded by at least ${m.failures} failures for the same account within ${formatWindow(m.windowSeconds)} (${scopeText}). Account ${alert.subject.account} failed ${m.failureCount} times between ${when(m.firstFailureTs)} and ${when(m.lastFailureTs)} (${m.sameSource} from ${alert.subject.source}; ${m.distinctSources === 1 ? 'one source' : `${m.distinctSources} distinct sources`}: ${list(sources)}), then succeeded from ${alert.subject.source} at ${when(m.successTs)}.${followUp}`,
     caveat: 'A success after repeated failures is the sequence a guessed password would produce, but it is also exactly what a user who mistyped a password and then remembered it produces. The sequence is suspicious because it is ambiguous; it does not prove that the account was compromised.',
     nextSteps: 'Compare the successful source with the account\'s usual sources, check whether the failures came from the same place as the success, and confirm the activity with the account owner before concluding anything.',
   };
@@ -849,8 +919,10 @@ export function explainAlert(alert) {
  * Scores detector output against the ground-truth labels carried by the
  * events. Definitions (stated on the page as well):
  *   - an alert is a TRUE POSITIVE when at least one of its evidence events is
- *     labelled suspicious, otherwise a FALSE POSITIVE;
- *   - precision = true-positive alerts / all alerts (null when there are no alerts);
+ *     labelled suspicious, otherwise a FALSE POSITIVE; it is a STRICT true
+ *     positive when its trigger event itself is labelled suspicious;
+ *   - precision = true-positive alerts / all alerts (null when there are no
+ *     alerts); precisionStrict uses the strict true positives;
  *   - a suspicious scenario is DETECTED when any alert's evidence includes one
  *     of its events; recall = detected / suspicious scenarios (null when the
  *     data holds no suspicious scenario). This is lenient: one attack event
@@ -859,9 +931,14 @@ export function explainAlert(alert) {
  *     to the scenario (recallStrict, detectedStrict);
  *   - a benign scenario is FLAGGED when a false-positive alert includes one of
  *     its events.
+ * Events that carry a verdict but no scenario are grouped into one pseudo
+ * scenario per verdict (its key starts with a character the schema does not
+ * allow in scenario names, so it can never collide with a real one).
  * Evaluation is only available when every event is labelled. Scores describe
  * the synthetic scenarios only; they say nothing about real-world accuracy.
  */
+export const UNLABELLED_PREFIX = '\u00B7 unlabelled ';
+
 export function evaluate(events, alerts, scenarioCatalogue = []) {
   if (events.length === 0) return { available: false, reason: 'There are no events, so there is nothing to score.' };
   const labelled = events.filter((event) => event.verdict === 'benign' || event.verdict === 'suspicious').length;
@@ -870,7 +947,7 @@ export function evaluate(events, alerts, scenarioCatalogue = []) {
   const catalogue = new Map(scenarioCatalogue.map((scenario) => [scenario.id, scenario]));
   const byId = new Map();
   const groups = new Map();
-  const groupOf = (event) => event.scenario ?? `unlabelled-${event.verdict}`;
+  const groupOf = (event) => event.scenario ?? `${UNLABELLED_PREFIX}${event.verdict}`;
   for (const event of events) {
     byId.set(event.id, event);
     const key = groupOf(event);
@@ -883,7 +960,7 @@ export function evaluate(events, alerts, scenarioCatalogue = []) {
     group.events += 1;
   }
   const byRule = {};
-  for (const ruleId of RULE_ORDER) byRule[ruleId] = { total: 0, truePositive: 0, falsePositive: 0 };
+  for (const ruleId of RULE_ORDER) byRule[ruleId] = { total: 0, truePositive: 0, truePositiveStrict: 0, falsePositive: 0 };
   const rows = alerts.map((alert) => {
     const scenarios = new Set();
     let truePositive = false;
@@ -893,19 +970,23 @@ export function evaluate(events, alerts, scenarioCatalogue = []) {
       scenarios.add(groupOf(event));
       if (event.verdict === 'suspicious') truePositive = true;
     }
-    const triggerGroup = groupOf(byId.get(alert.triggerEventId));
+    const trigger = byId.get(alert.triggerEventId);
+    const truePositiveStrict = trigger.verdict === 'suspicious';
+    const triggerGroup = groupOf(trigger);
     groups.get(triggerGroup).triggeredAlertIds.push(alert.id);
     byRule[alert.rule].total += 1;
     if (truePositive) byRule[alert.rule].truePositive += 1; else byRule[alert.rule].falsePositive += 1;
+    if (truePositiveStrict) byRule[alert.rule].truePositiveStrict += 1;
     for (const key of scenarios) {
       const group = groups.get(key);
       group.alertIds.push(alert.id);
       group.rules.add(alert.rule);
       if (!truePositive) group.falsePositiveAlertIds.push(alert.id);
     }
-    return { id: alert.id, rule: alert.rule, truePositive, scenarios: [...scenarios] };
+    return { id: alert.id, rule: alert.rule, truePositive, truePositiveStrict, triggerScenario: triggerGroup, scenarios: [...scenarios] };
   });
   const truePositive = rows.filter((row) => row.truePositive).length;
+  const truePositiveStrict = rows.filter((row) => row.truePositiveStrict).length;
   const falsePositive = rows.length - truePositive;
   const suspicious = [...groups.values()].filter((group) => group.verdict === 'suspicious');
   const benign = [...groups.values()].filter((group) => group.verdict === 'benign');
@@ -916,8 +997,9 @@ export function evaluate(events, alerts, scenarioCatalogue = []) {
   return {
     available: true,
     reason: null,
-    alerts: { total: rows.length, truePositive, falsePositive, rows, byRule },
+    alerts: { total: rows.length, truePositive, truePositiveStrict, falsePositive, rows, byRule },
     precision: rows.length > 0 ? truePositive / rows.length : null,
+    precisionStrict: rows.length > 0 ? truePositiveStrict / rows.length : null,
     recall: suspicious.length > 0 ? detected.length / suspicious.length : null,
     recallStrict: suspicious.length > 0 ? detectedStrict.length / suspicious.length : null,
     scenarios: {

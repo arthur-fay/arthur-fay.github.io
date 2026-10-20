@@ -16,9 +16,14 @@ import * as D from './detection.js';
 const SPEEDS = Object.freeze([1, 2, 5, 10, 20, 50, 100, 250, 500, 1000]); // events per second
 const PAGE_SIZE = 50;
 const MARK_LIMIT = 3000; // above this many events the timeline draws binned bars instead of one mark per event
+const SPAN_LIMIT = 3000; // at most this many alert spans are drawn
 const MAX_LANES = 16;
+const LANE_LABEL_CHARS = 17;
 const EVIDENCE_ROWS = 25;
+const ALERT_PAGE = 200; // alert buttons rendered per rule group before a "show more" control
+const CITED_LIMIT = 5;
 const DIFF_LIST_LIMIT = 12;
+const ALERT_RENDER_THROTTLE_MS = 250;
 const TEXTAREA_ECHO_LIMIT = 200 * 1024;
 const RULE_CLASS = Object.freeze({ repeatedFailures: 'is-r1', passwordSpray: 'is-r2', successAfterFailures: 'is-r3' });
 const FIELD_NAMES = Object.freeze({
@@ -35,6 +40,7 @@ const CONFIG_INPUTS = Object.freeze([
 const byId = (id) => document.getElementById(id);
 const dom = {
   datasetLabel: byId('dataset-label'),
+  evalPrecisionStrict: byId('eval-precision-strict'),
   stats: { events: byId('stat-events'), successes: byId('stat-successes'), failures: byId('stat-failures'), accounts: byId('stat-accounts'), sources: byId('stat-sources'), alerts: byId('stat-alerts') },
   play: byId('play'), pause: byId('pause'), step: byId('step'), reset: byId('reset'), skip: byId('skip'),
   speed: byId('speed'), speedValue: byId('speed-value'),
@@ -75,6 +81,8 @@ const state = {
   page: 0,
   timeline: null,
   timelineWidth: 0,
+  alertLimits: {},
+  alertsRenderTimer: 0,
 };
 
 /* ------------------------------------------------------------------ helpers */
@@ -121,10 +129,6 @@ function clear(node) {
 const rulePill = (ruleId) => el('span', { class: `rule-code ${RULE_CLASS[ruleId]}`, text: D.RULES[ruleId].code });
 const verdictPill = (verdict) => el('span', { class: `label-pill is-${verdict}`, text: verdict });
 const subjectText = (alert) => (alert.rule === 'successAfterFailures' ? `account ${alert.subject.account}` : `source ${alert.subject.source}`);
-const alertKeyLabel = (key) => {
-  const [rule, subject, trigger] = key.split('|');
-  return `${D.RULES[rule].code} · ${subject}${trigger ? ` (${trigger})` : ''}`;
-};
 
 /* ------------------------------------------------------------ thresholds */
 
@@ -168,9 +172,15 @@ function applyConfig(which, { announce = true } = {}) {
   const validation = D.validateConfig(readConfigFrom(prefix));
   showConfigErrors(which === 'B' ? dom.configErrorsB : dom.configErrors, prefix, validation.errors);
   if (!validation.ok) {
-    if (announce) setStatus(`${which === 'B' ? 'Threshold set B' : 'The thresholds'} contain${validation.errors.length === 1 ? 's' : ''} ${validation.errors.length} invalid value${validation.errors.length === 1 ? '' : 's'}; see the message under the fields. The previous valid values stay in force.`);
+    const n = validation.errors.length;
+    if (which === 'B' && state.compare) recompute({ reason: 'configB', announce: false }); // the comparison keeps showing the last valid set B
+    if (announce) setStatus(`${which === 'B' ? 'Threshold set B contains' : 'The thresholds contain'} ${n} invalid value${n === 1 ? '' : 's'}; see the message under the fields. The previous valid values stay in force.`);
     return false;
   }
+  // A change event that leaves the thresholds as they are (for example the blur after typing the same value) must not
+  // rebuild the page: a rebuild would, among other things, replace a button the visitor is in the middle of clicking.
+  const current = which === 'B' ? state.configB : state.configA;
+  if (D.configsEqual(validation.config, current) && (which === 'A' || state.resultB)) return true;
   if (which === 'B') state.configB = validation.config; else state.configA = validation.config;
   recompute({ reason: which === 'B' ? 'configB' : 'configA', announce });
   return true;
@@ -213,7 +223,7 @@ function loadImported(events, labelled) {
  * same alert (by rule and subject) still exists under the new thresholds.
  */
 function recompute({ reason, announce }) {
-  const previousKey = state.selectedAlertId && state.result ? D.alertKey(state.result.alerts.find((a) => a.id === state.selectedAlertId)) : null;
+  const previousAlert = state.selectedAlertId && state.result ? state.result.alerts.find((a) => a.id === state.selectedAlertId) : null;
   state.result = D.detect(state.dataset.events, state.configA);
   state.evaluation = D.evaluate(state.result.events, state.result.alerts, state.dataset.scenarios);
   state.eventsById = new Map(state.result.events.map((e) => [e.id, e]));
@@ -234,6 +244,7 @@ function recompute({ reason, announce }) {
   const n = state.result.events.length;
   if (reason === 'dataset') {
     stopPlayback();
+    state.alertLimits = {};
     state.cursor = n;
     state.filters = { outcome: 'all', account: '', source: '', verdict: 'all', flaggedOnly: false, ids: null, idsLabel: '' };
     syncFilterInputs();
@@ -242,7 +253,7 @@ function recompute({ reason, announce }) {
   } else {
     state.cursor = Math.min(state.cursor, n);
     if (state.filters.ids) state.filters = { ...state.filters, ids: null, idsLabel: '' };
-    state.selectedAlertId = previousKey ? (state.result.alerts.find((a) => D.alertKey(a) === previousKey)?.id ?? null) : null;
+    state.selectedAlertId = previousAlert ? (D.findCounterpart(previousAlert, state.result.alerts)?.id ?? null) : null;
   }
   dom.datasetLabel.textContent = describeSource();
   dom.filterVerdict.disabled = !(state.evaluation && state.evaluation.available);
@@ -281,7 +292,9 @@ const AXIS_H = 26;
 const LANE_H = 20;
 const PAD_B = 8;
 const MIN_W = 560;
-const TICK_STEPS = [60, 120, 300, 600, 900, 1800, 3600, 7200, 10800, 21600, 43200, 86400];
+const DAY = 86400;
+const TICK_STEPS = [60, 120, 300, 600, 900, 1800, 3600, 7200, 10800, 21600, 43200, DAY, 2 * DAY, 7 * DAY, 14 * DAY, 30 * DAY, 91 * DAY, 182 * DAY, 365 * DAY, 730 * DAY, 1826 * DAY, 3652 * DAY, 7305 * DAY, 36525 * DAY];
+const SPAN_SHAPES = Object.freeze({ repeatedFailures: { top: 1, height: LANE_H - 2, font: 9 }, passwordSpray: { top: 1, height: LANE_H / 2 - 1, font: 8 }, successAfterFailures: { top: LANE_H / 2, height: LANE_H / 2 - 1, font: 8 } });
 
 function chooseLanes(events, alerts) {
   const counts = new Map();
@@ -305,8 +318,8 @@ function chooseLanes(events, alerts) {
 
 function chooseTickStep(spanMs, plotW) {
   const maxTicks = Math.max(3, Math.floor(plotW / 84));
-  for (const step of TICK_STEPS) if (spanMs / (step * 1000) <= maxTicks) return step * 1000;
-  return TICK_STEPS[TICK_STEPS.length - 1] * 1000;
+  for (const step of TICK_STEPS) if (spanMs / (step * 1000) <= maxTicks) return { stepMs: step * 1000, maxTicks };
+  return { stepMs: Math.ceil(spanMs / maxTicks), maxTicks }; // never more than maxTicks ticks, whatever the span
 }
 
 function buildTimeline() {
@@ -344,7 +357,10 @@ function buildTimeline() {
     const y = AXIS_H + i * LANE_H;
     if (i % 2 === 0) svg.append(svgEl('rect', { x: plotX, y, width: plotW, height: LANE_H, class: 'tl-lane-bg' }));
     const label = svgEl('text', { x: LABEL_W - 8, y: y + LANE_H / 2 + 3.5, 'text-anchor': 'end', class: 'tl-lane-label' });
-    label.textContent = lane.label;
+    label.textContent = lane.label.length > LANE_LABEL_CHARS ? `…${lane.label.slice(-(LANE_LABEL_CHARS - 1))}` : lane.label;
+    const full = svgEl('title');
+    full.textContent = lane.label;
+    label.append(full);
     svg.append(label);
   });
   // Axis.
@@ -352,13 +368,14 @@ function buildTimeline() {
   const dateText = svgEl('text', { x: 8, y: 16, class: 'tl-date' });
   dateText.textContent = `${date} UTC`;
   svg.append(dateText);
-  const step = chooseTickStep(t1 - t0, plotW);
-  const firstTick = Math.ceil(t0 / step) * step;
-  for (let tick = firstTick; tick <= t1; tick += step) {
+  const { stepMs, maxTicks } = chooseTickStep(t1 - t0, plotW);
+  const firstTick = Math.ceil(t0 / stepMs) * stepMs;
+  const dateTicks = stepMs >= DAY * 1000;
+  for (let tick = firstTick, count = 0; tick <= t1 && count <= maxTicks; tick += stepMs, count += 1) {
     const x = scale(tick);
     svg.append(svgEl('line', { x1: x, y1: AXIS_H - 4, x2: x, y2: height - PAD_B, class: 'tl-grid' }));
     const label = svgEl('text', { x, y: 16, 'text-anchor': 'middle', class: 'tl-axis-label' });
-    label.textContent = D.formatUtc(tick, { date: false }).slice(0, 5);
+    label.textContent = dateTicks ? D.formatUtc(tick).slice(0, 10) : D.formatUtc(tick, { date: false }).slice(0, 5);
     svg.append(label);
   }
   // Events.
@@ -415,14 +432,15 @@ function buildTimeline() {
       }
     });
   }
-  // Alert spans (one per alert, on the lane of the subject source).
+  // Alert spans on the lane of the subject source: R1 fills the lane, R2 its upper half, R3 its lower half, so overlapping alerts stay visible.
   const spans = [];
-  for (const alert of alerts) {
+  for (const alert of alerts.slice(0, SPAN_LIMIT)) {
     const lane = laneOf.get(alert.subject.source);
+    const shape = SPAN_SHAPES[alert.rule];
     const x1 = scale(alert.firstTs);
     const x2 = Math.max(x1 + 3, scale(alert.lastTs));
-    const y = AXIS_H + lane * LANE_H + 1;
-    const rect = svgEl('rect', { x: x1.toFixed(2), y, width: (x2 - x1).toFixed(2), height: LANE_H - 2, class: `tl-alert ${RULE_CLASS[alert.rule]}`, 'data-alert': alert.id });
+    const y = AXIS_H + lane * LANE_H + shape.top;
+    const rect = svgEl('rect', { x: x1.toFixed(2), y, width: (x2 - x1).toFixed(2), height: shape.height, class: `tl-alert ${RULE_CLASS[alert.rule]}`, 'data-alert': alert.id });
     const title = svgEl('title');
     title.textContent = `${alert.id} (${D.RULES[alert.rule].code}): ${D.explainAlert(alert).headline}`;
     rect.append(title);
@@ -430,7 +448,7 @@ function buildTimeline() {
     svg.append(rect);
     let code = null;
     if (x2 - x1 >= 30) {
-      code = svgEl('text', { x: (x1 + 4).toFixed(2), y: y + LANE_H / 2 + 2.5, class: 'tl-alert-code' });
+      code = svgEl('text', { x: (x1 + 4).toFixed(2), y: (y + shape.height / 2 + shape.font / 2 - 1).toFixed(2), class: `tl-alert-code${shape.font < 9 ? ' is-small' : ''}` });
       code.textContent = alert.id;
       svg.append(code);
     }
@@ -478,7 +496,8 @@ function updateTimelineSummary() {
   const position = state.cursor >= events.length ? 'all events are shown' : `${formatInt(state.cursor)} of ${formatInt(events.length)} events replayed, ${formatInt(visibleAlerts)} alert${visibleAlerts === 1 ? '' : 's'} so far`;
   const sameDay = D.formatUtc(tl.t0).slice(0, 10) === D.formatUtc(tl.t1).slice(0, 10);
   const span = sameDay ? `from ${timeOnly(tl.t0)} to ${timeOnly(tl.t1)} on ${D.formatUtc(tl.t0).slice(0, 10)}` : `from ${D.formatUtc(tl.t0)} to ${D.formatUtc(tl.t1)}`;
-  const text = `Timeline of ${formatInt(events.length)} ${state.source.kind === 'import' ? 'imported' : 'synthetic'} events ${span}, one lane per source (${formatInt(tl.sourcesShown)} of ${formatInt(tl.sourcesTotal)} sources shown individually${tl.sourcesTotal > tl.sourcesShown ? ', the rest aggregated in the last lane' : ''}). ${tl.binned ? 'Events are binned into stacked bars because there are many of them; the hatched upper part of a bar is its failures.' : `Marks: ${formatInt(summary.successes)} successes (short marks) and ${formatInt(summary.failures)} failures (tall marks).`} Alert spans: ${formatInt(alerts.length)} (${byRule}). Replay position: ${position}.`;
+  const spanNote = alerts.length > SPAN_LIMIT ? ` (only the first ${formatInt(SPAN_LIMIT)} spans are drawn)` : '';
+  const text = `Timeline of ${formatInt(events.length)} ${state.source.kind === 'import' ? 'imported' : 'synthetic'} events ${span}, one lane per source (${formatInt(tl.sourcesShown)} of ${formatInt(tl.sourcesTotal)} sources shown individually${tl.sourcesTotal > tl.sourcesShown ? ', the rest aggregated in the last lane' : ''}). ${tl.binned ? 'Events are binned into stacked bars because there are many of them; the hatched upper part of a bar is its failures.' : `Marks: ${formatInt(summary.successes)} successes (short marks) and ${formatInt(summary.failures)} failures (tall marks).`} Alert spans: ${formatInt(alerts.length)} (${byRule})${spanNote}; R1 spans fill a lane, R2 spans its upper half and R3 spans its lower half. Replay position: ${position}.`;
   dom.timelineSummary.textContent = text;
   tl.svg.setAttribute('aria-label', text);
 }
@@ -520,14 +539,30 @@ function setCursor(next) {
         renderDetail();
       }
     }
-    renderAlerts();
+    scheduleAlertsRender();
   }
   updateTimelineSummary();
+}
+
+/** During playback the alert list is rebuilt at most a few times per second; otherwise immediately. */
+function scheduleAlertsRender() {
+  if (state.playback.status !== 'playing') {
+    clearTimeout(state.alertsRenderTimer);
+    state.alertsRenderTimer = 0;
+    renderAlerts();
+    return;
+  }
+  if (state.alertsRenderTimer) return;
+  state.alertsRenderTimer = setTimeout(() => {
+    state.alertsRenderTimer = 0;
+    renderAlerts();
+  }, ALERT_RENDER_THROTTLE_MS);
 }
 
 function stopPlayback() {
   cancelAnimationFrame(state.playback.rafId);
   state.playback = { status: 'idle', rafId: 0, lastTs: null, carry: 0 };
+  if (state.alertsRenderTimer) scheduleAlertsRender();
 }
 
 function play() {
@@ -546,7 +581,7 @@ function play() {
 function frame(timestamp) {
   const playback = state.playback;
   if (playback.status !== 'playing') return;
-  const dt = playback.lastTs === null ? 1000 / 60 : Math.min(100, timestamp - playback.lastTs);
+  const dt = playback.lastTs === null ? 1000 / 60 : Math.min(250, timestamp - playback.lastTs); // a hidden tab never produces one giant jump
   playback.lastTs = timestamp;
   playback.carry += (dt * SPEEDS[state.speed - 1]) / 1000;
   const budget = Math.floor(playback.carry);
@@ -571,6 +606,7 @@ function pause() {
   if (state.playback.status !== 'playing') return;
   cancelAnimationFrame(state.playback.rafId);
   state.playback.status = 'paused';
+  if (state.alertsRenderTimer) scheduleAlertsRender();
   setStatus(`Paused after ${formatInt(state.cursor)} of ${formatInt(state.result.events.length)} events. Resume, step one event at a time, or reset.`);
   updateButtons();
 }
@@ -591,6 +627,7 @@ function step() {
   if (state.playback.status === 'playing') {
     cancelAnimationFrame(state.playback.rafId);
     state.playback.status = 'paused';
+    if (state.alertsRenderTimer) scheduleAlertsRender();
   }
   if (state.cursor >= n) {
     updateButtons();
@@ -668,11 +705,23 @@ function renderAlerts() {
     if (group.total === 0) {
       section.append(el('p', { class: 'alert-rule-empty', text: state.configA[group.rule].enabled ? 'No alerts from this rule.' : 'Rule disabled.' }));
     }
+    const limit = state.alertLimits[group.rule] ?? ALERT_PAGE;
+    let rendered = 0;
+    let remaining = 0;
     for (const subject of group.groups) {
+      if (rendered >= limit) {
+        remaining += subject.alerts.length;
+        continue;
+      }
       const block = el('div', { class: 'alert-subject' });
       block.append(el('p', { class: 'alert-subject-label' }, [`${D.RULES[group.rule].subject === 'account' ? 'Account' : 'Source'} `, el('strong', { text: subject.label }), ` · ${formatInt(subject.alerts.length)} alert${subject.alerts.length === 1 ? '' : 's'}`]));
       const list = el('div', { class: 'alert-buttons' });
       for (const alert of subject.alerts) {
+        if (rendered >= limit) {
+          remaining += 1;
+          continue;
+        }
+        rendered += 1;
         const explanation = D.explainAlert(alert);
         const button = el('button', { type: 'button', class: `alert-button ${RULE_CLASS[alert.rule]}`, 'aria-pressed': String(alert.id === state.selectedAlertId), 'data-alert': alert.id });
         button.append(el('span', { class: 'alert-button-head' }, [el('span', { class: `rule-code ${RULE_CLASS[alert.rule]}`, text: alert.id }), explanation.headline]));
@@ -682,6 +731,17 @@ function renderAlerts() {
       }
       block.append(list);
       section.append(block);
+    }
+    if (remaining > 0) {
+      const more = el('button', { type: 'button', class: 'button button-outline button-small', text: `Show ${formatInt(Math.min(ALERT_PAGE, remaining))} more of ${formatInt(remaining)} remaining ${D.RULES[group.rule].code} alerts` });
+      more.addEventListener('click', () => {
+        state.alertLimits[group.rule] = limit + ALERT_PAGE;
+        renderAlerts();
+        const buttons = dom.alerts.querySelectorAll(`section[aria-labelledby="alerts-${group.rule}"] .alert-button`);
+        const target = buttons[Math.min(limit, buttons.length - 1)];
+        if (target) target.focus();
+      });
+      section.append(el('p', { class: 'alert-rule-empty', text: `${formatInt(rendered)} of ${formatInt(rendered + remaining)} alerts shown.` }), more);
     }
     dom.alerts.append(section);
   }
@@ -719,9 +779,9 @@ function groundTruthBlock(alert) {
   scenarios.forEach((scenario, k) => {
     p.append(el('strong', { text: `${scenario.id} ${scenario.title}` }), ' (', verdictPill(scenario.verdict), ')', k < scenarios.length - 1 ? ', ' : '. ');
   });
-  p.append(row.truePositive
-    ? 'By the lab’s definition this alert is a true positive because at least one cited event was planted as suspicious. That is a statement about the synthetic labels, not a proof that the rule would catch a real attack.'
-    : 'Every cited event was planted as benign, so by the lab’s definition this alert is a false positive: the rule saw a pattern that a benign scenario also produces.');
+  if (row.truePositive && row.truePositiveStrict) p.append('By the lab\u2019s definition this alert is a true positive, and a strict one: the event that triggered it was planted as suspicious. That is a statement about the synthetic labels, not a proof that the rule would catch a real attack.');
+  else if (row.truePositive) p.append('By the lab\u2019s definition this alert is a true positive because at least one cited event was planted as suspicious, but only leniently: the event that triggered it was planted as benign (typically a victim\u2019s own routine sign-in after an attack), so it does not count towards strict precision. That is a statement about the synthetic labels, not a proof that the rule would catch a real attack.');
+  else p.append('Every cited event was planted as benign, so by the lab\u2019s definition this alert is a false positive: the rule saw a pattern that a benign scenario also produces.');
   block.append(p);
   return block;
 }
@@ -836,7 +896,7 @@ function renderTable() {
     tr.append(el('td', { class: 'is-mono', text: event.source }));
     tr.append(el('td', { text: event.reason || '—' }));
     tr.append(el('td', {}, event.verdict ? [`${titles.get(event.scenario) ?? event.scenario ?? 'unlabelled'} `, verdictPill(event.verdict)] : ['—']));
-    tr.append(el('td', { class: cited.length ? 'is-cited is-mono' : 'is-mono', text: cited.length ? cited.join(', ') : '—' }));
+    tr.append(el('td', { class: cited.length ? 'is-cited is-mono' : 'is-mono', text: cited.length === 0 ? '—' : cited.length > CITED_LIMIT ? `${cited.slice(0, CITED_LIMIT).join(', ')} and ${formatInt(cited.length - CITED_LIMIT)} more` : cited.join(', ') }));
     dom.eventRows.append(tr);
   }
   const f = state.filters;
@@ -846,8 +906,13 @@ function renderTable() {
   else if (filtering) dom.tableStatus.textContent = `Showing ${formatInt(rows.length)} of ${formatInt(total)} events matching the filters.`;
   else dom.tableStatus.textContent = `Showing all ${formatInt(total)} events, ${PAGE_SIZE} per page.`;
   dom.pageStatus.textContent = rows.length === 0 ? 'Page 1 of 1' : `Page ${formatInt(state.page + 1)} of ${formatInt(pages)} · rows ${formatInt(start + 1)}–${formatInt(start + slice.length)} of ${formatInt(rows.length)}`;
+  const focused = document.activeElement;
   dom.pagePrev.disabled = state.page === 0;
   dom.pageNext.disabled = state.page >= pages - 1;
+  if ((focused === dom.pagePrev || focused === dom.pageNext) && focused.disabled) {
+    const other = focused === dom.pageNext ? dom.pagePrev : dom.pageNext;
+    (other.disabled ? dom.pageStatus : other).focus();
+  }
 }
 
 function readFilters() {
@@ -873,6 +938,7 @@ function renderEvaluation() {
     dom.evalUnavailable.hidden = false;
     dom.evalUnavailable.textContent = evaluation ? evaluation.reason : 'No evaluation available.';
     for (const key of Object.keys(dom.eval)) setStat(dom.eval[key], 'n/a', 'no ground truth');
+    setStat(dom.evalPrecisionStrict, 'n/a', 'no ground truth');
     dom.scenarioRows.append(el('tr', { class: 'is-empty' }, [el('td', { colspan: '7', text: 'No labelled scenarios to score.' })]));
     return;
   }
@@ -883,6 +949,7 @@ function renderEvaluation() {
   setStat(dom.eval.tp, formatInt(a.truePositive), 'alerts citing a suspicious event');
   setStat(dom.eval.fp, formatInt(a.falsePositive), 'alerts citing only benign events');
   setStat(dom.eval.precision, formatPercent(evaluation.precision), evaluation.precision === null ? 'undefined: no alerts were raised' : `${formatInt(a.truePositive)} of ${formatInt(a.total)} alerts`);
+  setStat(dom.evalPrecisionStrict, formatPercent(evaluation.precisionStrict), evaluation.precisionStrict === null ? 'undefined: no alerts were raised' : `${formatInt(a.truePositiveStrict)} of ${formatInt(a.total)} alerts triggered by a suspicious event`);
   setStat(dom.eval.recall, formatPercent(evaluation.recall), evaluation.recall === null ? 'undefined: no suspicious scenario in the data' : `${formatInt(s.suspicious.detected)} of ${formatInt(s.suspicious.total)} suspicious scenarios`);
   setStat(dom.eval.recallStrict, formatPercent(evaluation.recallStrict), evaluation.recallStrict === null ? 'undefined: no suspicious scenario in the data' : `${formatInt(s.suspicious.detectedStrict)} of ${formatInt(s.suspicious.total)} triggered an alert directly`);
   setStat(dom.eval.missed, formatInt(s.suspicious.missed.length), s.suspicious.missed.length ? s.suspicious.missed.join(', ') : 'no false negatives');
@@ -939,6 +1006,7 @@ function renderComparison() {
     rows.push(['True positives', number(evalA.alerts.truePositive), number(evalB.alerts.truePositive), delta(evalA.alerts.truePositive, evalB.alerts.truePositive)]);
     rows.push(['False positives', number(evalA.alerts.falsePositive), number(evalB.alerts.falsePositive), delta(evalA.alerts.falsePositive, evalB.alerts.falsePositive)]);
     rows.push(['Precision', percent(evalA.precision), percent(evalB.precision), delta(evalA.precision, evalB.precision, true)]);
+    rows.push(['Strict precision', percent(evalA.precisionStrict), percent(evalB.precisionStrict), delta(evalA.precisionStrict, evalB.precisionStrict, true)]);
     rows.push(['Recall', percent(evalA.recall), percent(evalB.recall), delta(evalA.recall, evalB.recall, true)]);
     rows.push(['Strict recall', percent(evalA.recallStrict), percent(evalB.recallStrict), delta(evalA.recallStrict, evalB.recallStrict, true)]);
     rows.push(['Missed scenarios', number(evalA.scenarios.suspicious.missed.length), number(evalB.scenarios.suspicious.missed.length), delta(evalA.scenarios.suspicious.missed.length, evalB.scenarios.suspicious.missed.length)]);
@@ -947,15 +1015,21 @@ function renderComparison() {
   for (const row of rows) dom.comparisonRows.append(el('tr', {}, row.map((text, k) => el(k === 0 ? 'th' : 'td', k === 0 ? { scope: 'row', text } : { text }))));
   const diff = D.diffAlerts(A.alerts, B.alerts);
   clear(dom.comparisonDiff);
-  for (const [title, keys] of [['Only under A', diff.onlyA], ['Only under B', diff.onlyB], ['Under both', diff.both]]) {
+  const describe = (alert) => `${alert.id} · ${D.RULES[alert.rule].code} · ${alert.rule === 'successAfterFailures' ? alert.subject.account : alert.subject.source} · ${timeOnly(alert.firstTs)} → ${timeOnly(alert.lastTs)}`;
+  const boxes = [
+    ['Only under A', `${formatInt(diff.onlyA.length)}`, diff.onlyA],
+    ['Only under B', `${formatInt(diff.onlyB.length)}`, diff.onlyB],
+    ['Under both (same rule, subject and overlapping span)', `${formatInt(diff.both.length)} A ↔ ${formatInt(diff.bothB.length)} B`, diff.both],
+  ];
+  for (const [title, count, list] of boxes) {
     const box = el('div');
-    box.append(el('h4', { text: `${title} · ${formatInt(keys.length)}` }));
-    if (keys.length === 0) box.append(el('p', { text: 'none' }));
+    box.append(el('h4', { text: `${title} · ${count}` }));
+    if (list.length === 0) box.append(el('p', { text: 'none' }));
     else {
-      const list = el('ul');
-      for (const key of keys.slice(0, DIFF_LIST_LIMIT)) list.append(el('li', { text: alertKeyLabel(key) }));
-      if (keys.length > DIFF_LIST_LIMIT) list.append(el('li', { text: `and ${formatInt(keys.length - DIFF_LIST_LIMIT)} more` }));
-      box.append(list);
+      const ul = el('ul');
+      for (const alert of list.slice(0, DIFF_LIST_LIMIT)) ul.append(el('li', { text: describe(alert) }));
+      if (list.length > DIFF_LIST_LIMIT) ul.append(el('li', { text: `and ${formatInt(list.length - DIFF_LIST_LIMIT)} more` }));
+      box.append(ul);
     }
     dom.comparisonDiff.append(box);
   }
@@ -986,7 +1060,9 @@ function importFromText(text, origin) {
   }
   loadImported(result.events, result.labelled);
   showImportResult('ok', `Loaded ${formatInt(result.events.length)} event${result.events.length === 1 ? '' : 's'} from the ${origin}${result.labelled ? ' with ground-truth labels, so the evaluation section scores them' : ' without labels, so the evaluation section reports the scores as unavailable'}. The data stays in this page only.`);
+  dom.importFile.value = ''; // so that choosing the same file again fires a change event
   byId('lab').scrollIntoView({ block: 'start' });
+  dom.datasetLabel.focus({ preventScroll: true });
 }
 
 function onImportFile() {
@@ -1090,9 +1166,12 @@ function bindControls() {
   });
   dom.compare.addEventListener('change', () => {
     state.compare = dom.compare.checked;
+    dom.compareFields.hidden = !state.compare;
     if (state.compare) {
-      applyConfig('B', { announce: false });
-      setStatus(`Comparison mode on: set B runs on the same ${formatInt(state.result.events.length)} events; see the comparison table in the Evaluation section.`);
+      const valid = applyConfig('B', { announce: false });
+      setStatus(valid
+        ? `Comparison mode on: set B runs on the same ${formatInt(state.result.events.length)} events; see the comparison table in the Evaluation section.`
+        : 'Comparison mode on, but set B contains invalid values: the comparison uses the last valid set B until they are fixed (see the messages under the B fields).');
     } else {
       recompute({ reason: 'configA', announce: false });
       setStatus('Comparison mode off.');
@@ -1149,6 +1228,7 @@ function init() {
   updateSpeedLabel();
   writeConfigTo('', D.DEFAULT_CONFIG);
   writeConfigTo('b-', D.DEFAULT_CONFIG);
+  dom.compare.checked = false; // browsers may restore form state across reloads; the page state starts from scratch
   renderCatalogue();
   updatePresetHint();
   bindControls();

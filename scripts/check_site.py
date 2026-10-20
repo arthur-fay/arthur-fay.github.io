@@ -239,9 +239,9 @@ def main() -> None:
     assert "document." not in pure and "window." not in pure, "pathfinding.js must stay free of DOM access"
     sec_app = (ROOT / SEC_DIR / "app.js").read_text(encoding="utf-8")
     assert "from './detection.js'" in sec_app, "security app.js must import the pure engine module"
-    for token in ("localStorage", "sessionStorage", "indexedDB", "navigator.sendBeacon", "import("):
-        assert token not in sec_app, f"security app.js must not persist or transmit event data: {token}"
     sec_pure = (ROOT / SEC_DIR / "detection.js").read_text(encoding="utf-8")
+    for token in ("localStorage", "sessionStorage", "indexedDB", "navigator.sendBeacon", "import("):
+        assert token not in sec_app and token not in sec_pure, f"the security lab must not persist or transmit event data: {token}"
     assert "document." not in sec_pure and "window." not in sec_pure, "detection.js must stay free of DOM access"
     assert "203.0.113." in sec_pure and "198.51.100." in sec_pure and "192.0.2." in sec_pure, "the engine must generate only RFC 5737 documentation addresses"
 

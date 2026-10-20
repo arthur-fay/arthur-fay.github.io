@@ -111,8 +111,11 @@ describe('ground truth versus detector output (synthetic scenarios only)', () =>
       assert.ok(run.evaluation.available);
       assert.ok(run.evaluation.precision >= 0 && run.evaluation.precision <= 1);
       assert.ok(run.evaluation.recall >= 0 && run.evaluation.recall <= 1);
-      assert.ok(run.evaluation.alerts.falsePositive >= 2, `seed ${seed}: the two benign look-alikes count as false positives`);
-      assert.ok(run.evaluation.scenarios.benign.flagged.length >= 2);
+      const rows = Object.fromEntries(run.evaluation.scenarios.rows.map((row) => [row.kind, row]));
+      assert.ok(run.evaluation.scenarios.benign.flagged.includes(rows['misconfigured-client'].id), `seed ${seed}: the misconfigured client is always a false positive (its source fails on its own)`);
+      const forgetfulAlerts = run.evaluation.alerts.rows.filter((row) => rows['forgetful-user'].triggeredAlertIds.includes(row.id));
+      assert.ok(forgetfulAlerts.every((row) => !row.truePositiveStrict), `seed ${seed}: the forgetful user's own sign-in never counts as a strict true positive`);
+      assert.ok(run.evaluation.precisionStrict <= run.evaluation.precision);
     }
     assert.ok(sprays >= 15, `R2 catches the spray in ${sprays} of 20 seeds`);
   });
@@ -310,6 +313,21 @@ describe('strict import validation', () => {
     assert.equal(code.events[0].reason, 'alert(1)');
   });
 
+  it('exports every preset within the import limits and re-imports it with identical alerts', () => {
+    for (const preset of Object.keys(D.PRESETS)) {
+      const dataset = D.generateDataset({ seed: 42, preset });
+      const text = D.serialiseEvents(dataset.events, { generated: { seed: 42, preset } });
+      const bytes = new TextEncoder().encode(text).byteLength;
+      assert.ok(bytes <= D.LIMITS.maxImportBytes, `${preset}: ${bytes} bytes exceed the import limit`);
+      const imported = D.parseImport(text);
+      assert.ok(imported.ok, `${preset}: ${JSON.stringify(imported.errors.slice(0, 2))}`);
+      assert.deepEqual(D.detect(imported.events).alerts, D.detect(dataset.events).alerts, `${preset}: alerts survive the round trip`);
+    }
+    const full = Array.from({ length: D.LIMITS.maxEvents }, (_, k) => ({ id: `e-${k}`, ts: Date.UTC(2026, 2, 2) + k * 1000, outcome: k % 3 ? 'failure' : 'success', account: `u-${k % 500}`, source: `203.0.113.${1 + (k % 254)}`, reason: k % 3 ? 'bad_password' : '', scenario: 'spray-sweep-scenario', verdict: 'suspicious' }));
+    const bytes = new TextEncoder().encode(D.serialiseEvents(full)).byteLength;
+    assert.ok(bytes <= D.LIMITS.maxImportBytes, `the maximum number of events (${D.LIMITS.maxEvents}) fits the byte limit (${bytes} bytes)`);
+  });
+
   it('round-trips a generated dataset through export and import with identical detection results', () => {
     const dataset = D.generateDataset({ seed: 17, preset: 'mixed' });
     const text = D.serialiseEvents(dataset.events, { generated: { seed: 17, preset: 'mixed' } });
@@ -319,6 +337,7 @@ describe('strict import validation', () => {
     assert.deepEqual(parsed.generated, { seed: 17, preset: 'mixed' });
     assert.equal(parsed.events.length, dataset.events.length);
     assert.ok(parsed.events.every((e) => e.ts === undefined && typeof e.time === 'string'));
+    assert.ok(text.split('\n').length >= dataset.events.length, 'one event per line');
     const imported = D.parseImport(text);
     assert.ok(imported.ok, JSON.stringify(imported.errors));
     assert.equal(imported.labelled, true);

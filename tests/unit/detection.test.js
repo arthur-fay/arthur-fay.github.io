@@ -79,12 +79,23 @@ function referenceR2Triggers(sorted, accounts, windowSeconds) {
   return out;
 }
 
-/** Ids of success events preceded (earlier in order, inclusive window) by ≥ F failures for the account (R3). */
+/**
+ * Ids of success events that open an R3 episode: preceded (earlier in order,
+ * inclusive window) by ≥ F failures for the account, and not absorbed into an
+ * open episode (a previous episode success within W seconds).
+ */
 function referenceR3Triggers(sorted, failures, windowSeconds, scope) {
   const out = [];
+  const lastEpisodeSuccess = new Map();
   for (let i = 0; i < sorted.length; i += 1) {
     const e = sorted[i];
     if (e.outcome !== 'success') continue;
+    const open = lastEpisodeSuccess.get(e.account);
+    if (open !== undefined && e.ts - open <= windowSeconds * 1000) {
+      lastEpisodeSuccess.set(e.account, e.ts); // absorbed into the open episode
+      continue;
+    }
+    lastEpisodeSuccess.delete(e.account);
     let count = 0;
     for (let j = 0; j < i; j += 1) {
       const f = sorted[j];
@@ -92,7 +103,10 @@ function referenceR3Triggers(sorted, failures, windowSeconds, scope) {
       if (scope === 'source' && f.source !== e.source) continue;
       count += 1;
     }
-    if (count >= failures) out.push(e.id);
+    if (count >= failures) {
+      out.push(e.id);
+      lastEpisodeSuccess.set(e.account, e.ts);
+    }
   }
   return out;
 }
@@ -116,14 +130,30 @@ function assertAlertsAgreeWithReference(result) {
     assert.ok(alert.windowStart <= alert.windowEnd && alert.windowEnd === alert.triggerTs && alert.triggerTs <= alert.lastTs, `${alert.id}: window ordering`);
     if (alert.rule === 'successAfterFailures') {
       assert.equal(trigger.outcome, 'success');
-      assert.equal(alert.evidence[alert.evidence.length - 1], alert.triggerEventId, 'the success is the last evidence event');
-      const failures = alert.evidence.slice(0, -1).map((id) => byId.get(id));
-      assert.ok(failures.every((f) => f.outcome === 'failure' && f.account === trigger.account && f.index < trigger.index && f.ts >= trigger.ts - config.successAfterFailures.windowSeconds * 1000));
+      const w = config.successAfterFailures.windowSeconds * 1000;
+      const m = alert.metrics;
+      assert.equal(alert.evidence[m.failureCount], alert.triggerEventId, 'the trigger success follows the failures of its window');
+      const failures = alert.evidence.slice(0, m.failureCount).map((id) => byId.get(id));
+      assert.ok(failures.every((f) => f.outcome === 'failure' && f.account === trigger.account && f.index < trigger.index && f.ts >= trigger.ts - w));
       if (config.successAfterFailures.scope === 'source') assert.ok(failures.every((f) => f.source === trigger.source));
-      assert.equal(alert.metrics.failureCount, failures.length);
       assert.ok(failures.length >= config.successAfterFailures.failures);
-      assert.equal(alert.metrics.sameSource, failures.filter((f) => f.source === trigger.source).length);
-      assert.equal(alert.metrics.distinctSources, new Set(failures.map((f) => f.source)).size);
+      assert.equal(m.sameSource, failures.filter((f) => f.source === trigger.source).length);
+      assert.equal(m.distinctSources, new Set(failures.map((f) => f.source)).size);
+      const later = alert.evidence.slice(m.failureCount + 1).map((id) => byId.get(id));
+      let lastSuccessTs = trigger.ts;
+      const successSources = new Set([trigger.source]);
+      let successCount = 1;
+      let laterFailures = 0;
+      for (const e of later) {
+        assert.equal(e.account, trigger.account, `${alert.id}: absorbed events belong to the account`);
+        assert.ok(e.index > trigger.index && e.ts - lastSuccessTs <= w, `${alert.id}: absorbed events arrive within W of the previous success`);
+        if (e.outcome === 'success') { successCount += 1; successSources.add(e.source); lastSuccessTs = e.ts; } else laterFailures += 1;
+      }
+      assert.equal(m.successCount, successCount);
+      assert.equal(m.laterFailures, laterFailures);
+      assert.equal(m.lastSuccessTs, lastSuccessTs);
+      assert.deepEqual(m.successSources, [...successSources].sort());
+      assert.equal(m.total, alert.evidence.length);
     } else {
       assert.equal(trigger.outcome, 'failure');
       const rule = config[alert.rule];
@@ -168,7 +198,9 @@ function assertAlertsAgreeWithReference(result) {
   if (config.successAfterFailures.enabled) {
     const ref = referenceR3Triggers(events, config.successAfterFailures.failures, config.successAfterFailures.windowSeconds, config.successAfterFailures.scope).sort();
     const triggers = alerts.filter((a) => a.rule === 'successAfterFailures').map((a) => a.triggerEventId).sort();
-    assert.deepEqual(triggers, ref, 'R3 alerts are exactly the successes that satisfy the definition');
+    assert.deepEqual(triggers, ref, 'R3 alerts are exactly the successes that open an episode under the definition');
+    const cited = alerts.filter((a) => a.rule === 'successAfterFailures').reduce((n, a) => n + a.evidence.length, 0);
+    assert.ok(cited <= 2 * events.length, 'R3 evidence stays linear in the number of events');
   }
   // Alert ids and ordering follow the trigger order, then the rule order.
   alerts.forEach((alert, k) => {
@@ -475,13 +507,39 @@ describe('R3: success following repeated failures', () => {
     assert.equal(D.detect(after.events, R3(3, 600)).alerts.length, 0);
   });
 
-  it('raises one alert per qualifying success and never consumes failures', () => {
+  it('absorbs further successes and failures of the account into one episode and closes after a pause longer than W', () => {
     const b = builder();
-    b.fail(0); b.fail(10); b.fail(20); b.ok(30); b.ok(40);
+    b.fail(0); b.fail(10); b.fail(20); b.ok(30); b.ok(40, 'u-a', SRC_B);
     const { alerts } = D.detect(b.events, R3(3, 600));
-    assert.equal(alerts.length, 2);
-    assert.deepEqual(alerts.map((a) => a.triggerEventId), ['e4', 'e5']);
-    assert.deepEqual(ids(alerts[1]), ['e1', 'e2', 'e3', 'e5']);
+    assert.equal(alerts.length, 1, 'a second success ten seconds later is the same incident');
+    assert.equal(alerts[0].triggerEventId, 'e4');
+    assert.deepEqual(ids(alerts[0]), ['e1', 'e2', 'e3', 'e4', 'e5']);
+    assert.equal(alerts[0].metrics.successCount, 2);
+    assert.equal(alerts[0].metrics.lastSuccessTs, at(40));
+    assert.equal(alerts[0].lastTs, at(40));
+    assert.deepEqual(alerts[0].metrics.successSources, [SRC_A, SRC_B]);
+    assert.deepEqual(alerts[0].subject, { account: 'u-a', source: SRC_A }, 'the subject source is the source of the first success');
+    assert.match(D.explainAlert(alerts[0]).detail, /signed in successfully 1 more time, each within 10 min of the previous success, until 2026-03-02 08:00:40 UTC; the successes came from 2 distinct sources/);
+    const c = builder();
+    c.fail(0); c.fail(10); c.fail(20); c.ok(30); // e1–e4: the episode opens
+    c.fail(100); // e5: absorbed, 70 s after the success
+    c.ok(500); // e6: absorbed, 470 s after the previous success
+    c.ok(1200); // e7: 700 s later: the episode is closed and the window [600, 1200] holds no failure
+    c.fail(1300); c.fail(1310); c.fail(1320); c.ok(1330); // e8–e11: a new episode
+    const result = D.detect(c.events, R3(3, 600)).alerts;
+    assert.equal(result.length, 2);
+    assert.deepEqual(ids(result[0]), ['e1', 'e2', 'e3', 'e4', 'e5', 'e6']);
+    assert.equal(result[0].metrics.laterFailures, 1);
+    assert.equal(result[0].metrics.successCount, 2);
+    assert.equal(result[0].metrics.failureCount, 3, 'the count at trigger time is kept');
+    assert.match(D.explainAlert(result[0]).detail, /with 1 further failure in between; all from the same source/);
+    assert.deepEqual(ids(result[1]), ['e8', 'e9', 'e10', 'e11']);
+    assert.equal(result[1].id, 'A-2');
+    const d = builder();
+    d.fail(0); d.fail(10); d.fail(20); d.ok(30); d.fail(631); d.fail(632); d.fail(633); d.ok(634);
+    const closedByFailure = D.detect(d.events, R3(3, 600)).alerts;
+    assert.equal(closedByFailure.length, 2, 'a failure more than W after the last success closes the episode; the next qualifying success opens a new one');
+    assert.deepEqual(ids(closedByFailure[1]), ['e5', 'e6', 'e7', 'e8']);
     const reset = builder();
     reset.fail(0); reset.fail(10); reset.ok(20); reset.fail(30); reset.ok(40);
     const second = D.detect(reset.events, R3(3, 600)).alerts;
@@ -676,10 +734,14 @@ describe('evaluation metrics', () => {
     assert.equal(evaluation.recallStrict, 0.5);
     assert.deepEqual(evaluation.scenarios.benign, { total: 2, flagged: ['ben-1'] });
     assert.deepEqual(evaluation.alerts.byRule, {
-      repeatedFailures: { total: 1, truePositive: 1, falsePositive: 0 },
-      passwordSpray: { total: 0, truePositive: 0, falsePositive: 0 },
-      successAfterFailures: { total: 2, truePositive: 1, falsePositive: 1 },
+      repeatedFailures: { total: 1, truePositive: 1, truePositiveStrict: 1, falsePositive: 0 },
+      passwordSpray: { total: 0, truePositive: 0, truePositiveStrict: 0, falsePositive: 0 },
+      successAfterFailures: { total: 2, truePositive: 1, truePositiveStrict: 0, falsePositive: 1 },
     });
+    assert.equal(evaluation.alerts.truePositiveStrict, 1, 'only the R1 alert was triggered by an attack event');
+    assert.ok(Math.abs(evaluation.precisionStrict - 1 / 3) < 1e-12);
+    const lenient = evaluation.alerts.rows.find((row) => row.id === 'A-2');
+    assert.deepEqual([lenient.truePositive, lenient.truePositiveStrict, lenient.triggerScenario], [true, false, 'routine'], 'the victim\'s routine login is a lenient true positive only');
     const rows = Object.fromEntries(evaluation.scenarios.rows.map((row) => [row.id, row]));
     assert.equal(rows['atk-1'].title, 'Brute force', 'catalogue titles are used');
     assert.equal(rows['atk-1'].kind, 'brute-force');
@@ -702,6 +764,7 @@ describe('evaluation metrics', () => {
     const evaluation = D.evaluate(none.events, none.alerts);
     assert.equal(evaluation.available, true);
     assert.equal(evaluation.precision, null, 'no alerts: precision undefined');
+    assert.equal(evaluation.precisionStrict, null);
     assert.equal(evaluation.recall, null, 'no suspicious scenario: recall undefined');
     assert.deepEqual(evaluation.scenarios.suspicious, { total: 0, detected: 0, detectedStrict: 0, missed: [] });
     assert.equal(evaluation.recallStrict, null);
@@ -733,8 +796,14 @@ describe('evaluation metrics', () => {
     b.ok(100, 'u-b', SRC_A, { verdict: 'benign' });
     const result = D.detect(b.events);
     const evaluation = D.evaluate(result.events, result.alerts);
-    assert.deepEqual(evaluation.scenarios.rows.map((r) => r.id).sort(), ['unlabelled-benign', 'unlabelled-suspicious']);
+    assert.deepEqual(evaluation.scenarios.rows.map((r) => r.id).sort(), [`${D.UNLABELLED_PREFIX}benign`, `${D.UNLABELLED_PREFIX}suspicious`]);
     assert.equal(evaluation.recall, 1);
+    assert.ok(!/^[\x20-\x7E]*$/.test(D.UNLABELLED_PREFIX), 'the pseudo-scenario key cannot be a valid scenario name');
+    const collision = builder();
+    collision.ok(0, 'u-a', SRC_A, { scenario: 'unlabelled benign', verdict: 'benign' });
+    collision.ok(1, 'u-b', SRC_A, { verdict: 'benign' });
+    const c = D.detect(collision.events);
+    assert.equal(D.evaluate(c.events, c.alerts).scenarios.rows.length, 2, 'a scenario named like the pseudo scenario stays separate');
     assert.throws(() => D.evaluate(result.events, [{ ...result.alerts[0], evidence: ['ghost'] }]), /unknown event/);
   });
 });
@@ -754,27 +823,45 @@ describe('grouping and comparison helpers', () => {
     assert.equal(groups[2].groups[0].label, 'u-x');
     assert.equal(D.subjectKey(alerts[0]), `source:${SRC_A}`);
     assert.equal(D.subjectKey(alerts[alerts.length - 1]), 'account:u-x');
-    assert.equal(D.alertKey(alerts[alerts.length - 1]), `successAfterFailures|u-x|${alerts[alerts.length - 1].triggerEventId}`);
+    assert.equal(D.alertKey(alerts[alerts.length - 1]), 'successAfterFailures|account:u-x');
   });
 
-  it('diffs alert identities between two threshold configurations', () => {
+  it('matches alerts across threshold configurations by incident (rule, subject and overlapping span)', () => {
     const b = builder();
     for (const s of [0, 10, 20, 30]) b.fail(s, 'u-a', SRC_A);
     for (const s of [0, 1, 2, 3, 4, 5]) b.fail(s, `u-${s}`, SRC_B);
     const strict = D.detect(b.events, { repeatedFailures: { threshold: 5 }, passwordSpray: { accounts: 5 } }).alerts;
     const loose = D.detect(b.events, { repeatedFailures: { threshold: 4 }, passwordSpray: { accounts: 7 } }).alerts;
     const diff = D.diffAlerts(strict, loose);
-    assert.deepEqual(diff.both, [`repeatedFailures|${SRC_B}`]);
-    assert.deepEqual(diff.onlyA, [`passwordSpray|${SRC_B}`]);
-    assert.deepEqual(diff.onlyB, [`repeatedFailures|${SRC_A}`]);
-    assert.deepEqual(D.diffAlerts([], []), { onlyA: [], onlyB: [], both: [] });
+    assert.deepEqual(diff.both.map((a) => [a.rule, a.subject.source]), [['repeatedFailures', SRC_B]]);
+    assert.deepEqual(diff.bothB.map((a) => [a.rule, a.subject.source]), [['repeatedFailures', SRC_B]]);
+    assert.deepEqual(diff.onlyA.map((a) => [a.rule, a.subject.source]), [['passwordSpray', SRC_B]]);
+    assert.deepEqual(diff.onlyB.map((a) => [a.rule, a.subject.source]), [['repeatedFailures', SRC_A]]);
+    assert.deepEqual(D.diffAlerts([], []), { onlyA: [], onlyB: [], both: [], bothB: [] });
+    // Three short bursts under a 60 s window are one long episode under a 300 s window: matched 3 ↔ 1, nothing "only".
+    const bursts = builder();
+    for (const start of [0, 200, 400]) for (let k = 0; k < 5; k += 1) bursts.fail(start + k, 'u-a', SRC_A);
+    const narrow = D.detect(bursts.events, R1(5, 60)).alerts;
+    const wide = D.detect(bursts.events, R1(5, 300)).alerts;
+    assert.equal(narrow.length, 3);
+    assert.equal(wide.length, 1);
+    const episodes = D.diffAlerts(narrow, wide);
+    assert.deepEqual([episodes.onlyA.length, episodes.onlyB.length, episodes.both.length, episodes.bothB.length], [0, 0, 3, 1]);
+    assert.equal(D.findCounterpart(narrow[2], wide), wide[0]);
+    assert.equal(D.findCounterpart(wide[0], narrow), narrow[0]);
+    assert.equal(D.findCounterpart(narrow[0], []), null);
+    assert.ok(!D.sameIncident(narrow[0], narrow[1]), 'episodes of one source that do not overlap are different incidents');
   });
 });
 
 /* --------------------------------------------------------- explanations */
 
 describe('alert explanations', () => {
-  it('state the thresholds, the subject, the counts and the caveat for every rule', () => {
+  it('state the thresholds, the subject, the counts and the caveat for every rule, and bound long field echoes', () => {
+    const longKey = 'k'.repeat(200);
+    const echo = D.validateEvents([{ id: 'e-1', time: '2026-03-02T08:00:00Z', outcome: 'success', account: 'u-a', source: SRC_A, [longKey]: 1 }]);
+    assert.equal(echo.errors[0].field.length, 64);
+    assert.ok(echo.errors[0].message.length < 100 && echo.errors[0].message.endsWith('…"'));
     const b = builder();
     for (const s of [0, 1, 2, 3, 4]) b.fail(s, `u-${s}`, SRC_A);
     for (const s of [10, 11, 12]) b.fail(s, 'u-x', SRC_B);
@@ -896,6 +983,20 @@ describe('large synthetic datasets', () => {
     const one = D.detect(burst, { repeatedFailures: { threshold: 5, windowSeconds: 60 }, passwordSpray: { accounts: 3, windowSeconds: 10 }, successAfterFailures: { enabled: false } });
     assert.ok(performance.now() - t1 < 3000);
     assert.equal(one.alerts.length, 2, 'one R1 episode and one R2 episode span the whole burst');
+    // Ten thousand failures followed by ten thousand successes for one account, all at one timestamp: the
+    // episodic R3 keeps the evidence linear (one R1 alert with 10,000 ids, one R3 alert with 20,000 ids).
+    const flood = [];
+    for (let k = 0; k < 10000; k += 1) flood.push({ id: `ff${k}`, ts: at(0), outcome: 'failure', account: 'u-a', source: SRC_C });
+    for (let k = 0; k < 10000; k += 1) flood.push({ id: `fs${k}`, ts: at(0), outcome: 'success', account: 'u-a', source: SRC_C });
+    const t2 = performance.now();
+    const flooded = D.detect(flood);
+    assert.ok(performance.now() - t2 < 3000, 'linear, not quadratic');
+    assert.equal(flooded.alerts.length, 2);
+    assert.equal(flooded.alerts.reduce((n, a) => n + a.evidence.length, 0), 30000);
+    const r3 = flooded.alerts.find((a) => a.rule === 'successAfterFailures');
+    assert.equal(r3.metrics.successCount, 10000);
+    assert.equal(r3.metrics.failureCount, 10000);
+    assert.equal(flooded.summary.flaggedEvents, 20000);
     const r1 = one.alerts.find((a) => a.rule === 'repeatedFailures');
     const r2 = one.alerts.find((a) => a.rule === 'passwordSpray');
     assert.equal(r2.id, 'A-1', 'three distinct accounts are reached before five failures');
