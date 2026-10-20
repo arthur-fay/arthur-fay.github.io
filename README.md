@@ -2,7 +2,7 @@
 
 A responsive, accessible, dependency-free portfolio website prepared for the GitHub Pages user site **`arthur-fay.github.io`**.
 
-**Status:** Prepared on a review branch, not merged into `main`. GitHub Pages is already enabled for this new repository and an initial `main` build succeeded before the portfolio files were added. Merging the portfolio PR can automatically publish the site if Pages continues deploying `main`. The owner controls whether and when to approve that merge.
+**Status:** The portfolio is served from `main` by GitHub Pages. New work is prepared on review branches and pull requests; the owner controls whether and when to merge, and merging into `main` publishes the change.
 
 ## Featured work
 
@@ -10,25 +10,37 @@ A responsive, accessible, dependency-free portfolio website prepared for the Git
 
 **02 · E-Commerce Executive Analytics Dashboard** ([source](https://github.com/arthur-fay/customer-revenue-analytics)). Real public SQL, Python/Colab, Power BI and DAX analytics project. Actual project files and screenshots remain in the source repository. The site uses generic decorative charts only, not republished source data.
 
+**03 · Interactive Robotics & Pathfinding Lab** ([live page](https://arthur-fay.github.io/lab/pathfinding/), [documentation](lab/pathfinding/README.md)). A working, dependency-free grid pathfinding laboratory: draw walls and weighted terrain, then run breadth-first search, Dijkstra's algorithm or A* with animated exploration, pause/step/stop controls, deterministic maze generation and measured results. It is explicitly a grid-based algorithm simulation, not a validated real-world robotics navigation system. The algorithms live in a pure module covered by unit tests; the page is covered by Playwright browser tests.
+
 No professional employment history, degrees, LinkedIn URL, email address, or awards are asserted or fabricated. Add them after verifying details and obtaining consent to publish contact information.
 
 ## Architecture
 
-- Plain semantic HTML + CSS + a small, dependency-free JavaScript enhancement file.
-- Deliberately no React/Vite build step in this first version: **ready to publish and test with no Node/npm or paid infrastructure**. Can be migrated to React/TypeScript later if desired.
-- Two real-project cards, working category filters, mobile navigation, theme toggle with user preference, accessible landmarks, skip link, reduced-motion support, custom 404 page and SEO metadata.
+- Plain semantic HTML + CSS + a small, dependency-free JavaScript enhancement file (`script.js`, shared by both pages).
+- `lab/pathfinding/` is a second page built the same way: ES modules (`pathfinding.js` holds the pure algorithms, `app.js` the UI), its own stylesheet on top of the shared design tokens, and the same strict CSP. See [lab/pathfinding/README.md](lab/pathfinding/README.md).
+- Deliberately no React/Vite build step: **ready to publish and test with no npm dependencies or paid infrastructure**. `package.json` declares `"type": "module"` (so Node can import the ES modules in tests), the test scripts and metadata, and no dependencies.
+- Three real-project cards, working category filters, mobile navigation, theme toggle with user preference, accessible landmarks, skip link, reduced-motion support, custom 404 page and SEO metadata.
 - No third-party scripts, analytics, forms, trackers, fonts, API credentials, or paid services.
 - No remote resources are requested to render the site; outgoing links only go to GitHub.
 
 ## Preview locally
 
-From the extracted directory, run:
+From the repository root, run:
 
 ```bash
 python -m http.server 8000
 ```
 
-Then visit `http://localhost:8000`. Avoid opening `file://` URLs when evaluating deployment paths.
+Then visit `http://localhost:8000` (portfolio) and `http://localhost:8000/lab/pathfinding/` (lab). Avoid opening `file://` URLs: absolute asset paths and ES modules need an HTTP origin, as on GitHub Pages.
+
+## Checks and tests
+
+```bash
+npm test               # offline integrity checks (scripts/check_site.py), syntax checks, unit tests
+npm run test:browser   # Playwright browser tests; see lab/pathfinding/README.md for the one-off setup
+```
+
+Continuous integration runs the same checks on every pull request (`.github/workflows/portfolio-ci.yml`).
 
 ## Publishing later (OWNER APPROVAL REQUIRED)
 

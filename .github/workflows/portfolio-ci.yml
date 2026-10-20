@@ -8,7 +8,7 @@ permissions:
   contents: read
 jobs:
   verify:
-    name: Offline site integrity
+    name: Offline site integrity and unit tests
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -16,7 +16,34 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
-      - name: Verify page links, scientific disclosures, and self-hosted assets
+      - name: Verify page links, disclosures, CSP hygiene, and self-hosted assets
         run: python3 scripts/check_site.py
       - name: Verify JavaScript syntax
-        run: node --check script.js
+        run: |
+          node --version
+          node --check script.js
+          node --check lab/pathfinding/pathfinding.js
+          node --check lab/pathfinding/app.js
+      - name: Run pathfinding unit tests (Node built-in test runner, no dependencies)
+        run: node --test tests/unit/*.test.js
+  browser:
+    name: Browser tests (Playwright, desktop and mobile viewports)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: verify
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install Playwright outside the repository (the site itself stays dependency-free)
+        run: |
+          mkdir -p "$RUNNER_TEMP/playwright"
+          cd "$RUNNER_TEMP/playwright"
+          npm init -y > /dev/null
+          npm install --no-audit --no-fund --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Run browser tests
+        env:
+          NODE_PATH: ${{ runner.temp }}/playwright/node_modules
+        run: node --test tests/browser/*.test.js
