@@ -95,13 +95,20 @@ export function cellCost(grid, index) {
   return type === CELL.TERRAIN ? TERRAIN_COST : 1;
 }
 
-/** Default start (left-middle) and target (right-middle) cells for a grid size. */
+/**
+ * Default start (left-middle) and target (right-middle) cells for a grid size.
+ * The two cells are always distinct when the grid has more than one cell.
+ */
 export function defaultEndpoints(cols, rows) {
   const inset = Math.max(0, Math.floor(cols / 6));
   const y = Math.floor(rows / 2);
   const grid = { cols, rows };
-  const start = toIndex(grid, Math.min(inset, cols - 1), y);
-  const target = toIndex(grid, Math.max(0, cols - 1 - inset), y);
+  let start = toIndex(grid, Math.min(inset, cols - 1), y);
+  let target = toIndex(grid, Math.max(0, cols - 1 - inset), y);
+  if (start === target && cols * rows > 1) {
+    start = 0;
+    target = cols * rows - 1;
+  }
   return { start, target };
 }
 
@@ -453,18 +460,20 @@ export function normaliseSeed(seed) {
  * lattice (1-cell-wide corridors, 1-cell-thick walls), optionally "braided"
  * by reopening a deterministic fraction of walls to create loops.
  * Returns { grid, start, target } with start at the top-left room and target
- * at the bottom-right room.
+ * at the bottom-right room. Grids whose odd lattice holds fewer than two rooms
+ * (both dimensions below 5, or any dimension below 3) are too small for a maze
+ * and fall back to an open grid with the default endpoints.
  */
 export function generateMaze(cols, rows, seed, options = {}) {
   const braid = options.braid ?? 0.08;
   const grid = createGrid(cols, rows);
   const random = mulberry32(normaliseSeed(seed));
-  if (cols < 3 || rows < 3) {
+  const maxX = cols - 2 - ((cols - 2) % 2 === 0 ? 1 : 0); // largest odd x ≤ cols − 2
+  const maxY = rows - 2 - ((rows - 2) % 2 === 0 ? 1 : 0);
+  if (cols < 3 || rows < 3 || (maxX === 1 && maxY === 1)) {
     return { grid, ...defaultEndpoints(cols, rows) };
   }
   grid.cells.fill(CELL.WALL);
-  const maxX = cols - 2 - ((cols - 2) % 2 === 0 ? 1 : 0); // largest odd x ≤ cols − 2
-  const maxY = rows - 2 - ((rows - 2) % 2 === 0 ? 1 : 0);
   const carve = (x, y) => { grid.cells[toIndex(grid, x, y)] = CELL.OPEN; };
   const visited = new Uint8Array(cols * rows);
   const stack = [[1, 1]];

@@ -74,9 +74,13 @@ class PageParser(HTMLParser):
             self.projects += 1
         if tag == "button" and attr.get("data-filter"):
             self.filters.append(attr["data-filter"])
+        if tag == "style":
+            self.errors.append("Inline <style> element would be blocked by the CSP")
         if tag == "a":
             href = attr.get("href", "") or ""
             self.links.append(href)
+            if href.strip().casefold().startswith("javascript:"):
+                self.errors.append(f"javascript: link is not allowed: {href}")
             if href.startswith("#"):
                 self.anchors.append(href[1:])
             elif href.startswith("https://"):

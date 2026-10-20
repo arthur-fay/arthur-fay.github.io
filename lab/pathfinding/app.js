@@ -14,6 +14,8 @@ const OVERLAY = Object.freeze({ NONE: 0, FRONTIER: 1, VISITED: 2, PATH: 3 });
 const TOOL_KEYS = Object.freeze({ 1: 'wall', 2: 'terrain', 3: 'erase', 4: 'start', 5: 'target' });
 const DEFAULT_SEED = 42;
 const MOVEMENT_NAMES = Object.freeze({ 4: '4-directional movement', 8: '8-directional movement without corner cutting' });
+const MOVEMENT_SHORT = Object.freeze({ 4: '4 directions', 8: '8 directions' });
+const TOOL_NAMES = Object.freeze({ wall: 'Wall', terrain: 'Terrain (cost ×5)', erase: 'Erase', start: 'Start', target: 'Target' });
 const ALGORITHM_HINTS = Object.freeze({
   bfs: 'Explores layer by layer with a FIFO queue. Guarantees the fewest moves; ignores terrain cost and the longer length of diagonal moves.',
   dijkstra: 'Always expands the cheapest known cell using a binary-heap priority queue. Guarantees the lowest total cost for any non-negative weights.',
@@ -139,18 +141,23 @@ function renderAll() {
   for (let i = 0; i < state.cells.length; i += 1) renderCell(i);
 }
 
-function setActiveCell(i, { focus = false } = {}) {
+function setActiveCell(i, { focus = false, scroll = false } = {}) {
   if (i === state.active && !focus) return;
   const previous = state.cells[state.active];
   if (previous) previous.tabIndex = -1;
   state.active = i;
   const element = state.cells[i];
   element.tabIndex = 0;
-  if (focus) element.focus({ preventScroll: true });
+  if (focus) {
+    element.focus({ preventScroll: true });
+    // Keyboard moves must keep the focused cell visible; pointer presses never scroll.
+    if (scroll) element.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }
 }
 
 function buildGrid(grid, start, target) {
   cancelRun({ silent: true });
+  const hadFocus = dom.grid.contains(document.activeElement);
   state.grid = grid;
   state.start = start;
   state.target = target;
@@ -182,6 +189,7 @@ function buildGrid(grid, start, target) {
   renderAll();
   state.active = start;
   state.cells[start].tabIndex = 0;
+  if (hadFocus) state.cells[start].focus({ preventScroll: true });
   resetStats();
   updateButtons();
   updateCellSize();
@@ -285,10 +293,13 @@ function cellIndexFromPoint(x, y) {
 }
 
 function onPointerDown(event) {
-  if (event.button !== 0 && event.pointerType === 'mouse') return;
+  if (event.button !== 0) return; // primary button or touch contact only (pen barrel buttons do not paint)
   const i = cellIndexFromElement(event.target);
   if (i < 0) return;
   state.stroke = { mode: strokeModeFor(i), last: -1, first: true, pointerId: event.pointerId };
+  try {
+    dom.grid.setPointerCapture(event.pointerId); // the release reaches the grid even outside the window
+  } catch (_) { /* capture is best-effort */ }
   setActiveCell(i, { focus: true });
   applyStroke(i);
 }
@@ -302,7 +313,11 @@ function onPointerMove(event) {
 function endStroke(event) {
   if (!state.stroke) return;
   if (event && event.pointerId !== undefined && event.pointerId !== state.stroke.pointerId) return;
+  const { pointerId } = state.stroke;
   state.stroke = null;
+  try {
+    if (dom.grid.hasPointerCapture(pointerId)) dom.grid.releasePointerCapture(pointerId);
+  } catch (_) { /* already released */ }
 }
 
 function onGridKeyDown(event) {
@@ -331,11 +346,12 @@ function onGridKeyDown(event) {
       if (TOOL_KEYS[event.key]) {
         event.preventDefault();
         selectTool(TOOL_KEYS[event.key]);
+        setStatus(`Drawing tool: ${TOOL_NAMES[state.tool]}. Press Enter or Space on a cell to apply it.`);
       }
       return;
   }
   event.preventDefault();
-  setActiveCell(P.toIndex(state.grid, nx, ny), { focus: true });
+  setActiveCell(P.toIndex(state.grid, nx, ny), { focus: true, scroll: true });
 }
 
 function selectTool(tool) {
@@ -384,12 +400,17 @@ function runLabel() {
   return `${algorithmName()} (${MOVEMENT_NAMES[state.movement]})`;
 }
 
+/** Short note naming the algorithm and movement rule a run was computed under. */
+function runNote(run) {
+  return `${P.ALGORITHMS[run.algorithm].name} · ${MOVEMENT_SHORT[run.movement]}`;
+}
+
 function startRun({ stepping = false } = {}) {
   cancelRun({ silent: true });
   const result = P.runSearch(state.algorithm, state.grid, state.start, state.target, { movement: state.movement });
-  state.run = { result, cursor: 0, status: 'running', rafId: 0, lastTs: null, carry: 0 };
+  state.run = { result, algorithm: state.algorithm, movement: state.movement, cursor: 0, status: 'running', rafId: 0, lastTs: null, carry: 0 };
   resetStats();
-  setStat(dom.statOutcome, stepping ? 'Stepping' : 'Running…', algorithmName());
+  setStat(dom.statOutcome, stepping ? 'Stepping' : 'Running…', runNote(state.run));
   setStat(dom.statTime, formatMs(result.elapsedMs), 'pure computation');
   if (stepping) {
     state.run.status = 'paused';
@@ -437,29 +458,30 @@ function finishRun() {
     state.overlay[i] = OVERLAY.PATH;
     renderCell(i);
   }
-  const name = algorithmName();
+  const name = P.ALGORITHMS[run.algorithm].name;
+  const note = runNote(run);
   setStat(dom.statExpanded, formatInt(result.expanded), `of ${formatInt(state.grid.cells.length)} cells`);
   setStat(dom.statTime, formatMs(result.elapsedMs), 'pure computation');
   if (!result.found) {
-    setStat(dom.statOutcome, 'No route', name);
+    setStat(dom.statOutcome, 'No route', note);
     setStat(dom.statSteps, '—', 'moves');
     setStat(dom.statCost, '—', 'weighted sum');
-    setStatus(`No route: the target cannot be reached from the start under the current walls and ${MOVEMENT_NAMES[state.movement]}. ${name} explored all ${formatInt(result.expanded)} reachable cells before giving up. Remove a wall between them or choose another seed.`);
+    setStatus(`No route: the target cannot be reached from the start under the current walls and ${MOVEMENT_NAMES[run.movement]}. ${name} explored all ${formatInt(result.expanded)} reachable cells before giving up. Remove a wall between them or choose another seed.`);
   } else if (result.steps === 0) {
-    setStat(dom.statOutcome, 'Same cell', name);
+    setStat(dom.statOutcome, 'Same cell', note);
     setStat(dom.statSteps, '0', 'moves');
     setStat(dom.statCost, '0', 'weighted sum');
     setStatus('The start and the target are the same cell, so the path has 0 moves and cost 0. Move one of the markers to search for a route.');
   } else {
-    setStat(dom.statOutcome, 'Path found', name);
+    setStat(dom.statOutcome, 'Path found', note);
     setStat(dom.statSteps, formatInt(result.steps), 'moves');
     setStat(dom.statCost, formatCost(result.cost), result.costOptimalityGuaranteed ? 'optimal' : 'fewest moves, not lowest cost');
     let message = `${name} found a path of ${formatInt(result.steps)} moves with cost ${formatCost(result.cost)} after expanding ${formatInt(result.expanded)} cells in ${formatMs(result.elapsedMs)}.`;
     if (!result.costOptimalityGuaranteed) {
       message += ' BFS minimises moves, not cost: with terrain or diagonal moves a cheaper route may exist. Run Dijkstra or A* on the same map to compare.';
-    } else if (state.algorithm === 'astar') {
+    } else if (run.algorithm === 'astar') {
       message += ` The ${result.heuristic} heuristic is admissible here, so this cost is optimal.`;
-    } else if (state.algorithm === 'dijkstra') {
+    } else if (run.algorithm === 'dijkstra') {
       message += ' This cost is optimal for the current weights.';
     } else {
       message += ' With uniform costs and 4-directional moves this is also the cheapest path.';
@@ -474,7 +496,7 @@ function pauseRun() {
   if (!run || run.status !== 'running') return;
   run.status = 'paused';
   cancelAnimationFrame(run.rafId);
-  setStat(dom.statOutcome, 'Paused', algorithmName());
+  setStat(dom.statOutcome, 'Paused', runNote(run));
   setStatus(`Paused after ${formatInt(run.cursor)} of ${formatInt(run.result.trace.length)} expansions. Resume, step or stop.`);
   updateButtons();
 }
@@ -485,7 +507,7 @@ function resumeRun() {
   run.status = 'running';
   run.lastTs = null;
   run.carry = 0;
-  setStat(dom.statOutcome, 'Running…', algorithmName());
+  setStat(dom.statOutcome, 'Running…', runNote(run));
   setStatus(`Resumed ${runLabel()}.`);
   updateButtons();
   run.rafId = requestAnimationFrame(frame);
@@ -506,9 +528,9 @@ function stepRun() {
     const event = run.result.trace[run.cursor++];
     applyEvent(event);
     setStat(dom.statExpanded, formatInt(run.cursor), `of ${formatInt(trace.length)}`);
-    setStat(dom.statOutcome, 'Stepping', algorithmName());
+    setStat(dom.statOutcome, 'Stepping', runNote(run));
     const { x, y } = P.toCoords(state.grid, event.index);
-    const keyName = state.algorithm === 'bfs' ? 'depth' : (state.algorithm === 'astar' ? 'f' : 'g');
+    const keyName = run.algorithm === 'bfs' ? 'depth' : (run.algorithm === 'astar' ? 'f' : 'g');
     setStatus(`Step ${formatInt(run.cursor)} of ${formatInt(trace.length)}: expanded row ${y + 1}, column ${x + 1} (${keyName} = ${formatCost(event.f)}), discovered ${event.discovered.length} new ${event.discovered.length === 1 ? 'cell' : 'cells'}.`);
   }
   if (run.cursor >= trace.length) finishRun();
@@ -549,6 +571,7 @@ function readSeed() {
 function generateLayout({ announce = true } = {}) {
   const seed = readSeed();
   if (seed === null) return false;
+  dom.seed.value = String(seed); // normalise forms such as 1e3 or +5 to the integer actually used
   const layoutId = dom.layout.value;
   const layout = P.LAYOUTS[layoutId];
   const { cols, rows } = state.grid;
@@ -647,6 +670,7 @@ function bindControls() {
 
   dom.grid.addEventListener('pointerdown', onPointerDown);
   dom.grid.addEventListener('pointermove', onPointerMove);
+  for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) dom.grid.addEventListener(type, endStroke);
   window.addEventListener('pointerup', endStroke);
   window.addEventListener('pointercancel', endStroke);
   window.addEventListener('blur', () => endStroke());

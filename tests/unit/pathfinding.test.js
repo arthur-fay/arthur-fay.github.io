@@ -30,6 +30,31 @@ function gridFromRows(rows) {
   return { grid, start, target };
 }
 
+/**
+ * Independent re-implementation of the movement rules (no use of P.neighbors):
+ * 4 or 8 neighbours, walls impassable, diagonals only when both orthogonal
+ * cells are not walls.
+ */
+function referenceNeighbors(grid, i, movement) {
+  const { cols, rows, cells } = grid;
+  const x = i % cols;
+  const y = Math.floor(i / cols);
+  const inside = (cx, cy) => cx >= 0 && cy >= 0 && cx < cols && cy < rows;
+  const wall = (cx, cy) => cells[cy * cols + cx] === 1;
+  const deltas = movement === 8
+    ? [[0, -1], [1, 0], [0, 1], [-1, 0], [1, -1], [1, 1], [-1, 1], [-1, -1]]
+    : [[0, -1], [1, 0], [0, 1], [-1, 0]];
+  const out = [];
+  for (const [dx, dy] of deltas) {
+    const nx = x + dx;
+    const ny = y + dy;
+    if (!inside(nx, ny) || wall(nx, ny)) continue;
+    if (dx !== 0 && dy !== 0 && (wall(x + dx, y) || wall(x, y + dy))) continue;
+    out.push(ny * cols + nx);
+  }
+  return out;
+}
+
 /** Independent reference BFS depth (moves) from start, or -1 when unreachable. */
 function referenceDepths(grid, start, movement) {
   const depth = new Int32Array(grid.cells.length).fill(-1);
@@ -37,15 +62,25 @@ function referenceDepths(grid, start, movement) {
   depth[start] = 0;
   for (let head = 0; head < queue.length; head += 1) {
     const i = queue[head];
-    for (const nb of P.neighbors(grid, i, movement)) {
-      if (depth[nb.index] === -1) {
-        depth[nb.index] = depth[i] + 1;
-        queue.push(nb.index);
+    for (const j of referenceNeighbors(grid, i, movement)) {
+      if (depth[j] === -1) {
+        depth[j] = depth[i] + 1;
+        queue.push(j);
       }
     }
   }
   return depth;
 }
+
+/** Sorted indices of the cells reachable from start, by the independent flood fill. */
+function referenceReachable(grid, start, movement) {
+  const depth = referenceDepths(grid, start, movement);
+  const reachable = [];
+  for (let i = 0; i < depth.length; i += 1) if (depth[i] >= 0) reachable.push(i);
+  return reachable;
+}
+
+const expandedSet = (result) => [...new Set(result.trace.map((event) => event.index))].sort((a, b) => a - b);
 
 function assertValidResult(result, grid, start, target, movement) {
   if (result.found) {
@@ -90,12 +125,17 @@ describe('grid helpers', () => {
     assert.equal(grid.cells[0], P.CELL.OPEN);
   });
 
-  it('computes default endpoints inside the grid', () => {
-    for (const [cols, rows] of [[1, 1], [2, 1], [21, 13], [61, 37]]) {
-      const { start, target } = P.defaultEndpoints(cols, rows);
-      assert.ok(start >= 0 && start < cols * rows);
-      assert.ok(target >= 0 && target < cols * rows);
+  it('computes distinct default endpoints inside the grid for every size', () => {
+    for (let cols = 1; cols <= 8; cols += 1) {
+      for (let rows = 1; rows <= 8; rows += 1) {
+        const { start, target } = P.defaultEndpoints(cols, rows);
+        assert.ok(start >= 0 && start < cols * rows);
+        assert.ok(target >= 0 && target < cols * rows);
+        if (cols * rows > 1) assert.notEqual(start, target, `${cols}×${rows}`);
+      }
     }
+    const { start, target } = P.defaultEndpoints(31, 19);
+    assert.deepEqual([P.toCoords({ cols: 31, rows: 19 }, start), P.toCoords({ cols: 31, rows: 19 }, target)], [{ x: 5, y: 9 }, { x: 25, y: 9 }]);
   });
 });
 
@@ -276,6 +316,7 @@ describe('no route', () => {
         assert.equal(result.found, false);
         assert.equal(result.expanded, P.reachableCells(grid, start, movement));
         assert.equal(result.expanded, 16);
+        assert.deepEqual(expandedSet(result), referenceReachable(grid, start, movement), 'expands exactly the reachable component');
       }
     }
   });
@@ -350,7 +391,8 @@ describe('dense obstacles (random fields)', () => {
           assert.ok(results.dijkstra.cost <= results.bfs.cost + EPS, 'Dijkstra is never more expensive than BFS');
         } else {
           blocked += 1;
-          for (const algo of ALGOS) assert.equal(results[algo].expanded, P.reachableCells(grid, start, movement));
+          const reachable = referenceReachable(grid, start, movement);
+          for (const algo of ALGOS) assert.deepEqual(expandedSet(results[algo]), reachable, `${algo} expands exactly the reachable component`);
         }
       }
     }
@@ -406,6 +448,38 @@ describe('narrow corridors (perfect mazes)', () => {
     assert.ok(P.runSearch('bfs', tiny.grid, tiny.start, tiny.target).found);
     const three = P.generateMaze(3, 3, 1);
     assert.equal(three.grid.cells[P.toIndex(three.grid, 1, 1)], P.CELL.OPEN);
+    assert.notEqual(three.start, three.target);
+  });
+
+  it('keeps start and target distinct, solvable and well-formed for every size from 1 × 1 to 8 × 8, odd or even', () => {
+    for (let cols = 1; cols <= 8; cols += 1) {
+      for (let rows = 1; rows <= 8; rows += 1) {
+        const { grid, start, target } = P.generateMaze(cols, rows, 3);
+        const label = `${cols}×${rows}`;
+        if (cols * rows > 1) assert.notEqual(start, target, `${label}: start and target must differ`);
+        assert.ok(P.isPassable(grid, start) && P.isPassable(grid, target), `${label}: endpoints must be open`);
+        const open = grid.cells.filter((c) => c !== P.CELL.WALL).length;
+        assert.equal(P.reachableCells(grid, start, 4), open, `${label}: every open cell is reachable`);
+        assert.ok(P.runSearch('bfs', grid, start, target, { movement: 4 }).found, `${label}: solvable`);
+        const tooSmall = cols < 3 || rows < 3 || (cols <= 4 && rows <= 4);
+        if (tooSmall) {
+          assert.equal(grid.cells.filter((c) => c === P.CELL.WALL).length, 0, `${label}: too small for two rooms, falls back to an open grid`);
+        } else {
+          for (let x = 0; x < cols; x += 1) {
+            assert.equal(grid.cells[P.toIndex(grid, x, 0)], P.CELL.WALL, `${label}: top border`);
+            assert.equal(grid.cells[P.toIndex(grid, x, rows - 1)], P.CELL.WALL, `${label}: bottom border`);
+          }
+          for (let y = 0; y < rows; y += 1) {
+            assert.equal(grid.cells[P.toIndex(grid, 0, y)], P.CELL.WALL, `${label}: left border`);
+            assert.equal(grid.cells[P.toIndex(grid, cols - 1, y)], P.CELL.WALL, `${label}: right border`);
+          }
+          const maxX = cols - 2 - ((cols - 2) % 2 === 0 ? 1 : 0);
+          const maxY = rows - 2 - ((rows - 2) % 2 === 0 ? 1 : 0);
+          assert.equal(start, P.toIndex(grid, 1, 1), `${label}: start at the top-left room`);
+          assert.equal(target, P.toIndex(grid, maxX, maxY), `${label}: target at the bottom-right room`);
+        }
+      }
+    }
   });
 });
 

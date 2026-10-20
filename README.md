@@ -18,7 +18,7 @@ No professional employment history, degrees, LinkedIn URL, email address, or awa
 
 - Plain semantic HTML + CSS + a small, dependency-free JavaScript enhancement file (`script.js`, shared by both pages).
 - `lab/pathfinding/` is a second page built the same way: ES modules (`pathfinding.js` holds the pure algorithms, `app.js` the UI), its own stylesheet on top of the shared design tokens, and the same strict CSP. See [lab/pathfinding/README.md](lab/pathfinding/README.md).
-- Deliberately no React/Vite build step: **ready to publish and test with no npm dependencies or paid infrastructure**. The only `package.json` entries are `"type": "module"` and test scripts.
+- Deliberately no React/Vite build step: **ready to publish and test with no npm dependencies or paid infrastructure**. `package.json` declares `"type": "module"` (so Node can import the ES modules in tests), the test scripts and metadata, and no dependencies.
 - Three real-project cards, working category filters, mobile navigation, theme toggle with user preference, accessible landmarks, skip link, reduced-motion support, custom 404 page and SEO metadata.
 - No third-party scripts, analytics, forms, trackers, fonts, API credentials, or paid services.
 - No remote resources are requested to render the site; outgoing links only go to GitHub.

@@ -68,20 +68,33 @@ const gridSignature = (page) => page.evaluate(() => [...document.querySelectorAl
 const setRange = (page, id, value) => page.evaluate(([i, v]) => { const el = document.getElementById(i); el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); }, [id, String(value)]);
 const noOverflow = (page) => page.evaluate(() => ({ docOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, bodyOverflow: document.body.scrollWidth - document.body.clientWidth }));
 const accessibleNameGaps = (page) => page.evaluate(() => {
+  // Text hidden from assistive technology (aria-hidden) must not count towards a name.
+  const visibleText = (node) => {
+    let text = '';
+    for (const child of node.childNodes) {
+      if (child.nodeType === Node.TEXT_NODE) text += child.textContent;
+      else if (child.nodeType === Node.ELEMENT_NODE && child.getAttribute('aria-hidden') !== 'true') text += visibleText(child);
+    }
+    return text;
+  };
   const gaps = [];
   for (const el of document.querySelectorAll('button, input, select, textarea, a[href], [role="grid"]')) {
     const labelledBy = el.getAttribute('aria-labelledby');
     const byId = el.id ? document.querySelector(`label[for="${el.id}"]`) : null;
     const wrapped = el.closest('label');
     const name = (el.getAttribute('aria-label') || '')
-      || (labelledBy ? document.getElementById(labelledBy)?.textContent : '')
-      || (byId ? byId.textContent : '')
-      || (wrapped ? wrapped.textContent : '')
-      || (el.textContent || '')
+      || (labelledBy ? visibleText(document.getElementById(labelledBy) || el) : '')
+      || (byId ? visibleText(byId) : '')
+      || (wrapped ? visibleText(wrapped) : '')
+      || visibleText(el)
       || (el.getAttribute('title') || '');
     if (!name.trim()) gaps.push(`${el.tagName.toLowerCase()}#${el.id || ''}.${el.className || ''}`);
   }
   return gaps;
+});
+const focusedRect = (page) => page.evaluate(() => {
+  const r = document.activeElement.getBoundingClientRect();
+  return { top: r.top, bottom: r.bottom, height: window.innerHeight, role: document.activeElement.getAttribute('role') };
 });
 const duplicateIds = (page) => page.evaluate(() => {
   const seen = new Map();
@@ -273,8 +286,11 @@ describe('lab: initial state and instant runs (desktop)', () => {
         assert.equal(results[algorithm].visited + results[algorithm].pathCells, results[algorithm].expanded, 'every expanded cell is rendered as expanded or as part of the path');
         assert.ok(await page.locator('#clear-search').isEnabled());
         assert.equal(await stat(page, 'stat-outcome'), 'Path found');
+        assert.ok((await page.locator('#stat-outcome').textContent()).includes('4 directions'), 'the outcome names the movement rule');
         assert.ok(/ms$/.test(await stat(page, 'stat-time')));
       }
+      await page.selectOption('#movement', '8');
+      assert.ok((await page.locator('#stat-outcome').textContent()).includes('Breadth-first search · 4 directions'), 'a finished result keeps the label of the settings it was computed under');
       assert.ok(Math.abs(results.astar.cost - results.dijkstra.cost) < 1e-6, 'A* and Dijkstra agree on the optimal cost');
       assert.ok(results.bfs.cost >= results.dijkstra.cost, 'BFS is never cheaper than Dijkstra');
       assert.ok(results.bfs.steps <= results.dijkstra.steps, 'BFS never uses more moves');
@@ -405,6 +421,7 @@ describe('lab: editing with keyboard and pointer', () => {
       assert.ok(!(await page.evaluate(() => document.activeElement.classList.contains('is-wall'))), 'Space toggles the wall off again');
       await page.keyboard.press('2');
       assert.ok(await page.locator('input[name="tool"][value="terrain"]').isChecked(), 'digit keys switch tools');
+      assert.ok((await status(page)).startsWith('Drawing tool: Terrain'), 'the switch is announced');
       await page.keyboard.press('Enter');
       assert.ok(await page.evaluate(() => document.activeElement.classList.contains('is-terrain')));
       await page.keyboard.press('End');
@@ -449,9 +466,54 @@ describe('lab: editing with keyboard and pointer', () => {
       assert.equal(await count(page, '#grid .is-start'), 1);
       assert.equal(await page.locator('#grid .is-start').evaluate((el) => el.dataset.index), String(9 * 31 + 7));
       assert.equal(await count(page, '#grid .is-wall'), 3, 'dragging a marker never paints');
+      // After the button is released, moving the pointer never paints.
+      const walls = await count(page, '#grid .is-wall');
+      const probe = await cell(page, 10, 2).boundingBox();
+      await page.mouse.move(probe.x + probe.width / 2, probe.y + probe.height / 2);
+      await page.mouse.move(probe.x + probe.width * 1.5, probe.y + probe.height / 2);
+      assert.equal(await count(page, '#grid .is-wall'), walls, 'a finished stroke does not keep painting');
+      // The Target tool places the target on any pressed cell.
+      await page.locator('label.tool-target').click();
+      await cell(page, 12, 3).click();
+      assert.equal(await page.locator('#grid .is-target').evaluate((el) => el.dataset.index), String(3 * 31 + 12));
+      assert.equal(await count(page, '#grid .is-target'), 1);
       await page.locator('#clear-walls').click();
       assert.equal(await count(page, '#grid .is-wall, #grid .is-terrain'), 0);
       assert.equal(await count(page, '#grid .is-start'), 1);
+    } finally {
+      await close();
+    }
+  });
+
+  it('keeps the focused cell inside the viewport during keyboard navigation', async () => {
+    const { page, close } = await open(LAB, { viewport: { width: 1280, height: 600 } });
+    try {
+      await page.selectOption('#size', '61x37');
+      await page.locator('#grid [tabindex="0"]').focus();
+      const moves = ['ArrowDown', 'ArrowDown', 'Control+End', 'PageUp', 'Control+Home', 'End', 'PageDown', 'PageDown', 'PageDown'];
+      for (const key of moves) {
+        await page.keyboard.press(key);
+        const rect = await focusedRect(page);
+        assert.equal(rect.role, 'gridcell');
+        assert.ok(rect.top >= 0 && rect.bottom <= rect.height, `after ${key}: focused cell at ${rect.top}–${rect.bottom} is outside the ${rect.height}px viewport`);
+      }
+    } finally {
+      await close();
+    }
+  });
+
+  it('keeps focus inside the grid when the layout is regenerated while a cell is focused', async () => {
+    const { page, close } = await open(LAB);
+    try {
+      await page.locator('#grid [tabindex="0"]').focus();
+      await page.keyboard.press('ArrowRight');
+      // A programmatic activation (as from a browser that does not focus buttons on click) rebuilds the grid.
+      await page.evaluate(() => document.getElementById('generate').click());
+      const active = await page.evaluate(() => ({ role: document.activeElement.getAttribute('role'), tabIndex: document.activeElement.tabIndex, inGrid: document.getElementById('grid').contains(document.activeElement) }));
+      assert.deepEqual(active, { role: 'gridcell', tabIndex: 0, inGrid: true });
+      await page.locator('#size').focus();
+      await page.selectOption('#size', '21x13');
+      assert.equal(await page.evaluate(() => document.activeElement.id), 'size', 'a control that holds focus keeps it');
     } finally {
       await close();
     }
@@ -578,6 +640,10 @@ describe('lab: layouts, seeds and sizes', () => {
       await page.locator('#new-seed').click();
       assert.notEqual(await page.inputValue('#seed'), '123');
       assert.notEqual(await gridSignature(page), a);
+      await page.locator('#seed').fill('1e3');
+      await page.locator('#seed').press('Enter');
+      assert.equal(await page.inputValue('#seed'), '1000', 'the field shows the integer that was used');
+      assert.ok((await status(page)).includes('seed 1,000'));
     } finally {
       await close();
     }
@@ -621,7 +687,7 @@ describe('lab: layouts, seeds and sizes', () => {
 
 describe('lab: mobile usability', () => {
   it('fits a 375px viewport, paints with touch, and keeps touch targets large enough', async () => {
-    const { page, problems, close } = await open(LAB, { viewport: VIEWPORTS.mobile, hasTouch: true });
+    const { page, context, problems, close } = await open(LAB, { viewport: VIEWPORTS.mobile, hasTouch: true });
     try {
       assert.equal(await page.getAttribute('#grid', 'aria-colcount'), '21', 'compact default size on small screens');
       const grid = await page.locator('#grid').boundingBox();
@@ -634,6 +700,19 @@ describe('lab: mobile usability', () => {
       assert.ok(await cell(page, 2, 2).evaluate((el) => el.classList.contains('is-wall')), 'a tap paints a wall');
       const small = await page.$$eval('.lab-actions button, .panel-actions button, .tool span', (els) => els.filter((el) => el.getBoundingClientRect().height < 40).length);
       assert.equal(small, 0, 'all primary controls are at least 40px tall');
+      // A one-finger drag paints a row of walls without scrolling the page (touch-action: pinch-zoom).
+      const cdp = await context.newCDPSession(page);
+      const points = [];
+      for (let x = 2; x <= 12; x += 1) {
+        const b = await cell(page, x, 1).boundingBox();
+        points.push({ x: b.x + b.width / 2, y: b.y + b.height / 2 });
+      }
+      const scrollBefore = await page.evaluate(() => window.scrollY);
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [points[0]] });
+      for (const point of points.slice(1)) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [point] });
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      assert.equal(await count(page, '#grid .is-wall'), 1 + points.length, 'the drag painted every cell it crossed');
+      assert.equal(await page.evaluate(() => window.scrollY), scrollBefore, 'the drag did not scroll the page');
       await page.locator('#animate').uncheck();
       await page.locator('#run').click();
       assert.equal(await stat(page, 'stat-outcome'), 'Path found');

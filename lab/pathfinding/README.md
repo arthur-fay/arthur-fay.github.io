@@ -42,6 +42,7 @@ An interactive, dependency-free demonstration of grid pathfinding. You draw wall
 - The grid is static during a search; moving obstacles are out of scope.
 - Timings are observations on the visitor's device and browser, not benchmarks. They are never stored or transmitted.
 - No persistence or sharing of hand-drawn maps (seeded layouts are reproducible by design).
+- Cells are small on phones (about 16 px wide for the 21-column preset at 375 px); painting by dragging works, but precise single taps benefit from pinch-zoom, which the grid allows.
 
 ## Architecture
 
@@ -56,13 +57,14 @@ lab/pathfinding/
 tests/
 ├── unit/pathfinding.test.js    Node built-in test runner; imports pathfinding.js directly
 ├── unit/contrast.test.js       WCAG contrast of the lab's colour tokens in both themes
+├── unit/preview.test.js        the portfolio card artwork is exactly a real A* run on a seeded field
 ├── browser/lab.test.js         Playwright (Chromium) tests at desktop and mobile viewports
 └── browser/helpers/server.js   static server emulating GitHub Pages for the browser tests
 ```
 
 Design decisions:
 
-- **Dependency-free, like the rest of the portfolio.** Plain HTML/CSS/JS, ES modules loaded with `<script type="module">`, the same strict Content-Security-Policy as the home page (`default-src 'none'; script-src 'self'; style-src 'self'; …`). No inline styles or scripts, no fonts, analytics, trackers or third-party code. The only `package.json` fields are `"type": "module"` (so Node can import the ES modules in tests) and scripts; there are no dependencies.
+- **Dependency-free, like the rest of the portfolio.** Plain HTML/CSS/JS, ES modules loaded with `<script type="module">`, the same strict Content-Security-Policy as the home page (`default-src 'none'; script-src 'self'; style-src 'self'; …`). No inline styles or scripts, no fonts, analytics, trackers or third-party code. `package.json` declares `"type": "module"` (so Node can import the ES modules in tests), the test scripts and metadata; there are no dependencies.
 - **Algorithms are generators.** Each search is a `function*` that yields one `{ type: 'expand', index, g, f, discovered }` event per expanded cell and *returns* the result object. `runSearch()` drains a generator into a trace while timing the pure computation. The UI replays the trace with `requestAnimationFrame`, so pause, resume, step and stop are operations on a cursor into an immutable array; nothing in the algorithm knows about animation.
 - **The grid is never mutated by a search.** Searches read `grid.cells` (a `Uint8Array`) and allocate their own working arrays.
 - **Deterministic everything.** Fixed neighbour order, heap ties broken by (f, h, insertion order), and a seeded PRNG (mulberry32) for layouts, so any run can be reproduced exactly in tests and across browsers.
@@ -89,9 +91,9 @@ All three are instances of best-first search on the same implicit graph; they di
 
 **Dijkstra** — best-first on `g` (cost so far) with a binary min-heap and lazy deletion: when a better `g` is found for a cell, a new heap entry is pushed and stale entries are skipped on pop (`closed[i] || entry.g > g[i]`). With non-negative costs the first pop of a cell is final.
 
-**A\*** — best-first on `f = g + h`. `h` is the Manhattan distance `|dx| + |dy|` for 4-directional movement and the octile distance `max(|dx|,|dy|) + (√2 − 1)·min(|dx|,|dy|)` for 8-directional movement. Ties on `f` are broken by smaller `h`, then by insertion order. Dijkstra and A* share one implementation (`bestFirst`) parameterised by the heuristic; Dijkstra is the `h = 0` case.
+**A\*** — best-first on `f = g + h`. `h` is the Manhattan distance `|dx| + |dy|` for 4-directional movement and the octile distance `max(|dx|,|dy|) + (√2 − 1)·min(|dx|,|dy|)` for 8-directional movement. Exact ties on `f` (floating-point equality) are broken by smaller `h`, then by insertion order. Dijkstra and A* share one implementation (`bestFirst`) parameterised by the heuristic; Dijkstra is the `h = 0` case.
 
-**Layout generators** (`generateMaze`, `generateRandomField`) use `mulberry32(seed)`. The maze is carved on the odd-coordinate lattice with an explicit stack (iterative recursive backtracker), giving one-cell corridors and one-cell walls with a solid border; a deterministic fraction of walls between corridors (`braid`, default 8 %) is reopened afterwards to create loops. The random field assigns each cell wall/terrain/open independently and keeps the start and target open; a route is deliberately not guaranteed so the "no route" outcome can be demonstrated.
+**Layout generators** (`generateMaze`, `generateRandomField`) use `mulberry32(seed)`. The maze is carved on the odd-coordinate lattice with an explicit stack (iterative recursive backtracker), giving one-cell corridors and one-cell walls with a solid border, the start in the top-left room and the target in the bottom-right room; a deterministic fraction of walls between corridors (`braid`, default 8 %) is reopened afterwards to create loops. Grids whose lattice holds fewer than two rooms (any side below 3, or both sides at most 4) fall back to an open grid with the default endpoints, which are always distinct when the grid has more than one cell. The random field assigns each cell wall/terrain/open independently and keeps the start and target open; a route is deliberately not guaranteed so the "no route" outcome can be demonstrated.
 
 ## Complexity and trade-offs
 
@@ -114,9 +116,9 @@ Trade-offs made here:
 
 - **Admissibility.** Under both movement modes every move costs at least its geometric step length (1 or √2) because the minimum cell weight is 1. The Manhattan distance is the length of the shortest 4-directional walk ignoring walls, and the octile distance is the length of the shortest 8-directional walk ignoring walls, so neither can exceed the true cost of any route. Hence `h ≤ h*` and A* is optimal.
 - **Consistency.** For any legal move `u → v` with cost `c`, the heuristic decreases by at most the step length: Manhattan by at most 1 per orthogonal move, octile by at most 1 (orthogonal) or √2 (diagonal). Since `c ≥` step length, `h(u) ≤ c + h(v)`. The tests check this inequality on every edge of random weighted grids.
-- **BFS correctness.** Each cell is discovered once via the FIFO queue, so the depth of the target when dequeued equals its shortest move distance (verified against an independent reference BFS in the tests).
+- **BFS correctness.** Each cell is discovered once via the FIFO queue, so the depth of the target when dequeued equals its shortest move distance (verified against a reference BFS in the tests that re-implements the movement rules independently).
 - **Path validity.** Every path returned by any algorithm is re-validated move by move (`validatePath`): starts at the start, ends at the target, no repeated cells, every move legal under the movement rules including the no-corner-cutting constraint, and the recomputed cost equals the reported cost.
-- **No-route detection.** When the target is unreachable, every algorithm expands exactly the set of cells reachable from the start (tests compare against a flood fill).
+- **No-route detection.** When the target is unreachable, every algorithm expands exactly the set of cells reachable from the start (tests compare the set of expanded cells with an independent flood fill).
 - **Assumptions.** Non-negative, finite weights; static grid during a search; start and target are not walls (the UI enforces this; the module throws otherwise); dimensions ≤ 400 per side (`MAX_DIMENSION`).
 
 ## Measurements shown in the UI
@@ -130,11 +132,11 @@ Trade-offs made here:
 
 ## Accessibility
 
-- The grid is an ARIA `grid` of `row`/`gridcell` elements with a roving tab stop: Tab reaches the active cell; arrow keys, Home/End, Ctrl+Home/End and PageUp/PageDown move; Enter/Space applies the selected tool; keys 1–5 switch tools.
+- The grid is an ARIA `grid` of `row`/`gridcell` elements with a roving tab stop: Tab reaches the active cell; arrow keys, Home/End, Ctrl+Home/End and PageUp/PageDown move and keep the focused cell scrolled into view; Enter/Space applies the selected tool; keys 1–5 switch tools and the switch is announced. Focus stays inside the grid when a layout is regenerated while a cell is focused.
 - Every cell has an `aria-label` describing its position and state; the label is refreshed on focus and on change.
 - Outcomes, pauses, steps, stops, resizes and layout generation are announced through a `role="status"` live region.
 - Controls are native `<button>`, `<input type="radio">`, `<select>`, `<input type="range">` and `<input type="checkbox">` elements with visible labels and visible focus indicators (the portfolio's accent outline, inverted on dark cells).
-- Colour is never the only signal: the start and target carry "S"/"T" glyphs, terrain is hatched, frontier cells have an inner outline and path cells a centred dot.
+- Colour is backed by a second cue for every state that carries information beyond the exploration tint: the start and target carry "S"/"T" glyphs, terrain is hatched, frontier cells have an inner outline and path cells a centred dot. Expanded cells differ from open cells by fill alone, at a tested luminance contrast of at least 3:1.
 - `prefers-reduced-motion: reduce` turns animation off by default (the result appears immediately); the user can still opt in, and Step always works one expansion at a time.
 - Touch: the grid uses `touch-action: pinch-zoom`, so dragging paints while pinch-zoom still works; the grid's height is capped so the page remains scrollable around it.
 
@@ -158,9 +160,9 @@ npm test               # static integrity checks + syntax checks + unit tests
 npm run test:unit      # node --test tests/unit/*.test.js
 ```
 
-The unit suite covers: grid helpers; neighbour generation, costs and the no-corner-cutting rule; heuristic values, consistency on every edge of random weighted grids and sampled admissibility; the binary heap; the empty grid; start equal to target; unreachable targets (expanded set equals the reachable component); weighted terrain (BFS vs Dijkstra/A*); dense random obstacles (40 layouts × 2 movement modes); perfect mazes (border, one-cell corridors, unique path returned identically by all algorithms and both movement modes); deterministic layouts and the PRNG; trace semantics (each cell expanded/discovered at most once, keys non-decreasing, BFS depths equal to a reference BFS); determinism of traces; cancellation part-way through a search; repeated input changes without grid mutation; a property check that A* and Dijkstra return equal optimal costs on 150 seeded layouts in both movement modes; path validation; and the largest preset grid.
+The unit suite covers: grid helpers and distinct default endpoints for every size; neighbour generation, costs and the no-corner-cutting rule; heuristic values, consistency on every edge of random weighted grids and sampled admissibility; the binary heap; the empty grid; start equal to target; unreachable targets (the expanded set equals an independently computed reachable component); weighted terrain (BFS vs Dijkstra/A*); dense random obstacles (40 layouts × 2 movement modes); perfect mazes (border, one-cell corridors, unique path returned identically by all algorithms and both movement modes, and every size from 1 × 1 to 8 × 8); deterministic layouts and the PRNG; trace semantics (each cell expanded/discovered at most once, keys non-decreasing, BFS depths equal to an independent reference BFS); determinism of traces; cancellation part-way through a search; repeated input changes without grid mutation; a property check that A* and Dijkstra return equal optimal costs on 150 seeded layouts (75 weighted random fields and 75 perfect mazes) in both movement modes wherever a route exists; path validation; the largest preset grid; WCAG contrast of the colour tokens in both themes; and the provenance of the portfolio card artwork.
 
-Browser tests (Playwright, Chromium) run the page at desktop (1280 × 800), tablet (834 × 1112) and mobile (375 × 667) viewports and check: no console errors or failed requests; no horizontal overflow; every control (run, pause/resume, step, stop, clear, generate, seeds, size, movement, algorithm, speed, animate, tools); keyboard navigation and activation inside the grid; pointer painting and marker dragging; the unreachable-target message; deterministic layouts; reduced-motion behaviour; light/dark themes; accessible names on all controls; internal links on both pages; and that the portfolio page still filters three projects and opens its mobile navigation.
+Browser tests (Playwright, Chromium) run the page at desktop (1280 × 800), tablet (834 × 1112), mobile (375 × 667) and narrow (320 × 568) viewports and check: no console errors or failed requests; no horizontal overflow; every control (run, pause/resume, step, stop, clear, generate, new seed, seed normalisation, size, movement, algorithm, speed, animate, and all five tools); keyboard navigation and activation inside the grid, including that the focused cell stays inside the viewport and that focus survives a layout regeneration; pointer painting, wall toggling, marker dragging and stroke termination; a one-finger touch drag that paints without scrolling; the unreachable-target and same-cell messages; deterministic layouts; reduced-motion behaviour; light/dark themes; accessible names on all controls (ignoring aria-hidden text); internal links on both pages; the 404 page; and that the portfolio page still filters three projects and opens its mobile navigation.
 
 ```bash
 # one-off local setup outside the repository (no dependency is added to the site)
@@ -170,6 +172,10 @@ NODE_PATH=/tmp/playwright/node_modules npm run test:browser
 ```
 
 Continuous integration (`.github/workflows/portfolio-ci.yml`) runs the static checks, syntax checks and unit tests on every pull request, then installs Playwright in the runner's temporary directory and runs the browser tests.
+
+## Card preview provenance
+
+The artwork on the Project 03 card in `index.html` is not an illustration: it is the A* (4-directional) run on `generateRandomField(16, 9, 11, { wallDensity: 0.26, terrainDensity: 0 })`, rendered as SVG paths (walls, expanded and frontier cells off the route, the route through cell centres, and the start/target markers). `tests/unit/preview.test.js` regenerates it from the module and fails if the markup drifts from the real run.
 
 ## Extending the lab
 
