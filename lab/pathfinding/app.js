@@ -16,6 +16,11 @@ const DEFAULT_SEED = 42;
 const MOVEMENT_NAMES = Object.freeze({ 4: '4-directional movement', 8: '8-directional movement without corner cutting' });
 const MOVEMENT_SHORT = Object.freeze({ 4: '4 directions', 8: '8 directions' });
 const TOOL_NAMES = Object.freeze({ wall: 'Wall', terrain: 'Terrain (cost ×5)', erase: 'Erase', start: 'Start', target: 'Target' });
+const LAYOUT_DESCRIPTIONS = Object.freeze({
+  maze: 'perfect maze (exactly one route between any two cells)',
+  braided: 'braided maze (a perfect maze with some corridor walls reopened, so loops exist)',
+  field: 'random field',
+});
 const ALGORITHM_HINTS = Object.freeze({
   bfs: 'Explores layer by layer with a FIFO queue. Guarantees the fewest moves; ignores terrain cost and the longer length of diagonal moves.',
   dijkstra: 'Always expands the cheapest known cell using a binary-heap priority queue. Guarantees the lowest total cost for any non-negative weights.',
@@ -578,7 +583,7 @@ function generateLayout({ announce = true } = {}) {
   const generated = layout.generate(cols, rows, seed);
   buildGrid(generated.grid, generated.start, generated.target);
   if (announce) {
-    setStatus(`Generated a ${layoutId === 'maze' ? 'perfect maze' : 'random field'} of ${cols} × ${rows} cells from seed ${formatInt(seed)}. The same generator, size and seed always reproduce this exact layout.`);
+    setStatus(`Generated a ${LAYOUT_DESCRIPTIONS[layoutId] ?? layout.name.toLowerCase()} of ${cols} × ${rows} cells from seed ${formatInt(seed)}. The same generator, size and seed always reproduce this exact layout.`);
   }
   return true;
 }
@@ -622,11 +627,18 @@ function updateSpeedLabel() {
   dom.speed.setAttribute('aria-valuetext', `${formatInt(perSecond)} expansions per second`);
 }
 
-function settingsChangedDuringRun(what) {
-  if (state.run && state.run.status !== 'finished') {
-    cancelRun({ silent: true });
-    setStatus(`Stopped: the ${what} changed during the search. Press Run to search again with the new setting.`);
-  }
+/**
+ * A result is only meaningful for the algorithm and movement rule it was
+ * computed under, so changing either one invalidates it: an active search is
+ * stopped and a finished result is cleared, overlay and statistics included.
+ */
+function settingsChanged(what) {
+  if (!state.run) return;
+  const wasActive = state.run.status === 'running' || state.run.status === 'paused';
+  cancelRun({ silent: true });
+  setStatus(wasActive
+    ? `Stopped: the ${what} changed during the search. Press Run to search again with the new setting.`
+    : `The ${what} changed, so the previous result was cleared. Press Run to search again with the new setting.`);
 }
 
 function bindControls() {
@@ -641,12 +653,12 @@ function bindControls() {
   dom.algorithm.addEventListener('change', () => {
     state.algorithm = dom.algorithm.value;
     dom.algorithmHint.textContent = ALGORITHM_HINTS[state.algorithm];
-    settingsChangedDuringRun('algorithm');
+    settingsChanged('algorithm');
   });
   dom.movement.addEventListener('change', () => {
     state.movement = Number(dom.movement.value);
     dom.movementHint.textContent = MOVEMENT_HINTS[state.movement];
-    settingsChangedDuringRun('movement rule');
+    settingsChanged('movement rule');
   });
   dom.size.addEventListener('change', () => applySize(dom.size.value));
   dom.speed.addEventListener('input', () => {

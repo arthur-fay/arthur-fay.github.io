@@ -457,15 +457,18 @@ export function normaliseSeed(seed) {
 
 /**
  * Perfect maze by iterative recursive backtracking on the odd-coordinate
- * lattice (1-cell-wide corridors, 1-cell-thick walls), optionally "braided"
- * by reopening a deterministic fraction of walls to create loops.
+ * lattice (1-cell-wide corridors, 1-cell-thick walls). By default the open
+ * cells form a spanning tree, so there is exactly one route between any two
+ * cells. Passing `braid` > 0 reopens that fraction of the walls between
+ * adjacent rooms afterwards (deterministically), which creates loops; the
+ * result is then a braided maze, not a perfect one.
  * Returns { grid, start, target } with start at the top-left room and target
  * at the bottom-right room. Grids whose odd lattice holds fewer than two rooms
  * (both dimensions below 5, or any dimension below 3) are too small for a maze
  * and fall back to an open grid with the default endpoints.
  */
 export function generateMaze(cols, rows, seed, options = {}) {
-  const braid = options.braid ?? 0.08;
+  const braid = options.braid ?? 0;
   const grid = createGrid(cols, rows);
   const random = mulberry32(normaliseSeed(seed));
   const maxX = cols - 2 - ((cols - 2) % 2 === 0 ? 1 : 0); // largest odd x ≤ cols − 2
@@ -539,7 +542,15 @@ export function generateRandomField(cols, rows, seed, options = {}) {
   return { grid, start, target };
 }
 
+export const BRAID_FRACTION = 0.08;
+
+/** Braided maze: a perfect maze with BRAID_FRACTION of the corridor walls reopened to create loops. */
+export function generateBraidedMaze(cols, rows, seed) {
+  return generateMaze(cols, rows, seed, { braid: BRAID_FRACTION });
+}
+
 export const LAYOUTS = Object.freeze({
-  maze: Object.freeze({ id: 'maze', name: 'Perfect maze (recursive backtracker)', generate: generateMaze }),
+  maze: Object.freeze({ id: 'maze', name: 'Perfect maze (recursive backtracker, no loops)', generate: generateMaze }),
+  braided: Object.freeze({ id: 'braided', name: 'Braided maze (perfect maze with loops reopened)', generate: generateBraidedMaze }),
   field: Object.freeze({ id: 'field', name: 'Random field (walls + terrain)', generate: generateRandomField }),
 });

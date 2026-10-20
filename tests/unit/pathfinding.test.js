@@ -432,14 +432,47 @@ describe('narrow corridors (perfect mazes)', () => {
     }
   });
 
-  it('braiding reopens walls deterministically and keeps the maze solvable', () => {
-    const plain = P.generateMaze(31, 19, 5, { braid: 0 });
+  /** Number of 4-directional adjacencies between open cells (each counted once). */
+  function openEdges(grid) {
+    let edges = 0;
+    for (let y = 0; y < grid.rows; y += 1) {
+      for (let x = 0; x < grid.cols; x += 1) {
+        if (!P.isPassable(grid, P.toIndex(grid, x, y))) continue;
+        if (x + 1 < grid.cols && P.isPassable(grid, P.toIndex(grid, x + 1, y))) edges += 1;
+        if (y + 1 < grid.rows && P.isPassable(grid, P.toIndex(grid, x, y + 1))) edges += 1;
+      }
+    }
+    return edges;
+  }
+
+  it('the default maze is perfect: its open cells form a spanning tree with no loops', () => {
+    for (const [cols, rows, seed] of [[31, 19, 1], [21, 13, 42], [61, 37, 7], [45, 27, 2026], [30, 18, 9]]) {
+      const { grid, start } = P.generateMaze(cols, rows, seed);
+      assert.deepEqual(grid.cells, P.generateMaze(cols, rows, seed, { braid: 0 }).grid.cells, 'the default is braid = 0');
+      const open = grid.cells.filter((c) => c !== P.CELL.WALL).length;
+      assert.equal(P.reachableCells(grid, start, 4), open, 'connected');
+      assert.equal(openEdges(grid), open - 1, `${cols}×${rows}/${seed}: a connected graph with V − 1 edges is a tree`);
+      const maxX = cols - 2 - ((cols - 2) % 2 === 0 ? 1 : 0);
+      const maxY = rows - 2 - ((rows - 2) % 2 === 0 ? 1 : 0);
+      const rooms = ((maxX + 1) / 2) * ((maxY + 1) / 2);
+      assert.equal(open, 2 * rooms - 1, 'rooms plus the passages of a spanning tree');
+    }
+  });
+
+  it('braiding reopens walls deterministically, creates loops and keeps the maze solvable', () => {
+    const plain = P.generateMaze(31, 19, 5);
     const braided = P.generateMaze(31, 19, 5, { braid: 0.1 });
     const openPlain = plain.grid.cells.filter((c) => c !== P.CELL.WALL).length;
     const openBraided = braided.grid.cells.filter((c) => c !== P.CELL.WALL).length;
     assert.ok(openBraided > openPlain, 'braiding opens additional walls');
+    assert.ok(openEdges(braided.grid) >= openBraided, 'at least one loop exists (E ≥ V)');
+    assert.equal(P.reachableCells(braided.grid, braided.start, 4), openBraided, 'still connected');
     assert.ok(P.runSearch('astar', braided.grid, braided.start, braided.target).found);
     assert.deepEqual(P.generateMaze(31, 19, 5, { braid: 0.1 }).grid.cells, braided.grid.cells);
+    const viaLayout = P.LAYOUTS.braided.generate(31, 19, 5);
+    assert.deepEqual(viaLayout.grid.cells, P.generateMaze(31, 19, 5, { braid: P.BRAID_FRACTION }).grid.cells, 'the braided layout option uses BRAID_FRACTION');
+    assert.ok(openEdges(viaLayout.grid) >= viaLayout.grid.cells.filter((c) => c !== P.CELL.WALL).length, 'the braided layout option has loops');
+    assert.deepEqual(P.LAYOUTS.maze.generate(31, 19, 5).grid.cells, plain.grid.cells, 'the perfect-maze layout option has no braiding');
   });
 
   it('degrades gracefully on tiny grids', () => {

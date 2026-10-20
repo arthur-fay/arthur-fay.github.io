@@ -290,11 +290,14 @@ describe('lab: initial state and instant runs (desktop)', () => {
         assert.ok(/ms$/.test(await stat(page, 'stat-time')));
       }
       await page.selectOption('#movement', '8');
-      assert.ok((await page.locator('#stat-outcome').textContent()).includes('Breadth-first search · 4 directions'), 'a finished result keeps the label of the settings it was computed under');
+      assert.equal(await stat(page, 'stat-outcome'), '—', 'a finished result is cleared when the movement rule changes');
       assert.ok(Math.abs(results.astar.cost - results.dijkstra.cost) < 1e-6, 'A* and Dijkstra agree on the optimal cost');
       assert.ok(results.bfs.cost >= results.dijkstra.cost, 'BFS is never cheaper than Dijkstra');
       assert.ok(results.bfs.steps <= results.dijkstra.steps, 'BFS never uses more moves');
       assert.ok(results.astar.expanded <= results.dijkstra.expanded, 'A* expands no more than Dijkstra on this layout');
+      assert.ok(await page.locator('#clear-search').isDisabled(), 'nothing is left to clear after the setting change');
+      await page.locator('#run').click();
+      assert.equal(await stat(page, 'stat-outcome'), 'Path found');
       await page.locator('#clear-search').click();
       assert.equal(await count(page, '#grid .is-path, #grid .is-visited, #grid .is-frontier'), 0);
       assert.equal(await stat(page, 'stat-outcome'), '—');
@@ -304,6 +307,33 @@ describe('lab: initial state and instant runs (desktop)', () => {
       await close();
     }
   });
+
+  for (const [setting, select, value, phrase] of [['algorithm', '#algorithm', 'bfs', 'algorithm changed'], ['movement rule', '#movement', '8', 'movement rule changed']]) {
+    it(`clears a completed result when the ${setting} changes without pressing Run`, async () => {
+      const { page, close } = await open(LAB);
+      try {
+        await page.locator('#animate').uncheck();
+        await page.selectOption('#algorithm', 'astar');
+        await page.locator('#run').click();
+        assert.equal(await stat(page, 'stat-outcome'), 'Path found');
+        const pathCells = await count(page, '#grid .is-path');
+        assert.ok(pathCells > 1 && Number.isInteger(number(await stat(page, 'stat-steps'))), 'a route and statistics are shown');
+        await page.selectOption(select, value);
+        assert.equal(await count(page, '#grid .is-path, #grid .is-visited, #grid .is-frontier'), 0, 'the overlay is cleared');
+        for (const id of ['stat-outcome', 'stat-steps', 'stat-cost', 'stat-expanded', 'stat-time']) assert.equal(await stat(page, id), '—', `${id} is reset`);
+        assert.ok(await page.locator('#clear-search').isDisabled(), 'nothing is left to clear');
+        assert.ok(await page.locator('#pause').isDisabled() && await page.locator('#stop').isDisabled());
+        const text = await status(page);
+        assert.ok(text.includes(phrase) && text.includes('previous result was cleared'), text);
+        assert.equal(await count(page, '#grid .is-start'), 1, 'the grid itself is untouched');
+        await page.locator('#run').click();
+        assert.equal(await stat(page, 'stat-outcome'), 'Path found', 'a new run with the new setting works');
+        assert.ok((await page.locator('#stat-outcome').textContent()).includes(value === 'bfs' ? 'Breadth-first search' : '8 directions'), 'the new result is labelled with the new setting');
+      } finally {
+        await close();
+      }
+    });
+  }
 
   it('explains that BFS is not cost-optimal on weighted terrain', async () => {
     const { page, close } = await open(LAB);
@@ -637,6 +667,15 @@ describe('lab: layouts, seeds and sizes', () => {
       await page.locator('#animate').uncheck();
       await page.locator('#run').click();
       assert.equal(await stat(page, 'stat-outcome'), 'Path found', 'a perfect maze is always solvable');
+      await page.selectOption('#layout', 'braided');
+      await page.locator('#generate').click();
+      assert.ok((await status(page)).includes('braided maze'), 'the braided option is announced as braided');
+      assert.notEqual(await gridSignature(page), a, 'braiding reopens walls of the same seeded maze');
+      assert.ok((await status(page)).includes('loops'));
+      await page.selectOption('#layout', 'maze');
+      await page.locator('#generate').click();
+      assert.ok((await status(page)).includes('exactly one route'), 'the perfect maze is described as loop-free');
+      assert.equal(await gridSignature(page), a);
       await page.locator('#new-seed').click();
       assert.notEqual(await page.inputValue('#seed'), '123');
       assert.notEqual(await gridSignature(page), a);

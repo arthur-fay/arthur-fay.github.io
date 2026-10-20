@@ -119,7 +119,7 @@
             </div>
             <aside class="lab-panel" aria-labelledby="settings-heading">
               <h2 id="settings-heading">Settings</h2>
-              <p class="lab-panel-note">Changes to the algorithm or movement rules stop a run in progress. The grid itself is never changed by a search.</p>
+              <p class="lab-panel-note">Changing the algorithm or the movement rule clears the previous result, finished or in progress, so the display always matches the current settings. The grid itself is never changed by a search.</p>
               <div class="field">
                 <label for="algorithm">Algorithm</label>
                 <select id="algorithm">
@@ -163,7 +163,8 @@
                 <label for="layout">Generator</label>
                 <select id="layout">
                   <option value="field" selected>Random field (walls + terrain)</option>
-                  <option value="maze">Perfect maze (recursive backtracker)</option>
+                  <option value="maze">Perfect maze (no loops)</option>
+                  <option value="braided">Braided maze (loops reopened)</option>
                 </select>
               </div>
               <div class="field">
