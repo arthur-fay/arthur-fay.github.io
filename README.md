@@ -2,7 +2,7 @@
 
 A responsive, accessible, dependency-free portfolio website prepared for the GitHub Pages user site **`arthur-fay.github.io`**.
 
-**Status:** Prepared for review on an unpublished branch. The GitHub repository exists, but GitHub Pages is not enabled. The owner controls the merge and publication.
+**Status:** Prepared on a review branch, not merged into `main`. GitHub Pages is already enabled for this new repository and an initial `main` build succeeded before the portfolio files were added. Merging the portfolio PR can automatically publish the site if Pages continues deploying `main`. The owner controls whether and when to approve that merge.
 
 ## Featured work
 
@@ -32,10 +32,10 @@ Then visit `http://localhost:8000`. Avoid opening `file://` URLs when evaluating
 
 ## Publishing later (OWNER APPROVAL REQUIRED)
 
-1. Use the existing **public** `arthur-fay/arthur-fay.github.io` GitHub repository. Review the portfolio content in the pull request first; do not merge or enable Pages without the owner's approval.
+1. Use the existing **public** `arthur-fay/arthur-fay.github.io` repository. Review the portfolio pull request before approving it. Check **Settings → Pages**: Pages is already enabled, although its exact configuration should be confirmed by the owner.
 2. After review and explicit owner approval, merge the portfolio pull request. All site files must be **at the repository root**, including `.nojekyll`; leave the ATLAS repository untouched.
-3. Open repo **Settings → Pages → Build and deployment → Source: Deploy from a branch → main → /(root)**. Save.
-4. After GitHub finishes deploying, verify `https://arthur-fay.github.io/` opens. It is only a planned URL until GitHub Pages is enabled and the deploy succeeds.
+3. **Before merging**, decide whether the portfolio should go live immediately. Since Pages is already enabled and successfully ran against the initial `main`, a merge may deploy automatically. If you want to prevent that, disable Pages in **Settings → Pages** before merging. When you are ready to publish, use **Deploy from a branch → main → /(root)** if that is the selected source.
+4. After the portfolio merge and successful Pages deployment, verify `https://arthur-fay.github.io/` opens and displays the new portfolio. The site's current response has not yet been independently checked; do not confuse the initial README build with the portfolio being live.
 5. Check both desktop and mobile, navigation, theme switch, filter buttons, the 404 page, and all external GitHub links.
 
 **No ATLAS release tag, dashboard publication flag, NYC data terms gate, or VPS is affected by this separate portfolio.**
