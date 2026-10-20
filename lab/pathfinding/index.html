@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1017" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'none'; base-uri 'self'; form-action 'none'" />
+  <meta name="description" content="Interactive Robotics & Pathfinding Lab by Arthur Fay: draw obstacles and weighted terrain on a grid, then run and compare breadth-first search, Dijkstra's algorithm and A* with measured results, step controls and deterministic mazes." />
+  <meta name="author" content="Arthur Fay" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Interactive Robotics & Pathfinding Lab — Arthur Fay" />
+  <meta property="og:description" content="A grid-based pathfinding simulation comparing BFS, Dijkstra and A* with animated exploration, measured results and deterministic maze generation." />
+  <meta property="og:url" content="https://arthur-fay.github.io/lab/pathfinding/" />
+  <meta name="twitter:card" content="summary" />
+  <link rel="canonical" href="https://arthur-fay.github.io/lab/pathfinding/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/lab/pathfinding/lab.css" />
+  <script defer src="/script.js"></script>
+  <script type="module" src="/lab/pathfinding/app.js"></script>
+  <title>Interactive Robotics & Pathfinding Lab — Arthur Fay</title>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="reading-progress" id="reading-progress" aria-hidden="true"></div>
+  <div class="site-shell">
+    <header class="site-header" id="top">
+      <div class="container header-inner">
+        <a class="wordmark" href="/" aria-label="Arthur Fay, back to the portfolio">
+          <span class="wordmark-symbol" aria-hidden="true">A<span class="symbol-slash">/</span>F</span>
+          <span class="wordmark-name">Arthur Fay<span class="wordmark-sub">SOFTWARE · DATA · RESEARCH</span></span>
+        </a>
+        <nav class="desktop-nav" aria-label="Primary navigation">
+          <a href="/">Portfolio</a>
+          <a href="/#work">Work</a>
+          <a href="#lab">Lab</a>
+          <a href="#explanations">Algorithms</a>
+        </nav>
+        <div class="header-actions">
+          <button type="button" class="theme-button icon-button" id="theme-toggle" aria-label="Switch to light theme" title="Toggle color theme">
+            <svg class="theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+            <svg class="theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20.7 13.4A9 9 0 0 1 10.6 3.3 9 9 0 1 0 20.7 13.4Z"/></svg>
+          </button>
+          <a class="header-github" href="https://github.com/arthur-fay/arthur-fay.github.io" target="_blank" rel="noopener noreferrer">Source <span aria-hidden="true">↗</span></a>
+          <button class="menu-toggle icon-button" id="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="mobile-nav">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </div>
+      <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation" hidden>
+        <a href="/">Portfolio</a>
+        <a href="/#work">Work</a>
+        <a href="#lab">Lab</a>
+        <a href="#explanations">Algorithms</a>
+        <a href="https://github.com/arthur-fay/arthur-fay.github.io" target="_blank" rel="noopener noreferrer">Source ↗</a>
+      </nav>
+    </header>
+    <main id="main">
+      <section class="lab-hero container" aria-labelledby="lab-title">
+        <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> PROJECT 03 / INTERACTIVE LAB <span class="hero-serial">/ 2026</span></p>
+        <h1 id="lab-title">Interactive Robotics &amp;<br/><em>Pathfinding Lab<span class="period">.</span></em></h1>
+        <p class="hero-description">Draw walls and weighted terrain on a grid, place a start and a target, then watch breadth-first search, Dijkstra's algorithm and A* explore the map one cell at a time. Every number on this page is measured from the run that just happened in your browser; nothing is pre-computed or estimated.</p>
+        <p class="project-disclosure lab-disclosure"><span aria-hidden="true">i</span> This is a grid-based algorithm simulation, not a validated real-world robotics navigation system. The "robot" is an abstract agent on discrete cells with exact, deterministic costs: there are no sensors, no kinematics, no uncertainty and no continuous space.</p>
+        <div class="hero-buttons">
+          <a class="button button-primary" href="#lab">Open the lab <span aria-hidden="true">↓</span></a>
+          <a class="button button-secondary" href="#explanations">How the algorithms work <span aria-hidden="true">↓</span></a>
+        </div>
+      </section>
+
+      <section class="lab-section" id="lab" aria-labelledby="lab-heading">
+        <div class="container">
+          <div class="section-heading">
+            <div><p class="section-index">01 / THE LABORATORY</p><h2 id="lab-heading">Build a map, <em>run a search.</em></h2></div>
+            <p class="section-intro">Click or drag to draw. Drag the <strong>S</strong> and <strong>T</strong> markers to move them. Use the arrow keys inside the grid and press Enter or Space to apply the selected tool.</p>
+          </div>
+          <div class="lab-layout">
+            <div class="lab-stage">
+              <div class="lab-toolbar">
+                <fieldset class="lab-tools">
+                  <legend>Drawing tool</legend>
+                  <div class="tool-group">
+                    <label class="tool tool-wall"><input type="radio" name="tool" value="wall" checked /><span>Wall</span></label>
+                    <label class="tool tool-terrain"><input type="radio" name="tool" value="terrain" /><span>Terrain ×5</span></label>
+                    <label class="tool tool-erase"><input type="radio" name="tool" value="erase" /><span>Erase</span></label>
+                    <label class="tool tool-start"><input type="radio" name="tool" value="start" /><span>Start</span></label>
+                    <label class="tool tool-target"><input type="radio" name="tool" value="target" /><span>Target</span></label>
+                  </div>
+                </fieldset>
+                <div class="lab-actions" role="group" aria-label="Simulation controls">
+                  <button type="button" class="button button-primary button-small" id="run">Run <span aria-hidden="true">↗</span></button>
+                  <button type="button" class="button button-outline button-small" id="pause" disabled>Pause</button>
+                  <button type="button" class="button button-outline button-small" id="step">Step</button>
+                  <button type="button" class="button button-outline button-small" id="stop" disabled>Stop</button>
+                  <button type="button" class="button button-outline button-small" id="clear-search" disabled>Clear search</button>
+                </div>
+              </div>
+              <div class="lab-grid-frame">
+                <div class="lab-grid" id="grid" role="grid" aria-label="Pathfinding grid" aria-describedby="grid-help"></div>
+              </div>
+              <p id="grid-help" class="sr-only">Use the arrow keys to move between cells, Home and End to jump within a row, Page Up and Page Down to move five rows, and Enter or Space to apply the selected drawing tool to the focused cell. Press 1 to 5 to choose a tool.</p>
+              <p class="lab-status" id="lab-status" role="status" aria-live="polite">Loading the laboratory…</p>
+              <dl class="lab-stats" role="group" aria-label="Results of the last run">
+                <div><dt>Outcome</dt><dd id="stat-outcome">—</dd></div>
+                <div><dt>Path length</dt><dd id="stat-steps">—<small>moves</small></dd></div>
+                <div><dt>Path cost</dt><dd id="stat-cost">—<small>weighted sum</small></dd></div>
+                <div><dt>Expanded cells</dt><dd id="stat-expanded">—<small>closed set</small></dd></div>
+                <div><dt>Search time</dt><dd id="stat-time">—<small>pure computation</small></dd></div>
+              </dl>
+              <ul class="lab-legend" aria-label="Legend">
+                <li><span class="swatch swatch-open" aria-hidden="true"></span>Open (cost 1)</li>
+                <li><span class="swatch swatch-wall" aria-hidden="true"></span>Wall (impassable)</li>
+                <li><span class="swatch swatch-terrain" aria-hidden="true"></span>Terrain (cost ×5)</li>
+                <li><span class="swatch swatch-start" aria-hidden="true">S</span>Start</li>
+                <li><span class="swatch swatch-target" aria-hidden="true">T</span>Target</li>
+                <li><span class="swatch swatch-frontier" aria-hidden="true"></span>Frontier (discovered, not yet expanded)</li>
+                <li><span class="swatch swatch-visited" aria-hidden="true"></span>Expanded</li>
+                <li><span class="swatch swatch-path" aria-hidden="true"></span>Final path</li>
+              </ul>
+            </div>
+            <aside class="lab-panel" aria-labelledby="settings-heading">
+              <h2 id="settings-heading">Settings</h2>
+              <p class="lab-panel-note">Changes to the algorithm or movement rules stop a run in progress. The grid itself is never changed by a search.</p>
+              <div class="field">
+                <label for="algorithm">Algorithm</label>
+                <select id="algorithm">
+                  <option value="bfs">Breadth-first search (BFS)</option>
+                  <option value="dijkstra">Dijkstra's algorithm</option>
+                  <option value="astar" selected>A* search</option>
+                </select>
+                <p class="field-hint" id="algorithm-hint"></p>
+              </div>
+              <div class="field">
+                <label for="movement">Movement</label>
+                <select id="movement">
+                  <option value="4" selected>4 directions (no diagonals)</option>
+                  <option value="8">8 directions, no corner cutting</option>
+                </select>
+                <p class="field-hint" id="movement-hint"></p>
+              </div>
+              <div class="field">
+                <label for="size">Grid size</label>
+                <select id="size">
+                  <option value="21x13">21 × 13 (273 cells)</option>
+                  <option value="31x19">31 × 19 (589 cells)</option>
+                  <option value="45x27">45 × 27 (1,215 cells)</option>
+                  <option value="61x37">61 × 37 (2,257 cells)</option>
+                </select>
+                <p class="field-hint">Changing the size clears the grid.</p>
+              </div>
+              <div class="field">
+                <label for="speed">Animation speed</label>
+                <div class="range-row"><input type="range" id="speed" min="1" max="10" step="1" value="6" /><span class="range-value" id="speed-value" aria-hidden="true"></span></div>
+              </div>
+              <div class="field field-check">
+                <input type="checkbox" id="animate" checked />
+                <label for="animate">Animate the exploration</label>
+              </div>
+              <p class="field-hint" id="animate-hint">When unchecked, Run shows the finished result immediately. Step always works one expansion at a time.</p>
+              <hr />
+              <h2 id="layouts-heading">Layouts</h2>
+              <p class="lab-panel-note">Generation is deterministic: the same generator, size and seed always produce the same map, in every browser.</p>
+              <div class="field">
+                <label for="layout">Generator</label>
+                <select id="layout">
+                  <option value="field" selected>Random field (walls + terrain)</option>
+                  <option value="maze">Perfect maze (recursive backtracker)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="seed">Seed (0 – 4,294,967,295)</label>
+                <div class="field-inline">
+                  <input type="number" id="seed" min="0" max="4294967295" step="1" value="42" inputmode="numeric" />
+                  <button type="button" class="button button-outline button-small" id="new-seed">New seed</button>
+                </div>
+              </div>
+              <div class="panel-actions">
+                <button type="button" class="button button-primary button-small" id="generate">Generate layout</button>
+              </div>
+              <div class="panel-actions">
+                <button type="button" class="button button-outline button-small" id="clear-walls">Clear obstacles</button>
+                <button type="button" class="button button-outline button-small" id="reset">Reset grid</button>
+              </div>
+              <details class="lab-help">
+                <summary>Keyboard and pointer help</summary>
+                <ul>
+                  <li><kbd>Tab</kbd> into the grid, then <kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> move the focused cell; <kbd>Home</kbd> / <kbd>End</kbd> jump to the row ends; <kbd>Ctrl</kbd>+<kbd>Home</kbd> / <kbd>Ctrl</kbd>+<kbd>End</kbd> jump to the grid corners; <kbd>PageUp</kbd> / <kbd>PageDown</kbd> move five rows.</li>
+                  <li><kbd>Enter</kbd> or <kbd>Space</kbd> applies the selected tool to the focused cell. Wall and Terrain toggle; Start and Target move the marker there.</li>
+                  <li><kbd>1</kbd> – <kbd>5</kbd> select Wall, Terrain, Erase, Start or Target while the grid has focus.</li>
+                  <li>With a pointer, press and drag to paint. With the Wall, Terrain or Erase tool selected, pressing on the <strong>S</strong> or <strong>T</strong> marker drags it instead of painting; dragging a marker across walls skips them. The Start and Target tools place their marker on any cell you press.</li>
+                  <li>Editing the grid while a search is running stops that search; its overlay is cleared so stale results are never shown.</li>
+                </ul>
+              </details>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="section container" id="explanations" aria-labelledby="explanations-title">
+        <div class="section-heading">
+          <div><p class="section-index">02 / THE ALGORITHMS</p><h2 id="explanations-title">Three searches, <em>one grid.</em></h2></div>
+          <p class="section-intro">All three explore the same graph: cells are nodes, legal moves are edges. They differ only in the order they take cells off the queue, and that order decides what they can guarantee.</p>
+        </div>
+        <div class="explain-grid">
+          <article class="explain-card" id="explain-bfs">
+            <span class="principle-top">01 / UNINFORMED, UNIFORM COST</span>
+            <h3>Breadth-first search</h3>
+            <p>Keeps a <strong>first-in, first-out queue</strong>. The start cell goes in; each dequeued cell enqueues every unvisited neighbour. Because the queue is FIFO, cells are expanded in order of their distance in moves, so the first time the target is dequeued it has been reached with the <strong>fewest possible moves</strong>.</p>
+            <p>BFS never looks at edge costs. On this grid that means it is only <strong>cost-optimal when every move costs the same</strong>: 4-directional movement with no terrain. Add terrain or diagonal moves and BFS still returns the fewest moves, but Dijkstra or A* can find a cheaper route. The lab reports the weighted cost of the BFS path so the difference is visible.</p>
+            <p>What you will see: a diamond (4 directions) or square (8 directions) wavefront spreading evenly from the start, ignoring terrain colours entirely.</p>
+            <dl class="explain-meta"><dt>Order</dt><dd>Distance in moves (FIFO)</dd><dt>Optimal</dt><dd>Fewest moves; lowest cost only on uniform grids</dd><dt>Time</dt><dd>O(V + E)</dd><dt>Memory</dt><dd>O(V)</dd></dl>
+          </article>
+          <article class="explain-card" id="explain-dijkstra">
+            <span class="principle-top">02 / UNINFORMED, WEIGHTED</span>
+            <h3>Dijkstra's algorithm</h3>
+            <p>Keeps a <strong>priority queue ordered by g</strong>, the cheapest known cost from the start. It always expands the cheapest frontier cell, relaxes its neighbours (records a better cost and predecessor when found), and stops when the target is dequeued. With non-negative costs, a cell's cost is final the moment it is dequeued.</p>
+            <p>This lab implements the queue as a <strong>binary heap with lazy deletion</strong>: improved entries are pushed again and stale ones are skipped on pop. That keeps each operation O(log V) with no decrease-key bookkeeping.</p>
+            <p>What you will see: a wavefront that slows down through terrain, because entering a terrain cell costs five times more, and that flows around it when a detour is cheaper.</p>
+            <dl class="explain-meta"><dt>Order</dt><dd>g = cost so far</dd><dt>Optimal</dt><dd>Yes, for any non-negative costs</dd><dt>Time</dt><dd>O((V + E) log V)</dd><dt>Memory</dt><dd>O(V)</dd></dl>
+          </article>
+          <article class="explain-card" id="explain-astar">
+            <span class="principle-top">03 / INFORMED, WEIGHTED</span>
+            <h3>A* search</h3>
+            <p>Dijkstra with a sense of direction. Cells are ordered by <strong>f = g + h</strong>, where h estimates the remaining cost to the target. This lab uses the <strong>Manhattan distance</strong> for 4-directional movement and the <strong>octile distance</strong> for 8-directional movement. Both never overestimate (they are admissible) and never violate the triangle inequality along an edge (they are consistent), because every move costs at least its geometric length and the cheapest cell weight is 1.</p>
+            <p>With a consistent heuristic, A* returns a path of <strong>exactly the same cost as Dijkstra</strong> while usually expanding far fewer cells. Ties on f are broken by preferring the smaller h, then first-in order, which keeps runs deterministic.</p>
+            <p>What you will see: exploration leaning toward the target, growing wider only when walls force a detour. On an open grid A* heads almost straight there; in a maze it has to explore nearly as much as Dijkstra.</p>
+            <dl class="explain-meta"><dt>Order</dt><dd>f = g + h (admissible, consistent h)</dd><dt>Optimal</dt><dd>Yes, same cost as Dijkstra</dd><dt>Time</dt><dd>O((V + E) log V) worst case</dd><dt>Memory</dt><dd>O(V)</dd></dl>
+          </article>
+        </div>
+
+        <div class="rules-grid">
+          <div class="rules-block"><span class="case-block-num">RULES OF THIS SIMULATION</span><h3>Exactly what the robot may do.</h3>
+            <ul>
+              <li><strong>Cells</strong> are open (weight 1), terrain (weight 5) or walls (impassable).</li>
+              <li><strong>Moves</strong>: 4-directional steps have length 1. In 8-directional mode diagonal steps have length √2 ≈ 1.414.</li>
+              <li><strong>Cost of a move</strong> = step length × weight of the cell being entered. The start cell's own weight is never paid; the target's is.</li>
+              <li><strong>No corner cutting</strong>: a diagonal move is allowed only when both orthogonal cells it passes between are not walls, so the robot can never squeeze between two diagonally touching walls.</li>
+              <li><strong>Termination</strong>: every search stops when the target is dequeued, which makes the "expanded cells" numbers comparable across algorithms.</li>
+            </ul>
+          </div>
+          <div class="rules-block"><span class="case-block-num">READING THE NUMBERS</span><h3>What each measurement means.</h3>
+            <ul>
+              <li><strong>Path length</strong>: number of moves from start to target.</li>
+              <li><strong>Path cost</strong>: sum of the move costs along the route, recomputed from the grid for BFS so its non-optimality on weighted maps is visible.</li>
+              <li><strong>Expanded cells</strong>: cells dequeued and processed (the closed set), including the target. "Frontier" cells were discovered but never expanded.</li>
+              <li><strong>Search time</strong>: wall-clock time of the pure JavaScript search, measured before any animation starts and including the cost of recording the trace. It depends on your device, browser and whether the code is already warmed up, so it is an observation, not a benchmark.</li>
+            </ul>
+          </div>
+          <div class="rules-block"><span class="case-block-num">CORRECTNESS EVIDENCE</span><h3>Tested, not asserted.</h3>
+            <p>The algorithms live in a pure module with no DOM access, so the test-suite exercises exactly the code the page runs. Automated tests cover empty grids, dense obstacles, unreachable targets, start equal to target, one-cell corridors, deterministic layouts, cancellation mid-search, repeated edits, and a property check that A* and Dijkstra return equal optimal costs on 150 seeded weighted layouts in both movement modes. Every returned path is re-validated move by move against the rules above.</p>
+          </div>
+          <div class="rules-block"><span class="case-block-num">LIMITATIONS</span><h3>What this lab does not claim.</h3>
+            <p>It is not a robotics stack: no localisation, sensing, motion constraints, dynamic obstacles or continuous-space planning. The grid is static during a search, weights are fixed at 1 and 5, and the heuristics are tied to the grid metric. Timings are observations on your machine and are not comparable across devices. The page is a teaching and engineering demonstration, not a validated navigation system.</p>
+          </div>
+        </div>
+
+        <div class="lab-table-wrap">
+          <table class="lab-table">
+            <caption>SIDE BY SIDE — WHAT EACH ALGORITHM GUARANTEES ON THIS GRID</caption>
+            <thead><tr><th scope="col">Property</th><th scope="col">Breadth-first search</th><th scope="col">Dijkstra</th><th scope="col">A*</th></tr></thead>
+            <tbody>
+              <tr><td>Queue discipline</td><td>FIFO</td><td>Min-heap on g</td><td>Min-heap on g + h, ties by h</td></tr>
+              <tr><td>Uses edge costs</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+              <tr><td>Uses a heuristic</td><td>No</td><td>No</td><td>Yes: Manhattan (4 dir) or octile (8 dir)</td></tr>
+              <tr><td>Fewest moves guaranteed</td><td>Yes</td><td>Only when all moves cost the same</td><td>Only when all moves cost the same</td></tr>
+              <tr><td>Lowest cost guaranteed</td><td>Only on uniform-cost, 4-directional grids</td><td>Yes</td><td>Yes</td></tr>
+              <tr><td>Typical expansions on an open map</td><td>Most</td><td>Most</td><td>Fewest</td></tr>
+              <tr><td>Worst-case time</td><td>O(V + E)</td><td>O((V + E) log V)</td><td>O((V + E) log V)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="case-study-section" id="engineering" aria-labelledby="engineering-title">
+        <div class="container">
+          <div class="section-heading">
+            <div><p class="section-index">03 / HOW IT IS BUILT</p><h2 id="engineering-title">Small surface, <em>no dependencies.</em></h2></div>
+            <p class="section-intro">The same constraints as the rest of this portfolio: plain HTML, CSS and JavaScript, a strict content security policy, and no third-party code, fonts, analytics or tracking.</p>
+          </div>
+          <div class="rules-grid">
+            <div class="rules-block"><span class="case-block-num">ARCHITECTURE</span><h3>Algorithms apart from rendering.</h3><p><strong>pathfinding.js</strong> is a pure ES module: grid model, neighbour rules, heuristics, a binary heap, the three searches written as generators, path validation and the seeded layout generators. <strong>app.js</strong> owns the DOM: it drains a generator into a trace, measures the time, then replays the trace with requestAnimationFrame so pause, resume, step and stop are just cursor operations on that trace.</p></div>
+            <div class="rules-block"><span class="case-block-num">ACCESSIBILITY</span><h3>Usable without a mouse.</h3><p>The grid is a keyboard-navigable ARIA grid with a roving tab stop, every cell has a spoken description, outcomes are announced through a live region, controls are native buttons, radios, selects and sliders, colours are paired with glyphs and patterns, and the animation is off by default when your system asks for reduced motion.</p></div>
+            <div class="rules-block"><span class="case-block-num">VERIFICATION</span><h3>Unit, browser and static checks.</h3><p>Node's built-in test runner covers the algorithm module. Playwright browser tests run the page at desktop and mobile sizes, exercise the controls through the keyboard and the pointer, and check for console errors, horizontal overflow and broken links. The portfolio's offline integrity script verifies both pages' links, assets and policies in continuous integration.</p></div>
+            <div class="rules-block"><span class="case-block-num">REPRODUCE</span><h3>Run it yourself.</h3><p>Clone the repository, start any static file server at its root, open <strong>/lab/pathfinding/</strong>, and run <strong>npm test</strong> for the static checks and unit tests. The documentation in <strong>lab/pathfinding/README.md</strong> explains the model, the proofs behind the heuristics, the test matrix and how to add an algorithm or a new layout generator.</p></div>
+          </div>
+          <div class="lab-footer-note">
+            <a class="button button-outline" href="https://github.com/arthur-fay/arthur-fay.github.io" target="_blank" rel="noopener noreferrer">Inspect the source repository <span aria-hidden="true">↗</span></a>
+            <p>Independent engineering demonstration. The lab does not use, publish or depend on any dataset, and it is unrelated to the ATLAS research project also featured in this portfolio.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer"><div class="container footer-inner"><a href="/" class="footer-brand" aria-label="Back to the portfolio">AF<span> / ARTHUR FAY</span></a><span>© 2026 Arthur Fay. Portfolio content.</span><a href="https://github.com/arthur-fay" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div><div class="container footer-note">Independent portfolio. Grid-based algorithm simulation for demonstration and teaching; no claim of real-world robotics validation.</div></footer>
+  </div>
+</body>
+</html>
