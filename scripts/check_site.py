@@ -1,10 +1,11 @@
 """Offline, dependency-free smoke checks for Arthur Fay's GitHub Pages portfolio.
 
-Checks both published pages (the portfolio and the Interactive Robotics &
-Pathfinding Lab): document basics, internal anchors, outbound-link policy,
-self-hosted assets, content-security-policy hygiene (no inline styles or
-scripts), required disclosures, and the absence of network/tracking code in
-the JavaScript. Run with: python3 scripts/check_site.py
+Checks every published page (the portfolio, the Interactive Robotics &
+Pathfinding Lab and the Security Event Detection & Investigation Lab):
+document basics, internal anchors, outbound-link policy, self-hosted assets,
+content-security-policy hygiene (no inline styles or scripts), required
+disclosures, and the absence of network/tracking code in the JavaScript.
+Run with: python3 scripts/check_site.py
 """
 from __future__ import annotations
 
@@ -17,11 +18,14 @@ from urllib.parse import urlsplit
 ROOT = Path(__file__).resolve().parents[1]
 SITE = "https://arthur-fay.github.io"
 LAB_DIR = "lab/pathfinding"
+SEC_DIR = "lab/security-events"
 REQUIRED = {
     "index.html", "404.html", "styles.css", "script.js",
     "favicon.svg", "robots.txt", "sitemap.xml", ".nojekyll", "package.json",
     f"{LAB_DIR}/index.html", f"{LAB_DIR}/lab.css", f"{LAB_DIR}/app.js",
     f"{LAB_DIR}/pathfinding.js", f"{LAB_DIR}/README.md",
+    f"{SEC_DIR}/index.html", f"{SEC_DIR}/lab.css", f"{SEC_DIR}/app.js",
+    f"{SEC_DIR}/detection.js", f"{SEC_DIR}/README.md",
 }
 FORBIDDEN_JS = (
     "fetch(", "XMLHttpRequest", "sendBeacon(", "gtag(", "analytics.js",
@@ -170,19 +174,21 @@ def main() -> None:
 
     index = check_page(
         "index.html",
-        {"main", "work", "about", "approach", "contact", "atlas-detail", "pathfinding-title"},
+        {"main", "work", "about", "approach", "contact", "atlas-detail", "pathfinding-title", "security-title"},
         (
             "forecasting gains are not established", "failed calibration", "hypothetical",
             "No NYC-derived charts or datasets are hosted on this portfolio.",
             "Grid-based algorithm simulation, not a validated real-world robotics navigation system",
             "https://github.com/arthur-fay/demand-forecasting-model",
             "https://github.com/arthur-fay/customer-revenue-analytics",
+            "synthetic events only", "not a production SIEM",
         ),
         f"{SITE}/",
     )
-    assert index.projects == 3, f"index.html: expected 3 project cards, found {index.projects}"
-    assert "interactive" in index.filters and "all" in index.filters, "index.html: project filters incomplete"
+    assert index.projects == 4, f"index.html: expected 4 project cards, found {index.projects}"
+    assert {"all", "interactive", "security"} <= set(index.filters), "index.html: project filters incomplete"
     assert f"/{LAB_DIR}/" in index.internal_pages, "index.html: Project 03 must link to the lab page"
+    assert f"/{SEC_DIR}/" in index.internal_pages, "index.html: Project 04 must link to the security lab page"
 
     lab = check_page(
         f"{LAB_DIR}/index.html",
@@ -200,26 +206,57 @@ def main() -> None:
     assert ("link", f"/{LAB_DIR}/lab.css") in lab.assets, "lab page must load its stylesheet"
     assert {"grid", "status"} <= lab.roles or ("grid" in lab.roles and lab.live_regions >= 1), "lab page needs an ARIA grid and a live status region"
 
-    for stylesheet in ("styles.css", f"{LAB_DIR}/lab.css"):
+    security = check_page(
+        f"{SEC_DIR}/index.html",
+        {"main", "lab", "timeline", "lab-status", "play", "pause", "step", "reset", "skip", "speed", "alerts", "detail",
+         "preset", "seed", "generate", "export", "r1-threshold", "r1-window", "r2-accounts", "r2-window", "r3-failures",
+         "r3-window", "r3-scope", "compare", "events", "event-table", "evaluation", "comparison", "import", "import-text",
+         "import-file", "methodology", "engineering"},
+        (
+            "synthetic events only",
+            "not a production SIEM",
+            "do not establish real-world detection accuracy",
+            "reserved documentation IP ranges",
+            "no telemetry",
+            "Do not paste sensitive real-world production logs",
+            "never interpreted as markup or code",
+            "RFC 5737",
+        ),
+        f"{SITE}/{SEC_DIR}/",
+    )
+    assert f"/{SEC_DIR}/app.js" in security.module_scripts, "security lab page must load app.js as an ES module"
+    assert ("link", f"/{SEC_DIR}/lab.css") in security.assets, "security lab page must load its stylesheet"
+    assert "status" in security.roles and security.live_regions >= 2, "security lab page needs live status regions"
+    assert "<form" not in (ROOT / SEC_DIR / "index.html").read_text(encoding="utf-8").casefold(), "the security lab must not submit forms"
+
+    for stylesheet in ("styles.css", f"{LAB_DIR}/lab.css", f"{SEC_DIR}/lab.css"):
         check_css(stylesheet)
-    for script in ("script.js", f"{LAB_DIR}/app.js", f"{LAB_DIR}/pathfinding.js"):
+    for script in ("script.js", f"{LAB_DIR}/app.js", f"{LAB_DIR}/pathfinding.js", f"{SEC_DIR}/app.js", f"{SEC_DIR}/detection.js"):
         check_javascript(script)
     app = (ROOT / LAB_DIR / "app.js").read_text(encoding="utf-8")
     assert "from './pathfinding.js'" in app, "app.js must import the pure algorithm module"
     pure = (ROOT / LAB_DIR / "pathfinding.js").read_text(encoding="utf-8")
     assert "document." not in pure and "window." not in pure, "pathfinding.js must stay free of DOM access"
+    sec_app = (ROOT / SEC_DIR / "app.js").read_text(encoding="utf-8")
+    assert "from './detection.js'" in sec_app, "security app.js must import the pure engine module"
+    for token in ("localStorage", "sessionStorage", "indexedDB", "navigator.sendBeacon", "import("):
+        assert token not in sec_app, f"security app.js must not persist or transmit event data: {token}"
+    sec_pure = (ROOT / SEC_DIR / "detection.js").read_text(encoding="utf-8")
+    assert "document." not in sec_pure and "window." not in sec_pure, "detection.js must stay free of DOM access"
+    assert "203.0.113." in sec_pure and "198.51.100." in sec_pure and "192.0.2." in sec_pure, "the engine must generate only RFC 5737 documentation addresses"
 
     package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
     assert package.get("type") == "module", "package.json must declare ES modules for the Node tests"
     assert not package.get("dependencies") and not package.get("devDependencies"), "the site must stay dependency-free"
 
     sitemap = (ROOT / "sitemap.xml").read_text(encoding="utf-8")
-    assert f"<loc>{SITE}/</loc>" in sitemap and f"<loc>{SITE}/{LAB_DIR}/</loc>" in sitemap, "sitemap must list both pages"
+    assert f"<loc>{SITE}/</loc>" in sitemap and f"<loc>{SITE}/{LAB_DIR}/</loc>" in sitemap and f"<loc>{SITE}/{SEC_DIR}/</loc>" in sitemap, "sitemap must list all three pages"
     assert f"{SITE}/sitemap.xml" in (ROOT / "robots.txt").read_text(encoding="utf-8")
     assert 'href="/"' in (ROOT / "404.html").read_text(encoding="utf-8")
     print(
         "Portfolio static verification passed "
-        f"(index: {len(index.links)} links, {len(index.ids)} IDs; lab: {len(lab.links)} links, {len(lab.ids)} IDs)."
+        f"(index: {len(index.links)} links, {len(index.ids)} IDs; pathfinding lab: {len(lab.links)} links, {len(lab.ids)} IDs; "
+        f"security lab: {len(security.links)} links, {len(security.ids)} IDs)."
     )
 
 
