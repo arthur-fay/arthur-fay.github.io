@@ -1,6 +1,6 @@
 # Arthur Fay — Personal Engineering Portfolio
 
-A responsive, accessible, dependency-free portfolio website prepared for the GitHub Pages user site **`arthur-fay.github.io`**.
+A responsive, accessible, dependency-free engineering portfolio served at **https://arthur-fay.github.io/** using GitHub Pages.
 
 **Status:** The portfolio is served from `main` by GitHub Pages. New work is prepared on review branches and pull requests; the owner controls whether and when to merge, and merging into `main` publishes the change.
 
@@ -18,7 +18,7 @@ No professional employment history, degrees, LinkedIn URL, email address, or awa
 
 ## Architecture
 
-- Plain semantic HTML + CSS + a small, dependency-free JavaScript enhancement file (`script.js`, shared by both pages).
+- Plain semantic HTML + CSS + a small, dependency-free JavaScript enhancement file (`script.js`, shared across the portfolio and both lab pages). The custom 404 page uses local CSS and a restrictive Content Security Policy.
 - `lab/pathfinding/` is a second page built the same way: ES modules (`pathfinding.js` holds the pure algorithms, `app.js` the UI), its own stylesheet on top of the shared design tokens, and the same strict CSP. See [lab/pathfinding/README.md](lab/pathfinding/README.md).
 - `lab/security-events/` is a third page with the same structure: `detection.js` is the pure engine (synthetic generator, strict event schema, sorting with deterministic tie-breaking, three streaming detection rules, evaluation, explanations), `app.js` the UI (SVG timeline, playback cursor, alerts, investigation view, paginated table, scores, comparison, local import/export), plus its own stylesheet and the same strict CSP. See [lab/security-events/README.md](lab/security-events/README.md).
 - Deliberately no React/Vite build step: **ready to publish and test with no npm dependencies or paid infrastructure**. `package.json` declares `"type": "module"` (so Node can import the ES modules in tests), the test scripts and metadata, and no dependencies.
@@ -45,15 +45,30 @@ npm run test:browser   # Playwright browser tests for both labs; see lab/pathfin
 
 Continuous integration runs the same checks on every pull request (`.github/workflows/portfolio-ci.yml`).
 
-## Publishing later (OWNER APPROVAL REQUIRED)
+## Publishing changes (OWNER APPROVAL REQUIRED)
 
-1. Use the existing **public** `arthur-fay/arthur-fay.github.io` repository. Review the portfolio pull request before approving it. Check **Settings → Pages**: Pages is already enabled, although its exact configuration should be confirmed by the owner.
-2. After review and explicit owner approval, merge the portfolio pull request. All site files must be **at the repository root**, including `.nojekyll`; leave the ATLAS repository untouched.
-3. **Before merging**, decide whether the portfolio should go live immediately. Since Pages is already enabled and successfully ran against the initial `main`, a merge may deploy automatically. If you want to prevent that, disable Pages in **Settings → Pages** before merging. When you are ready to publish, use **Deploy from a branch → main → /(root)** if that is the selected source.
-4. After the portfolio merge and successful Pages deployment, verify `https://arthur-fay.github.io/` opens and displays the new portfolio. The site's current response has not yet been independently checked; do not confuse the initial README build with the portfolio being live.
-5. Check both desktop and mobile, navigation, theme switch, filter buttons, both lab pages, the 404 page, and all external GitHub links.
+The portfolio is already served from `main` by GitHub Pages. Changes to `main` can trigger a public deployment.
 
-**No ATLAS release tag, dashboard publication flag, NYC data terms gate, or VPS is affected by this separate portfolio.**
+1. Create a review branch and pull request; keep `main` unchanged until the owner approves publication.
+2. Inspect the PR diff and CI results. The CI workflow runs offline integrity/unit checks and Playwright browser tests.
+3. Review all user-facing claims, project links, CSP changes and research boundaries. **Do not publish ATLAS's prepared static demo**, historical data, NYC-derived charts or hypothetical optimization outcomes through this repository.
+4. After explicit owner approval, merge the reviewed PR and check the GitHub Pages deployment result.
+5. Manually verify the live homepage, two lab pages, 404 page, mobile navigation, filters, theme control, keyboard interaction and outbound GitHub links. A green deployment is not a substitute for a live browser check.
+
+**ATLAS remains an independent project with separate code licensing, NYC Open Data terms, statistical limitations, release decisions and scientific gates.** A portfolio update does not clear or modify those gates.
+
+## Evidence-first recruiter navigation
+
+The homepage links directly to the underlying material in addition to each project's summary:
+
+| Project | Inspectable evidence | Boundaries |
+| --- | --- | --- |
+| ATLAS | [Source](https://github.com/arthur-fay/demand-forecasting-model), [backtesting protocol and results](https://github.com/arthur-fay/demand-forecasting-model/blob/main/docs/BACKTESTING.md), [release gate](https://github.com/arthur-fay/demand-forecasting-model/blob/main/docs/release/RELEASE_GATE.md) | Forecast improvements not robustly established; prediction intervals failed calibration; optimization hypothetical; static demo not published. |
+| E-Commerce Analytics | [Project README with dashboard and data model](https://github.com/arthur-fay/customer-revenue-analytics/blob/main/README.md#dashboard-preview), [data model](https://github.com/arthur-fay/customer-revenue-analytics/blob/main/README.md#data-model) | The portfolio card's decorative charts are illustrative; actual screenshots and PBIX are in the project repository. |
+| Pathfinding Lab | [Interactive lab](https://arthur-fay.github.io/lab/pathfinding/), [algorithm implementation](lab/pathfinding/pathfinding.js), [methods and tests](lab/pathfinding/README.md) | Grid-based demonstration, not validated physical robot navigation. |
+| Security Events Lab | [Interactive lab](https://arthur-fay.github.io/lab/security-events/), [detection engine](lab/security-events/detection.js), [methods and tests](lab/security-events/README.md) | Synthetic-only educational demonstration, not a production SIEM or real-world accuracy study. |
+
+See [the October 2026 recruiter-readiness audit](docs/PORTFOLIO_AUDIT_2026-10.md) for the reviewed scope, changes, unresolved gaps and validation plan. No employment history, degree, skills rating, personal contact method or performance figure is implied without supporting evidence.
 
 ## Edits to make next
 

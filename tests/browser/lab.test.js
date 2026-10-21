@@ -192,6 +192,13 @@ describe('page integrity across viewports', () => {
     try {
       assert.equal(response.status(), 404);
       assert.equal(await page.locator('a[href="/"]').count(), 1);
+      assert.ok(await page.locator('main.not-found').isVisible());
+      // The test fixture sets documentElement.style.scrollBehavior dynamically;
+      // inspect the served HTML rather than counting fixture-created DOM styles.
+      assert.doesNotMatch(await response.text(), /<style\b|\sstyle\s*=/i, '404 source has no inline styles');
+      assert.equal(await page.locator('link[rel="stylesheet"][href="/404.css"]').count(), 1);
+      assert.ok((await page.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute('content')).includes("default-src 'none'"));
+      assert.ok((await page.locator('meta[name="robots"]').getAttribute('content')).includes('noindex'));
     } finally {
       await close();
     }
