@@ -44,13 +44,14 @@ Three directions were explored before any code changed:
 
 ### Shared pages
 
-- `lab/pathfinding/` and `lab/security-events/` inherit the new header, type scale, buttons and sections through the shared stylesheet; their own stylesheets now use the shared font tokens. Three `<dl>` elements that carried `role="group"` are wrapped in a labelled group instead so the lists keep their list semantics (an axe `dlitem` finding), the footer link names now include their visible text (axe `label-content-name-mismatch`), and the light-theme failure ink in the security lab was deepened to `#a3471f` because its small text measured 4.07:1 on the new paper tone. Lab logic, controls and tests are untouched.
+- `lab/pathfinding/` and `lab/security-events/` inherit the new header, type scale, buttons and sections through the shared stylesheet; their own stylesheets now use the shared font tokens. Their range sliders can now shrink below the browser's intrinsic slider width, which stops the security lab's timeline toolbar being cut off by 5 px at 320 px (pre-existing). Three `<dl>` elements that carried `role="group"` are wrapped in a labelled group instead so the lists keep their list semantics (an axe `dlitem` finding), the footer link names now include their visible text (axe `label-content-name-mismatch`), and the light-theme failure ink in the security lab was deepened to `#a3471f` because its small text measured 4.07:1 on the new paper tone. Lab logic, controls and tests are untouched.
 - `404.html` / `404.css` restyled; `favicon.svg` redrawn as the new monogram.
 
 ### Tests
 
-- `tests/browser/portfolio.test.js` (new, 21 tests): layout integrity at 320/375/768/1280/1920 in both themes with no overflow and no clipped headings; the section cut's wiring, click and keyboard behaviour, roving tab stop and deep links; the no-JavaScript fallback; reduced-motion behaviour; the hero drawing's accessibility and animation completion; active navigation; the mobile menu's focus handling; theme switching and persistence; the social card's existence and dimensions; the skip link and control names.
+- `tests/browser/portfolio.test.js` (new, 27 tests): layout integrity at 320/375/768/1280/1920 in both themes with no overflow, no clipped headings and no element cut off at the viewport edge (the page shell clips, so `scrollWidth` alone cannot see that), the same clipping check for both labs and the 404 page at 320 and 375 px, the sticky header; the section cut's wiring, click and keyboard behaviour, roving tab stop and deep links; the no-JavaScript fallback; reduced-motion behaviour; the hero drawing's accessibility and animation completion; active navigation; the mobile menu's focus handling; theme switching and persistence; the social card's existence and dimensions; the skip link and control names.
 - All existing checks still pass unchanged: `scripts/check_site.py`, 121 unit tests (including the contrast tests against the new tokens and the provenance tests for the lab artwork) and the 57 existing browser tests.
+- The analytics plate's drawing and copy use the table names documented in the project's own README (`fact_orders`, `fact_order_items`, `fact_cohort_retention`; `dim_date`, `dim_customer`, `dim_product`, `dim_seller`, `dim_payment_method`, `dim_order_status`; `KPI_Measures`), checked against a read-only clone of that repository during the review. No figures from it are repeated.
 
 ## 4. Measurements
 
@@ -60,12 +61,12 @@ All numbers below were measured in this review environment (Linux, headless Chro
 
 | Page | Preset | Performance | Accessibility | Best practices | SEO | LCP | CLS | TBT |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `/` | mobile | 100 | 100 | 100 | 92 | 1.4 s | 0 | 0 ms |
+| `/` | mobile (3 isolated runs, identical) | 100 | 100 | 100 | 92 | 1.4 s | 0 | 0 ms |
 | `/` | desktop | 100 | 100 | 100 | 92 | 0.4 s | 0 | 0 ms |
-| `/lab/pathfinding/` | mobile | 99 | 100 | 100 | 92 | 1.8 s | 0 | 0 ms |
-| `/lab/security-events/` | mobile | 97 | 100 | 100 | 92 | 2.0 s | 0 | 110 ms |
+| `/lab/pathfinding/` | mobile | 100 | 100 | 100 | 92 | 1.5 s | 0 | 10 ms |
+| `/lab/security-events/` | mobile | 98 | 100 | 100 | 92 | 2.0 s | 0 | 80 ms |
 
-The SEO score is 92 on every page for one reason: Lighthouse's `robots-txt` audit fetches `robots.txt` from inside the page, and the strict CSP blocks that request, so the audit reports the file as invalid although it is valid and served correctly. The `bf-cache` audit fails only because the local test server sends `Cache-Control: no-store`. The first run (before the fixes in this branch's final commits) had scored 97/100/100/92 on `/` mobile and 97/93/100/92 on the security lab; the three findings it surfaced (footer and wordmark link names, `<dl>` elements with `role="group"`, and 4.07:1 failure-coloured text in the light security lab) are fixed here.
+One homepage mobile run taken while screenshot captures were running on the same machine scored 81 with 800 ms of total blocking time; the three runs taken on an idle machine all scored 100 with 0 ms, so the outlier is machine contention, not the page. The SEO score is 92 on every page for one reason: Lighthouse's `robots-txt` audit fetches `robots.txt` from inside the page, and the strict CSP blocks that request, so the audit reports the file as invalid although it is valid and served correctly. The `bf-cache` audit fails only because the local test server sends `Cache-Control: no-store`. The first run (before the fixes in this branch) had scored 97/100/100/92 on `/` mobile and 97/93/100/92 on the security lab; the three findings it surfaced (footer and wordmark link names, `<dl>` elements with `role="group"`, and 4.07:1 failure-coloured text in the light security lab) are fixed here.
 
 **Transfer size (gzip, as GitHub Pages serves it)**
 
@@ -83,16 +84,35 @@ The SEO score is 92 on every page for one reason: Lighthouse's `robots-txt` audi
 | --- | --- |
 | `python3 scripts/check_site.py` | passed (61 links, 41 IDs on the homepage) |
 | `node --test tests/unit/*.test.js` | 121 passed, 0 failed |
-| `node --test tests/browser/*.test.js` | 78 passed, 0 failed (57 existing + 21 new) |
+| `node --test tests/browser/*.test.js` | 84 passed, 0 failed (57 existing + 27 new) |
 
 **Layout checks** (Playwright screenshots in both themes): no horizontal overflow and no console errors at 320, 375, 768, 1280 and 1920 px on the homepage; both labs and the 404 page rendered at 1280 and 375 px with the shared stylesheet; the mobile menu, the section cut (click, arrows, Home/End, deep link), the filters, the theme toggle, the no-JavaScript fallback and the reduced-motion state were exercised by script and inspected.
 
 **Colour contrast**: the unit contrast suite evaluates the new tokens in both themes (text, muted text, accent, labels and lab-specific colours at 4.5:1 for text and 3:1 for graphics). Lighthouse's axe pass reports no contrast failures on any page in the final run.
 
-## 5. Remaining limitations
+## 5. Independent review
+
+An adversarial review was run as a separate pass (accessibility, security, mobile usability, performance, factual integrity and regressions, with its own Playwright and Lighthouse runs). Its findings and what was done:
+
+| Severity | Finding | Resolution |
+| --- | --- | --- |
+| High | `.site-shell{overflow:hidden}` made the shell a scroll container, so `position:sticky` on the header never engaged (pre-existing on `main`; the redesign's sticky tab rail and blurred header depended on it). | `overflow:clip` on the shell. The header and the section-cut rail now stick; a browser test asserts the header stays at the top after scrolling. |
+| Medium | Plate drawing labels rendered at 3.6–4.3 px on phones. | Primary labels enlarged; all drawing text is hidden below 600 px, where the figure captions and plate copy carry the content. |
+| Medium | "Artificial intelligence" appears as a field although the four projects are forecasting, business intelligence, graph search and rule-based detection. | Kept as a field of work because the brief for this redesign lists it; it is presented as a field, not a credential. Flagged in the pull request for the owner's decision. |
+| Medium | About a fifth of the homepage's characters were 10–11 px monospace labels. | Label floor raised to 11 px (12 px for the filter buttons and footer note); body copy was already 15–19 px. |
+| Medium | Security lab timeline toolbar cut off by ~5 px at 320 px (pre-existing). | Sliders may shrink; a browser test now checks both labs and the 404 page for clipped elements at 320 and 375 px. |
+| Medium | The analytics drawing invented dimension names. | Redrawn from the repository's documented data model (see above); copy aligned with that README. |
+| Low | Tablist orientation; CSS counters inside link names; the faded tab strip hiding the last tab at scroll end; `will-change` on SVG groups, an infinite animation while off-screen and a large backdrop blur; small header targets; the 404 page lacking an icon link and a light theme; the labs' stale `theme-color`; wording slightly beyond the sources for the ATLAS service and demo. | All addressed: `aria-orientation` follows the layout; numerals are hidden spans; the strip has end padding under the fade; `will-change` and the figure blur removed and the flow line pauses off-screen; header controls are 42 px; the 404 page has an icon and follows the system colour scheme without JavaScript; `theme-color` updated; wording trimmed to what the sources say. |
+| Low | Hairline borders are below 3:1 against their backgrounds. | Left as is: icons and text carry the affordance; noted here. |
+| Nit | "3×" could be announced as "3"; the same arrow marked new-tab and same-tab links; dead selectors. | "03"; same-tab lab links use a horizontal arrow; dead rules removed. |
+
+Checked by the review and found fine: no overflow at any viewport or theme on all pages, CLS 0, text contrast at or above 4.5:1 for every token pair in both themes, heading order, landmarks, focus order, hidden-panel semantics, keyboard operation of the section cut, deep links, the mobile menu's focus handling, reduced-motion guards, CSP compliance (inline injection attempts were blocked), link policy, and every required disclaimer. Not verified by the review: screen readers, Firefox and Safari.
+
+## 6. Remaining limitations
 
 - Lighthouse was run locally against the repository's static test server, not against the live GitHub Pages deployment. Two audits fail only because of that setup: `bf-cache` (the test server sends `Cache-Control: no-store`) and `robots-txt` (Lighthouse fetches `robots.txt` from inside the page, which the strict CSP blocks; the file itself is valid). These should be re-checked on the live site after publication.
 - Screen-reader, Firefox, Safari and low-end-device testing were not performed in this environment; the review used headless Chromium.
 - The e-commerce figure is an illustrative drawing of a dimensional model, not the project's actual model; the real screenshots and data model remain in the project repository, as before.
 - System font stacks render differently per platform (Charter/Palatino-class serif on macOS and Windows, a fallback serif elsewhere); screenshots here were rendered on Linux.
 - No contact channel other than GitHub exists in the repository's records, so none was added.
+- The security lab's timeline toolbar leaves a tall gap above the speed slider on phones; this layout is unchanged from the previous design and is outside the homepage redesign.

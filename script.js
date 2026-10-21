@@ -7,7 +7,7 @@
   "use strict";
   const root = document.documentElement;
   root.classList.add('js');
-  const reduceMotion = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false, addEventListener() {} };
+  const reduceMotion = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
   const finePointer = window.matchMedia ? window.matchMedia('(hover: hover) and (pointer: fine)') : { matches: false };
 
   /* Theme: a stored override wins; otherwise follow the system preference. */
@@ -141,6 +141,14 @@
     });
     const initial = tabs.find((t) => t.getAttribute('aria-selected') === 'true') || tabs[0];
     if (initial) select(initial, false);
+    // The rail is vertical beside the stage on wide screens and a horizontal strip above it otherwise.
+    const tablist = cut.querySelector('[role="tablist"]');
+    const wide = window.matchMedia ? window.matchMedia('(min-width: 981px)') : null;
+    if (tablist && wide) {
+      const orient = () => tablist.setAttribute('aria-orientation', wide.matches ? 'vertical' : 'horizontal');
+      orient();
+      if (wide.addEventListener) wide.addEventListener('change', orient);
+    }
     // Deep links such as #cut-security select the matching panel.
     const fromHash = () => {
       const match = tabs.find((t) => `#${t.getAttribute('aria-controls')}` === window.location.hash);
@@ -187,6 +195,10 @@
   /* Hero drawing: a restrained pointer parallax for fine pointers when motion is allowed. */
   const hero = document.querySelector('.hero');
   const iso = hero && hero.querySelector('.iso');
+  if (hero && iso && 'IntersectionObserver' in window) {
+    // The drawing's flow line loops forever; pause it while the hero is scrolled out of view.
+    new IntersectionObserver((entries) => entries.forEach((entry) => hero.classList.toggle('is-offscreen', !entry.isIntersecting))).observe(hero);
+  }
   if (hero && iso && finePointer.matches && !reduceMotion.matches) {
     let frame = false;
     let next = [0, 0];

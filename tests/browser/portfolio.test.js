@@ -61,6 +61,28 @@ async function open(url, { viewport = VIEWPORTS.desktop, colorScheme = 'dark', r
 
 const selected = (page) => page.locator('#section-cut').getAttribute('data-selected');
 const overflow = (page) => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+/**
+ * Elements whose right edge passes the viewport. The page shell clips overflow, so the
+ * scrollWidth check alone cannot see content cut off at the edge; this walk can.
+ * Descendants of horizontal scroll containers (the lab timeline, tables, the tab strip) are expected to extend.
+ */
+const clipped = (page) => page.evaluate(() => {
+  const width = window.innerWidth;
+  const inScroller = (el) => {
+    for (let node = el.parentElement; node; node = node.parentElement) {
+      const overflowX = getComputedStyle(node).overflowX;
+      if (overflowX === 'auto' || overflowX === 'scroll') return true;
+    }
+    return false;
+  };
+  const found = [];
+  for (const el of document.querySelectorAll('body *')) {
+    const rect = el.getBoundingClientRect();
+    if (!rect.width || !rect.height || getComputedStyle(el).visibility === 'hidden') continue;
+    if (rect.right > width + 0.5 && !inScroller(el)) found.push(`${el.tagName.toLowerCase()}#${el.id || ''} right=${rect.right.toFixed(1)}`);
+  }
+  return found.slice(0, 8);
+});
 
 describe('portfolio: layout integrity at every viewport and in both themes', () => {
   for (const [name, viewport] of Object.entries(VIEWPORTS)) {
@@ -72,10 +94,25 @@ describe('portfolio: layout integrity at every viewport and in both themes', () 
           assert.equal(await page.getAttribute('html', 'data-theme'), colorScheme, 'the system colour scheme is respected');
           assert.equal(await page.locator('h1').count(), 1);
           assert.equal(await overflow(page), 0, 'no horizontal overflow');
+          assert.deepEqual(await clipped(page), [], 'nothing is cut off at the viewport edge');
           // Every heading fits inside the viewport width (no clipped display type).
-          const clipped = await page.$$eval('h1, h2, h3', (nodes) => nodes.filter((n) => { const r = n.getBoundingClientRect(); return r.width > 0 && (r.left < 0 || r.right > window.innerWidth + 0.5); }).map((n) => n.textContent.trim().slice(0, 40)));
-          assert.deepEqual(clipped, []);
+          const clippedHeadings = await page.$$eval('h1, h2, h3', (nodes) => nodes.filter((n) => { const r = n.getBoundingClientRect(); return r.width > 0 && (r.left < 0 || r.right > window.innerWidth + 0.5); }).map((n) => n.textContent.trim().slice(0, 40)));
+          assert.deepEqual(clippedHeadings, []);
           assert.deepEqual(problems, []);
+        } finally {
+          await close();
+        }
+      });
+    }
+  }
+
+  for (const url of ['/lab/pathfinding/', '/lab/security-events/', '/does-not-exist']) {
+    for (const [name, viewport] of [['narrow', VIEWPORTS.narrow], ['mobile', VIEWPORTS.mobile]]) {
+      it(`${url} at ${name} keeps every control inside the viewport with the shared stylesheet`, async () => {
+        const { page, close } = await open(url, { viewport });
+        try {
+          assert.equal(await overflow(page), 0);
+          assert.deepEqual(await clipped(page), []);
         } finally {
           await close();
         }
@@ -129,6 +166,7 @@ describe('portfolio: the section cut', () => {
   it('selects by click, arrows, Home and End with a roving tab stop, and follows deep links', async () => {
     const { page, close } = await open('/');
     try {
+      assert.equal(await page.locator('[role="tablist"]').getAttribute('aria-orientation'), 'vertical', 'the rail is vertical beside the stage on desktop');
       await page.locator('#tab-security').click();
       assert.equal(await selected(page), 'security');
       assert.ok(await page.locator('#cut-security').isVisible());
@@ -212,9 +250,11 @@ describe('portfolio: motion, hero drawing and reveals', () => {
 });
 
 describe('portfolio: navigation, theme and metadata', () => {
-  it('marks the section in view in the primary navigation', async () => {
+  it('marks the section in view in the primary navigation and keeps the header stuck while scrolling', async () => {
     const { page, close } = await open('/');
     try {
+      await page.evaluate(() => window.scrollTo(0, 1500));
+      assert.equal(await page.$eval('.site-header', (el) => el.getBoundingClientRect().top), 0, 'the sticky header stays at the top');
       await page.locator('#about').evaluate((n) => n.scrollIntoView({ block: 'center' }));
       await page.waitForFunction(() => document.querySelector('.desktop-nav a[href="#about"]').getAttribute('aria-current') === 'true');
       assert.equal(await page.locator('.desktop-nav a[aria-current="true"]').count(), 1);

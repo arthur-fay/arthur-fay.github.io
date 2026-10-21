@@ -43,7 +43,7 @@ Then visit `http://localhost:8000` (portfolio), `http://localhost:8000/lab/pathf
 
 ```bash
 npm test               # offline integrity checks (scripts/check_site.py), syntax checks, unit tests for both labs
-npm run test:browser   # Playwright browser tests for the homepage and both labs; see lab/pathfinding/README.md for the one-off setup
+npm run test:browser   # Playwright browser tests for the homepage (tests/browser/portfolio.test.js) and both labs; see lab/pathfinding/README.md for the one-off setup
 ```
 
 Continuous integration runs the same checks on every pull request (`.github/workflows/portfolio-ci.yml`).
