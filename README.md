@@ -44,7 +44,7 @@ python -m http.server 8000
 
 Then visit `http://localhost:8000` (portfolio), `http://localhost:8000/lab/ecommerce/` (analytics lab), `http://localhost:8000/lab/pathfinding/` (pathfinding lab) and `http://localhost:8000/lab/security-events/` (security lab). Avoid opening `file://` URLs: absolute asset paths and ES modules need an HTTP origin, as on GitHub Pages.
 
-The shared header shows its full navigation from 1001 px up and the menu button below that (six primary links on the homepage no longer fit beside the wordmark and the actions on narrower screens).
+The shared header shows its full navigation from 1001 px up and the menu button below that (six primary links on the homepage no longer fit beside the wordmark and the actions on narrower screens); the header's GitHub button appears from 1181 px up so the navigation also fits wider system fonts.
 
 ## Checks and tests
 

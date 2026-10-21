@@ -510,6 +510,8 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
    Responsive
    -------------------------------------------------------------------------- */
 @media (max-width:1180px){
+  /* Six primary links plus the wordmark and the actions: the header GitHub button yields first (GitHub stays in the hero, the contact block and the footer), so the full navigation fits wider system fonts (DejaVu Sans is about 15% wider than Inter) from 1001px up. */
+  .header-github{display:none}
   .desktop-nav{gap:22px}
   .record{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr)}
   .record-entry{grid-template-columns:176px minmax(0,1fr);gap:8px 22px}
