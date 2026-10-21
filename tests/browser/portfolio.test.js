@@ -2,7 +2,9 @@
  * Browser tests for the redesigned portfolio homepage (The Architect Lab):
  * the section-cut interaction (tabs, keyboard, deep links, no-JS fallback),
  * reveals and reduced motion, the hero drawing, navigation state, themes,
- * metadata and layout integrity at additional viewports.
+ * metadata, layout integrity at additional viewports, the professional record
+ * (experience, education, contact), the privacy guard on contact details and
+ * the qualifications that accompany every ATLAS figure.
  *
  *   NODE_PATH=/path/to/node_modules node --test tests/browser/*.test.js
  */
@@ -23,6 +25,7 @@ const VIEWPORTS = {
   narrow: { width: 320, height: 568 },
   mobile: { width: 375, height: 667 },
   tablet: { width: 768, height: 1024 },
+  laptop: { width: 1100, height: 800 },
   desktop: { width: 1280, height: 800 },
   wide: { width: 1920, height: 1080 },
 };
@@ -154,7 +157,7 @@ describe('portfolio: the section cut', () => {
       assert.equal(await page.locator('.cut-panel:visible').count(), 1, 'only the selected panel is shown');
       assert.ok(await page.locator('#cut-atlas').isVisible());
       const atlas = (await page.locator('#cut-atlas').textContent()).toLowerCase();
-      assert.ok(atlas.includes('failed calibration') && atlas.includes('not established'), 'the ATLAS cut keeps the research boundaries');
+      assert.ok(atlas.includes('failed calibration') && /not (statistically )?established/.test(atlas), 'the ATLAS cut keeps the research boundaries');
       const security = (await page.locator('#cut-security').textContent()).toLowerCase();
       assert.ok(security.includes('not a production siem'));
       assert.deepEqual(problems, []);
@@ -334,11 +337,128 @@ describe('portfolio: recruiter path and evidence-based claims', () => {
       const about = (await page.locator('#about').innerText()).toLowerCase();
       assert.ok(!/no employment|degrees|certifications|awards/.test(about), 'the about section no longer leads with what is not claimed');
       assert.ok(about.includes('public work') && about.includes('source code'), 'the about note points to the verifiable record');
-      assert.deepEqual(await page.$$eval('.hero-fields span', (spans) => spans.map((s) => s.textContent.trim())), ['Fields', 'Software engineering', 'Data science', 'Engineering research', 'Technical systems']);
-      assert.equal(await page.locator('.about-fields li').count(), 6);
+      assert.deepEqual(await page.$$eval('.hero-titleblock dt', (dts) => dts.map((dt) => dt.textContent.trim())), ['Role', 'Stack', 'Education', 'Verify']);
+      assert.deepEqual(await page.$$eval('.about-fields li', (items) => items.map((li) => li.textContent.replace(/^\d+/, '').trim())), ['Backend services & REST APIs', 'Relational data modelling & SQL', 'Automated testing & CI/CD', 'Forecasting & statistical evaluation', 'Analytics & business intelligence', 'Interactive engineering labs']);
       assert.equal(await page.locator('.hero-index a').count(), 4);
+      const hero = (await page.locator('.hero-copy').innerText()).toLowerCase();
+      assert.ok(hero.includes('backend software engineer'), 'the hero names the kind of engineer');
+      for (const term of ['python', 'fastapi', 'postgresql', 'sql']) assert.ok(hero.includes(term), `the hero names ${term}`);
     } finally {
       await close();
+    }
+  });
+});
+
+describe('portfolio: experience, education, contact and privacy', () => {
+  it('states the professional record apart from the independent work, with the bachelor\'s degree in progress', async () => {
+    const { page, problems, close } = await open('/');
+    try {
+      assert.ok(await page.locator('#experience').isVisible());
+      assert.deepEqual(await page.$$eval('#experience .record-kind', (els) => els.map((el) => el.textContent.trim())), ['Employment', 'Employment', 'Independent work']);
+      assert.deepEqual(await page.$$eval('#experience .record-dates', (els) => els.map((el) => el.textContent.trim())), ['Mar 2026 — Present', 'Mar 2020 — Dec 2025', 'Jul 2026 — Present']);
+      assert.deepEqual(await page.$$eval('#experience .record-body h3', (hs) => hs.map((h) => h.firstChild.textContent.trim())), ['Backend Software Engineer I', 'Pharmacy Technician · Inventory Analysis & Data Processing', 'Software & analytics projects']);
+      // The independent-work entry links to the four plates; the employment entries link nowhere (no employer systems are referenced).
+      assert.deepEqual(await page.$$eval('#experience .record-entry-independent a', (as) => as.map((a) => a.getAttribute('href'))), ['#plate-atlas', '#plate-commerce', '#plate-pathfinding', '#plate-security']);
+      assert.equal(await page.locator('#experience .record-entry:not(.record-entry-independent) a').count(), 0);
+      const education = page.locator('#education');
+      assert.deepEqual(await education.locator('.edu-status').allTextContents(), ['In progress · expected 2027', 'Completed · August 2024']);
+      assert.deepEqual(await education.locator('h4').allTextContents(), ['B.S. Computer Science', 'A.S. Computer Science']);
+      const bachelor = (await education.locator('.edu-entry').first().innerText()).toLowerCase();
+      assert.ok(bachelor.includes('in progress') && bachelor.includes('2027') && !bachelor.includes('completed'), 'the bachelor\'s degree is never presented as completed');
+      const heroEducation = (await page.locator('.hero-titleblock > div').nth(2).innerText()).toLowerCase();
+      assert.ok(heroEducation.includes('in progress') && heroEducation.includes('expected 2027'), 'the hero title block agrees with the record');
+      assert.deepEqual(problems, []);
+    } finally {
+      await close();
+    }
+  });
+
+  it('reaches the record from the hero, the navigation and the footer, numbers the sheets in order and marks the section in view', async () => {
+    const { page, close } = await open('/');
+    try {
+      assert.equal(await page.locator('.hero .hero-buttons a[href="#experience"]').count(), 1);
+      assert.equal(await page.locator('.hero-titleblock a[href="#education"]').count(), 1);
+      assert.equal(await page.locator('.desktop-nav a[href="#experience"]').count(), 1);
+      assert.equal(await page.locator('.footer-index a[href="#experience"]').count(), 1);
+      assert.deepEqual(await page.$$eval('.desktop-nav a', (as) => as.map((a) => `${a.querySelector('.nav-index').textContent} ${a.lastChild.textContent.trim()}`)), ['01 Systems', '02 Work', '03 Experience', '04 Method', '05 About', '06 Contact']);
+      assert.deepEqual(await page.$$eval('main .section-heading .section-index, main .about-heading .section-index, main .contact-top .section-index', (ps) => ps.map((p) => p.textContent.trim().slice(0, 2))), ['01', '02', '03', '04', '05', '06'], 'the visible sheet numbers follow the navigation');
+      await page.locator('.hero .hero-buttons a[href="#experience"]').click();
+      await page.waitForFunction(() => window.location.hash === '#experience');
+      const top = await page.$eval('#experience', (el) => el.getBoundingClientRect().top);
+      assert.ok(top >= 0 && top <= 120, `the record sits just below the sticky header (top=${top})`);
+      await page.waitForFunction(() => document.querySelector('.desktop-nav a[href="#experience"]').getAttribute('aria-current') === 'true');
+    } finally {
+      await close();
+    }
+  });
+
+  it('never states an ATLAS improvement without its statistical qualification and the calibration finding', async () => {
+    const { page, close } = await open('/');
+    try {
+      for (const id of ['cut-atlas', 'plate-atlas', 'atlas-detail']) {
+        const text = (await page.locator(`#${id}`).innerText()).toLowerCase();
+        if (id !== 'plate-atlas') assert.ok(text.includes('28%') && text.includes('11%'), `#${id} states the measured improvement`);
+        assert.ok(text.includes('not statistically established') || text.includes('not established'), `#${id} qualifies the improvement`);
+        assert.ok(text.includes('failed calibration'), `#${id} keeps the calibration finding`);
+        assert.ok(text.includes('hypothetical'), `#${id} keeps the optimization boundary`);
+      }
+      const service = (await page.locator('#cut-atlas').innerText()).toLowerCase();
+      assert.ok(service.includes('14 versioned endpoints') && service.includes('openapi 3.1'), 'the service layer states the verified API facts');
+      assert.ok(service.includes('not published'), 'the dashboard is described as unpublished');
+      assert.ok((await page.locator('#plate-atlas').innerText()).includes('not deployed'), 'the deployment package is described as not deployed');
+    } finally {
+      await close();
+    }
+  });
+
+  it('offers recruiters a clear path: roles of interest, GitHub as the verified channel and the ATLAS API as the first stop', async () => {
+    const { page, close } = await open('/');
+    try {
+      assert.deepEqual(await page.locator('.contact-roles li').allTextContents(), ['Backend Software Engineer', 'Python Backend Developer', 'API / Database Engineer', 'Software Engineer']);
+      assert.equal(await page.locator('.contact-actions a[href="https://github.com/arthur-fay"]').count(), 1);
+      assert.equal(await page.locator('.contact-actions a[href$="/docs/API.md"]').count(), 1);
+      assert.equal(await page.locator('.channel-list a').count(), 4);
+      assert.equal(await page.locator('.hero-titleblock a[href="https://github.com/arthur-fay"]').count(), 1, 'the hero says where to verify the work');
+    } finally {
+      await close();
+    }
+  });
+
+  it('publishes no personal contact details on any page: GitHub is the only committed channel', async () => {
+    for (const url of ['/', '/lab/ecommerce/', '/lab/pathfinding/', '/lab/security-events/', '/does-not-exist']) {
+      const { page, close } = await open(url);
+      try {
+        const html = await page.content();
+        const text = await page.locator('body').innerText();
+        assert.ok(!/mailto:|\btel:/i.test(html), `${url}: no mailto or tel link`);
+        assert.ok(!/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(text), `${url}: no e-mail address`);
+        assert.ok(!/\(?\b\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}\b/.test(text), `${url}: no phone number`);
+        assert.ok(!/linkedin\.com/i.test(html), `${url}: no LinkedIn link until the owner publishes one`);
+        const hosts = await page.$$eval('a[href^="https://"]', (as) => [...new Set(as.map((a) => new URL(a.href).host))]);
+        assert.deepEqual(hosts, hosts.length ? ['github.com'] : [], `${url}: outbound links stay on GitHub`);
+      } finally {
+        await close();
+      }
+    }
+  });
+
+  it('shows the menu button up to 1000px and the full six-link navigation from 1001px, with nothing clipped either side', async () => {
+    for (const [width, menu] of [[1000, true], [1001, false]]) {
+      const { page, close } = await open('/', { viewport: { width, height: 900 } });
+      try {
+        assert.equal(await page.locator('#menu-toggle').isVisible(), menu, `${width}px: menu button`);
+        assert.equal(await page.locator('.desktop-nav').isVisible(), !menu, `${width}px: primary navigation`);
+        assert.equal(await overflow(page), 0);
+        assert.deepEqual(await clipped(page), []);
+        if (menu) {
+          await page.locator('#menu-toggle').click();
+          assert.ok(await page.locator('#mobile-nav').isVisible());
+          await page.setViewportSize({ width: 1001, height: 900 });
+          await page.waitForFunction(() => document.getElementById('mobile-nav').hidden, null, { timeout: 2000 });
+        }
+      } finally {
+        await close();
+      }
     }
   });
 });
@@ -362,7 +482,7 @@ describe('portfolio: navigation, theme and metadata', () => {
     try {
       await page.locator('#menu-toggle').click();
       assert.equal(await page.evaluate(() => document.activeElement.closest('#mobile-nav') !== null), true);
-      assert.equal(await page.locator('#mobile-nav a').count(), 6);
+      assert.equal(await page.locator('#mobile-nav a').count(), 7);
       await page.keyboard.press('Escape');
       assert.ok(await page.locator('#mobile-nav').isHidden());
       assert.equal(await page.evaluate(() => document.activeElement.id), 'menu-toggle');

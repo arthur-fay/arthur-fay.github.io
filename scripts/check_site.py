@@ -37,6 +37,14 @@ FORBIDDEN_HOMEPAGE_PHRASES = (
     "artificial intelligence", "machine learning", "no employment history",
     "no degrees", "no certifications", "no awards",
 )
+# Personal contact details are published only by the owner's explicit decision (README, "Contact details").
+# Until then no page may carry a phone number, an e-mail address or a mailto:/tel: link.
+PRIVATE_CONTACT_PATTERNS = (
+    re.compile(r"mailto:", re.I),
+    re.compile(r"\btel:", re.I),
+    re.compile(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", re.I),
+    re.compile(r"\(?\b\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}\b"),
+)
 FORBIDDEN_JS = (
     "fetch(", "XMLHttpRequest", "sendBeacon(", "gtag(", "analytics.js",
     "WebSocket(", "eval(", "new Function(", "document.write(", "innerHTML",
@@ -157,6 +165,9 @@ def check_page(relative_path: str, required_ids: set[str], phrases: tuple[str, .
     folded = html.casefold()
     for phrase in phrases:
         assert phrase.casefold() in folded, f"{label}: required statement omitted: {phrase}"
+    for pattern in PRIVATE_CONTACT_PATTERNS:
+        match = pattern.search(html)
+        assert not match, f"{label}: personal contact details must not be committed without the owner's approval: {match.group(0)!r}"
     return parser
 
 
@@ -184,9 +195,11 @@ def main() -> None:
 
     index = check_page(
         "index.html",
-        {"main", "work", "about", "approach", "contact", "atlas-detail", "pathfinding-title", "security-title"},
+        {"main", "work", "experience", "education", "about", "approach", "contact", "atlas-detail", "pathfinding-title", "security-title"},
         (
             "forecasting gains are not established", "failed calibration", "hypothetical",
+            # The record: the bachelor's degree stays marked as in progress, and employment is kept apart from independent work.
+            "In progress · expected 2027", "Completed · August 2024", "Independent work",
             "No NYC-derived charts or datasets are hosted on this portfolio.",
             "Grid-based algorithm simulation, not a validated real-world robotics navigation system",
             "https://github.com/arthur-fay/demand-forecasting-model",
@@ -196,7 +209,8 @@ def main() -> None:
         f"{SITE}/",
     )
     assert index.projects == 4, f"index.html: expected 4 project cards, found {index.projects}"
-    folded_index = (ROOT / "index.html").read_text(encoding="utf-8").casefold()
+    index_html = (ROOT / "index.html").read_text(encoding="utf-8")
+    folded_index = index_html.casefold()
     for phrase in FORBIDDEN_HOMEPAGE_PHRASES:
         assert phrase not in folded_index, f"index.html: unsupported or negative wording must stay out: {phrase}"
     hero_index = re.search(r'<ul class="hero-index"[^>]*>(.*?)</ul>', folded_index, re.S)
@@ -204,14 +218,27 @@ def main() -> None:
     for plate in ("plate-atlas", "plate-commerce", "plate-pathfinding", "plate-security"):
         assert f'href="#{plate}"' in hero_index.group(1), f"index.html: the hero's plate index must link directly to #{plate}"
     assert 'class="button button-primary" href="#work"' in folded_index, "index.html: the hero's primary call to action must lead to the projects"
+    assert 'href="#experience"' in folded_index and 'href="#education"' in folded_index, "index.html: the hero must lead to the experience and education record"
+    for nav in re.findall(r'<nav class="(?:desktop|mobile)-nav"[^>]*>(.*?)</nav>', folded_index, re.S):
+        assert 'href="#experience"' in nav, "index.html: both navigations must list the experience section"
+    # Every ATLAS performance figure on the page sits next to its statistical qualification.
+    for container_id in ("cut-atlas", "plate-atlas", "atlas-detail"):
+        block = re.search(rf'id="{container_id}".*?</section>', index_html, re.S)
+        assert block, f"index.html: missing #{container_id}"
+        text = block.group(0).casefold()
+        if "28%" in text or "11%" in text:
+            assert "not statistically established" in text or "not established" in text, f"index.html: #{container_id} states an ATLAS improvement without its qualification"
+            assert "failed calibration" in text, f"index.html: #{container_id} states an ATLAS improvement without the calibration finding"
     assert {"all", "interactive", "security"} <= set(index.filters), "index.html: project filters incomplete"
     assert f"/{LAB_DIR}/" in index.internal_pages, "index.html: Project 03 must link to the lab page"
     assert f"/{SEC_DIR}/" in index.internal_pages, "index.html: Project 04 must link to the security lab page"
     assert f"/{ECO_DIR}/" in index.internal_pages, "index.html: Project 02 must link to the analytics lab page"
     assert "open the interactive analytics lab" in folded_index, "index.html: Project 02 must carry a prominent link to the analytics lab"
-    index_html = (ROOT / "index.html").read_text(encoding="utf-8")
     for evidence_link in (
         "demand-forecasting-model/blob/main/docs/BACKTESTING.md",
+        "demand-forecasting-model/blob/main/docs/API.md",
+        "demand-forecasting-model/blob/main/docs/api/openapi.json",
+        "demand-forecasting-model/blob/main/.github/workflows/ci.yml",
         "customer-revenue-analytics/blob/main/README.md#data-model",
         "arthur-fay.github.io/blob/main/lab/pathfinding/pathfinding.js",
         "arthur-fay.github.io/blob/main/lab/security-events/detection.js",

@@ -66,8 +66,9 @@
       // Tabbing out of the open menu (past its last link) closes it so focus never lands behind the panel.
       if (!mobileNav.hidden && !mobileNav.contains(event.target) && event.target !== menuButton && !menuButton.parentElement.contains(event.target)) closeMenu();
     });
+    // The stylesheet shows the full header from 1001px up (six primary links); close the menu once it is no longer needed.
     window.addEventListener('resize', () => {
-      if (window.innerWidth > 780 && !mobileNav.hidden) closeMenu();
+      if (window.innerWidth > 1000 && !mobileNav.hidden) closeMenu();
     }, { passive: true });
   }
 
