@@ -1,11 +1,11 @@
 {
   "name": "arthur-fay-portfolio",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Arthur Fay's dependency-free GitHub Pages portfolio, including the Interactive Robotics & Pathfinding Lab and the Security Event Detection & Investigation Lab.",
+  "description": "Arthur Fay — The Architect Lab: a dependency-free GitHub Pages portfolio, including the Interactive Robotics & Pathfinding Lab and the Security Event Detection & Investigation Lab.",
   "type": "module",
   "scripts": {
-    "check": "python3 scripts/check_site.py && node --check script.js && node --check lab/pathfinding/pathfinding.js && node --check lab/pathfinding/app.js && node --check lab/security-events/detection.js && node --check lab/security-events/app.js",
+    "check": "python3 scripts/check_site.py && node --check script.js && node --check scripts/hero-section.js && node --check scripts/social-card.js && node --check lab/pathfinding/pathfinding.js && node --check lab/pathfinding/app.js && node --check lab/security-events/detection.js && node --check lab/security-events/app.js",
     "test:unit": "node --test tests/unit/*.test.js",
     "test:browser": "node --test tests/browser/*.test.js",
     "test": "npm run check && npm run test:unit",
