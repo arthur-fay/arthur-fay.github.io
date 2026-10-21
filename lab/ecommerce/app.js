@@ -6,7 +6,8 @@
  * scenario calculations. The module renders the dashboard charts as SVG,
  * keeps the four simulator levers as state and recalculates on every change,
  * and builds the data-model explorer from the documented tables. Every piece
- * of text is written with textContent or text nodes.
+ * of text is written with textContent or text nodes; the element factories
+ * refuse inline styles, event-handler attributes and URL attributes outright.
  */
 import * as M from './model.js';
 
@@ -16,7 +17,9 @@ const LEVER_IDS = Object.freeze({ volumePct: 'volume', basketPct: 'basket', deli
 const GROUP_LABEL = Object.freeze({ fact: 'Fact', dimension: 'Dimension', measure: 'Measure table' });
 const GROUP_NOUN = Object.freeze({ fact: 'fact table', dimension: 'dimension table', measure: 'measure table' });
 const COLUMN_OF = Object.freeze({ dim_date: 'left', dim_customer: 'left', dim_product: 'left', dim_seller: 'right', dim_payment_method: 'right', dim_order_status: 'right', fact_orders: 'center', fact_order_items: 'center', fact_cohort_retention: 'center', KPI_Measures: 'center' });
-const WIDE_DIAGRAM = window.matchMedia ? window.matchMedia('(min-width: 781px)') : { matches: true };
+// The same query the stylesheet uses to stack the diagram, so the lines are drawn exactly when the columns sit side by side.
+const NARROW_DIAGRAM = window.matchMedia ? window.matchMedia('(max-width: 780px)') : { matches: false };
+const NARROW_CHART = 460; // below this width labels sit above their bars instead of beside them
 
 const dom = {
   category: { chart: byId('category-chart'), caption: byId('category-caption'), rows: byId('category-rows') },
@@ -43,11 +46,14 @@ const dom = {
 
 /* ------------------------------------------------------------------ helpers */
 
-/** Element factory: attributes are set verbatim, text is always a text node. */
+const FORBIDDEN_ATTRIBUTE = /^(style|on.+|srcdoc|href|src|xlink:href|action|formaction)$/i;
+
+/** Element factory: attributes are set verbatim (never styles or handlers), text is always a text node. */
 function el(tag, props = {}, children = []) {
   const node = document.createElement(tag);
   for (const [key, value] of Object.entries(props)) {
     if (value === undefined || value === null || value === false) continue;
+    if (FORBIDDEN_ATTRIBUTE.test(key)) throw new Error(`Refusing to set attribute ${key}`);
     if (key === 'class') node.className = value;
     else if (key === 'text') node.textContent = value;
     else node.setAttribute(key, value === true ? '' : String(value));
@@ -60,6 +66,7 @@ function svgEl(tag, attrs = {}, children = []) {
   const node = document.createElementNS(SVG_NS, tag);
   for (const [key, value] of Object.entries(attrs)) {
     if (value === undefined || value === null) continue;
+    if (FORBIDDEN_ATTRIBUTE.test(key)) throw new Error(`Refusing to set attribute ${key}`);
     if (key === 'text') node.textContent = value;
     else node.setAttribute(key, String(value));
   }
@@ -77,21 +84,25 @@ function setStat(element, value, note) {
   if (note) element.append(el('small', { text: note }));
 }
 
-function cell(text, { num = false, head = false } = {}) {
-  return el(head ? 'th' : 'td', { class: num ? 'is-num' : undefined, scope: head ? 'row' : undefined, text });
+function cell(text, { num = false } = {}) {
+  return el('td', { class: num ? 'is-num' : undefined, text });
 }
 
 function row(cells) {
   return el('tr', {}, cells);
 }
 
-const r1 = (value) => Math.round(value * 10) / 10;
+const r1 = (value) => M.roundTo(value, 1);
+
 /** A BRL change with its sign (a true minus), signless when it rounds to zero. */
 const signedBRL = (value) => {
-  const rounded = Math.round(value * 100) / 100;
+  const rounded = M.roundTo(value, 2);
   if (rounded === 0) return 'R$0.00';
   return `${rounded > 0 ? '+' : '−'}${M.formatBRL(Math.abs(rounded))}`;
 };
+
+const setAttrs = (node, attrs) => { for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, String(value)); };
+const textLength = (node) => (node && typeof node.getComputedTextLength === 'function' ? node.getComputedTextLength() : 0);
 
 /* ------------------------------------------------------------ chart core */
 
@@ -108,8 +119,7 @@ function tipOf(frame) {
 }
 
 function hideTip(frame) {
-  const tip = tipOf(frame);
-  tip.hidden = true;
+  tipOf(frame).hidden = true;
 }
 
 function showTip(frame, mark) {
@@ -133,13 +143,18 @@ function showTip(frame, mark) {
 /**
  * Mounts a rendered SVG into its frame with the hover layer and keyboard
  * navigation: the chart takes focus as one tab stop, the arrow keys move
- * through the marks and the tooltip (a live region) reads each one.
+ * through the marks and the tooltip (a live region) reads each one; a tap
+ * or click toggles the tooltip for pointers that cannot hover. A chart that
+ * held focus keeps it, and its active mark, when it is redrawn.
  */
 function mountChart(frame, svg, legend, title) {
   const marks = [...svg.querySelectorAll('.mark')];
+  const hadFocus = frame.contains(document.activeElement);
+  const previousActive = Number(frame.dataset.active ?? -1);
   let active = -1;
   const setActive = (index) => {
     active = index;
+    frame.dataset.active = String(index);
     marks.forEach((mark, k) => mark.classList.toggle('is-active', k === index));
     if (index >= 0) showTip(frame, marks[index]); else hideTip(frame);
   };
@@ -163,43 +178,65 @@ function mountChart(frame, svg, legend, title) {
     if (active < 0 && marks.length && focusVisible()) setActive(0);
   });
   svg.addEventListener('blur', () => setActive(-1));
-  for (const mark of marks) {
+  marks.forEach((mark, index) => {
     mark.addEventListener('pointerenter', () => { mark.classList.add('is-hover'); showTip(frame, mark); });
     mark.addEventListener('pointerleave', () => {
       mark.classList.remove('is-hover');
       if (active >= 0) showTip(frame, marks[active]); else hideTip(frame);
     });
-  }
+    mark.addEventListener('click', () => setActive(active === index ? -1 : index));
+  });
   clear(frame);
   frame.append(svg);
   if (legend) frame.append(legend);
   frame.append(tipOf(frame));
   hideTip(frame);
+  if (hadFocus) {
+    svg.focus({ preventScroll: true });
+    setActive(previousActive >= 0 && previousActive < marks.length ? previousActive : -1);
+  }
 }
 
 function registerChart(frame, render) {
   charts.set(frame, { render, width: -1 });
 }
 
-function renderChart(frame, { force = false } = {}) {
-  const entry = charts.get(frame);
-  if (!entry) return;
-  const width = Math.floor(frame.clientWidth);
-  if (width <= 0) return;
-  if (!force && width === entry.width) return;
-  entry.width = width;
-  entry.render(width);
+/**
+ * Reads the frames' widths (a layout read) and returns the charts that need
+ * drawing. Callers read widths before they write anything, then run the jobs.
+ */
+function chartJobs(frames, { force = false } = {}) {
+  const jobs = [];
+  for (const frame of frames) {
+    const entry = charts.get(frame);
+    if (!entry) continue;
+    const width = Math.floor(frame.clientWidth);
+    if (width <= 0 || (!force && width === entry.width)) continue;
+    entry.width = width;
+    jobs.push({ entry, width });
+  }
+  return jobs;
 }
 
-/** Reads every frame's width first, then renders, so a pass never alternates layout reads and writes. */
-function renderAllCharts({ force = false } = {}) {
-  const widths = [...charts].map(([frame, entry]) => [frame, entry, Math.floor(frame.clientWidth)]);
-  for (const [frame, entry, width] of widths) {
-    if (width <= 0) continue;
-    if (!force && width === entry.width) continue;
-    entry.width = width;
-    entry.render(width);
+/**
+ * Draws a batch of charts in three phases so the pass forces one layout, not
+ * one per chart: every renderer builds its SVG and stages it in its frame
+ * (writes), then every pending chart measures its text (reads), then every
+ * chart is laid out and mounted (writes). A renderer that measures nothing
+ * mounts during the first phase and returns nothing.
+ */
+function runChartJobs(jobs) {
+  const pending = [];
+  for (const { entry, width } of jobs) {
+    const job = entry.render(width);
+    if (job) pending.push(job);
   }
+  for (const job of pending) job.measure();
+  for (const job of pending) job.finish();
+}
+
+function renderAllCharts({ force = false } = {}) {
+  runChartJobs(chartJobs(charts.keys(), { force }));
 }
 
 let resizeQueued = false;
@@ -253,89 +290,166 @@ function mark(shape, hit, tip, outline) {
 }
 
 /**
- * Horizontal bars, one series or two: rows carry a label, a value, a display
- * string, a kind (pub, rest, hypo) and a tooltip. Values are labelled at the
- * tip of every bar because the lists are short and the values are the point.
+ * Horizontal bars, one series or two. Rows carry a label, a value, a display
+ * string, a kind (pub, rest, hypo) and a tooltip. Every bar is labelled at
+ * its tip because the lists are short and the values are the point. Label
+ * and value gutters are measured from the rendered text; when the frame is
+ * narrow, or a label would not fit beside its bar, labels move above the
+ * bars and sublabels are dropped (the table view keeps them). The SVG is
+ * staged in the frame so that its text can be measured, and finish() lays
+ * it out and mounts it in place of the current chart.
  */
-function horizontalBars(frame, width, { rows, max, labelWidth, title, legend, hatchId, barHeight = 20, rowGap = 14, valueWidth = 96, groupGap = 0 }) {
-  const left = Math.min(labelWidth, Math.max(80, width * 0.34));
-  const right = Math.min(valueWidth, Math.max(64, width * 0.22));
-  const plot = Math.max(40, width - left - right - 6);
-  const top = 6;
-  let y = top;
+function horizontalBars(frame, width, { rows, max, title, legend, hatchId, barHeight = 20, rowGap = 14, groupGap = 0, labelShare = 0.42 }) {
+  let narrow = width < NARROW_CHART;
   const svg = svgEl('svg', { xmlns: SVG_NS });
   const defs = svgEl('defs');
   if (hatchId) defs.append(hatchPattern(hatchId));
-  svg.append(defs);
+  const axis = svgEl('line', { class: 'axis' });
   const body = svgEl('g');
-  svg.append(body);
-  rows.forEach((item, index) => {
-    if (index > 0 && item.groupStart) y += groupGap;
-    const w = Math.max(0, (item.value / max) * plot);
-    const x0 = left;
-    if (item.label !== undefined) {
-      body.append(svgEl('text', { x: x0 - 10, y: y + barHeight / 2, 'text-anchor': 'end', 'dominant-baseline': 'middle', class: item.labelClass || 'label-strong', text: item.label }));
-    }
-    if (item.sublabel) {
-      body.append(svgEl('text', { x: x0 - 10, y: y + barHeight / 2 + 13, 'text-anchor': 'end', 'dominant-baseline': 'middle', class: 'label-mono', text: item.sublabel }));
-    }
-    const shape = svgEl('path', { class: `bar bar-${item.kind}`, d: barRight(x0, y, w, barHeight) });
-    const hatch = item.kind === 'hypo' && hatchId ? svgEl('path', { d: barRight(x0, y, w, barHeight), fill: `url(#${hatchId})` }) : null;
-    const outline = svgEl('path', { class: 'outline', d: barRight(x0, y, w, barHeight) });
-    const hit = svgEl('rect', { class: 'hit', x: x0 - 2, y: y - 4, width: plot + 4, height: barHeight + 8 });
+  svg.append(defs, axis, body);
+  const items = rows.map((item) => {
+    const label = item.label !== undefined ? svgEl('text', { class: item.labelClass || 'label-plain', text: item.label }) : null;
+    const sublabel = item.sublabel && !narrow ? svgEl('text', { class: 'label-mono', text: item.sublabel }) : null;
+    const shape = svgEl('path', { class: `bar bar-${item.kind}` });
+    const hatch = item.kind === 'hypo' && hatchId ? svgEl('path', { fill: `url(#${hatchId})` }) : null;
+    const outline = svgEl('path', { class: 'outline' });
+    const hit = svgEl('rect', { class: 'hit' });
     const group = mark(shape, hit, item.tip, outline);
     if (hatch) group.insertBefore(hatch, outline);
-    body.append(group);
-    body.append(svgEl('text', { x: x0 + w + 8, y: y + barHeight / 2, 'dominant-baseline': 'middle', class: 'label-value', text: item.display }));
-    y += barHeight + rowGap;
+    const value = svgEl('text', { class: 'label-value', text: item.display });
+    for (const node of [label, sublabel, group, value]) if (node) body.append(node);
+    return { item, label, sublabel, shape, hatch, outline, hit, value };
   });
-  const height = y - rowGap + 6;
-  body.insertBefore(svgEl('line', { class: 'axis', x1: left, x2: left, y1: top - 2, y2: height - 4 }), body.firstChild);
-  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-  svg.setAttribute('width', width);
-  svg.setAttribute('height', height);
-  mountChart(frame, svg, legend ? legendList(legend) : null, title);
+  frame.append(svg);
+  let labelWidth = 0;
+  let valueWidth = 0;
+  return {
+    measure() {
+      labelWidth = Math.max(0, ...items.map((entry) => Math.max(textLength(entry.label), textLength(entry.sublabel))));
+      valueWidth = Math.max(0, ...items.map((entry) => textLength(entry.value)));
+    },
+    finish() {
+      if (!narrow && labelWidth + 12 > width * labelShare) {
+        narrow = true;
+        for (const entry of items) if (entry.sublabel) { entry.sublabel.remove(); entry.sublabel = null; }
+      }
+      const left = narrow ? 0 : Math.ceil(labelWidth) + 12;
+      const right = Math.ceil(valueWidth) + 10;
+      const plot = Math.max(40, width - left - right);
+      let y = 6;
+      items.forEach((entry, index) => {
+        if (index > 0 && entry.item.groupStart) y += groupGap;
+        if (entry.label) {
+          if (narrow) {
+            setAttrs(entry.label, { x: 0, y: y + 10, 'dominant-baseline': 'middle' });
+            y += 20;
+          } else {
+            setAttrs(entry.label, { x: left - 10, y: y + barHeight / 2, 'text-anchor': 'end', 'dominant-baseline': 'middle' });
+          }
+        }
+        if (entry.sublabel) setAttrs(entry.sublabel, { x: left - 10, y: y + barHeight / 2 + 13, 'text-anchor': 'end', 'dominant-baseline': 'middle' });
+        const w = Math.max(0, (entry.item.value / max) * plot);
+        const d = barRight(left, y, w, barHeight);
+        entry.shape.setAttribute('d', d);
+        if (entry.hatch) entry.hatch.setAttribute('d', d);
+        entry.outline.setAttribute('d', d);
+        setAttrs(entry.hit, { x: left - 2, y: y - 4, width: plot + 4, height: barHeight + 8 });
+        setAttrs(entry.value, { x: left + w + 8, y: y + barHeight / 2, 'dominant-baseline': 'middle' });
+        y += barHeight + rowGap;
+      });
+      // A sublabel hangs below its bar, so the last row needs more room beneath it.
+      const height = y - rowGap + (items.some((entry) => entry.sublabel) ? 14 : 6);
+      setAttrs(axis, { x1: left, x2: left, y1: 4, y2: Math.min(height - 4, y - rowGap + 2) });
+      setAttrs(svg, { viewBox: `0 0 ${width} ${height}`, width, height });
+      mountChart(frame, svg, legend ? legendList(legend) : null, title);
+    },
+  };
 }
 
-/** A 100% stacked horizontal bar per row, segments separated by a 2px surface gap. */
-function stackedRows(frame, width, { rows, segments, title, legend, hatchId, barHeight = 26, rowGap = 22, labelWidth = 150 }) {
-  const left = rows.some((item) => item.label) ? Math.min(labelWidth, Math.max(72, width * 0.3)) : 0;
-  const plot = Math.max(60, width - left - 4);
+/**
+ * A 100% stacked horizontal bar per row, segments separated by a 2px surface
+ * gap. Row labels sit beside the bars when they fit, above them otherwise.
+ * Staged, measured and mounted the same way as horizontalBars.
+ */
+function stackedRows(frame, width, { rows, segments, title, legend, hatchId, barHeight = 26, rowGap = 22, labelShare = 0.34 }) {
+  let narrow = width < NARROW_CHART;
   const svg = svgEl('svg', { xmlns: SVG_NS });
   const defs = svgEl('defs');
   if (hatchId) defs.append(hatchPattern(hatchId));
   svg.append(defs);
-  let y = 6;
-  rows.forEach((item) => {
+  const built = rows.map((item) => {
+    let label = null;
+    let sublabel = null;
     if (item.label) {
-      svg.append(svgEl('text', { x: left - 10, y: y + barHeight / 2, 'text-anchor': 'end', 'dominant-baseline': 'middle', class: 'label-strong', text: item.label }));
-      if (item.sublabel) svg.append(svgEl('text', { x: left - 10, y: y + barHeight / 2 + 13, 'text-anchor': 'end', 'dominant-baseline': 'middle', class: 'label-mono', text: item.sublabel }));
+      label = svgEl('text', { class: 'label-strong', text: item.label });
+      if (item.sublabel) sublabel = svgEl('text', { class: 'label-mono', text: item.sublabel });
+      svg.append(label);
+      if (sublabel) svg.append(sublabel);
     }
-    let x = left;
-    const total = item.values.reduce((sum, value) => sum + value, 0);
-    item.values.forEach((value, index) => {
-      const segment = segments[index];
-      const w = Math.max(0, (value / total) * plot - (index < item.values.length - 1 ? 2 : 0));
-      const shape = svgEl('rect', { class: `bar bar-${segment.kind}`, x, y, width: w, height: barHeight });
-      const outline = svgEl('rect', { class: 'outline', x, y, width: w, height: barHeight });
-      const hit = svgEl('rect', { class: 'hit', x: x - 1, y: y - 4, width: w + 2, height: barHeight + 8 });
-      const group = mark(shape, hit, item.tips[index], outline);
-      if (item.hatched && hatchId) group.insertBefore(svgEl('rect', { x, y, width: w, height: barHeight, fill: `url(#${hatchId})` }), outline);
-      svg.append(group);
-      const label = item.displays[index];
-      const needed = label.length * 6.6 + 14;
-      if (w >= needed) {
-        svg.append(svgEl('text', { x: x + w / 2, y: y + barHeight / 2, 'text-anchor': 'middle', 'dominant-baseline': 'middle', class: `label-inside on-${segment.kind}`, text: label }));
-      }
-      x += w + 2;
-    });
-    y += barHeight + rowGap;
+    return { item, label, sublabel };
   });
-  const height = y - rowGap + 6;
-  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-  svg.setAttribute('width', width);
-  svg.setAttribute('height', height);
-  mountChart(frame, svg, legendList(legend), title);
+  frame.append(svg);
+  let labelWidth = 0;
+  return {
+    measure() {
+      labelWidth = Math.max(0, ...built.map((entry) => Math.max(textLength(entry.label), textLength(entry.sublabel))));
+    },
+    finish() {
+      if (!narrow && labelWidth + 12 > width * labelShare) narrow = true;
+      const left = built.some((entry) => entry.label) && !narrow ? Math.ceil(labelWidth) + 12 : 0;
+      const plot = Math.max(60, width - left - 4);
+      let y = 6;
+      for (const entry of built) {
+        if (entry.label) {
+          if (narrow) {
+            setAttrs(entry.label, { x: 0, y: y + 10, 'dominant-baseline': 'middle' });
+            if (entry.sublabel) setAttrs(entry.sublabel, { x: 0, y: y + 26, 'dominant-baseline': 'middle' });
+            y += entry.sublabel ? 36 : 20;
+          } else {
+            setAttrs(entry.label, { x: left - 10, y: y + barHeight / 2, 'text-anchor': 'end', 'dominant-baseline': 'middle' });
+            if (entry.sublabel) setAttrs(entry.sublabel, { x: left - 10, y: y + barHeight / 2 + 13, 'text-anchor': 'end', 'dominant-baseline': 'middle' });
+          }
+        }
+        let x = left;
+        const item = entry.item;
+        const total = item.values.reduce((sum, value) => sum + value, 0);
+        item.values.forEach((value, index) => {
+          const segment = segments[index];
+          const w = Math.max(0, (value / total) * plot - (index < item.values.length - 1 ? 2 : 0));
+          const shape = svgEl('rect', { class: `bar bar-${segment.kind}`, x, y, width: w, height: barHeight });
+          const outline = svgEl('rect', { class: 'outline', x, y, width: w, height: barHeight });
+          const hit = svgEl('rect', { class: 'hit', x: x - 1, y: y - 4, width: w + 2, height: barHeight + 8 });
+          const group = mark(shape, hit, item.tips[index], outline);
+          if (item.hatched && hatchId) group.insertBefore(svgEl('rect', { x, y, width: w, height: barHeight, fill: `url(#${hatchId})` }), outline);
+          svg.append(group);
+          const label = item.displays[index];
+          const needed = label.length * 6.6 + 14;
+          if (w >= needed) {
+            svg.append(svgEl('text', { x: x + w / 2, y: y + barHeight / 2, 'text-anchor': 'middle', 'dominant-baseline': 'middle', class: `label-inside on-${segment.kind}`, text: label }));
+          }
+          x += w + 2;
+        });
+        y += barHeight + rowGap;
+      }
+      const height = y - rowGap + (!narrow && built.some((entry) => entry.sublabel) ? 14 : 6);
+      setAttrs(svg, { viewBox: `0 0 ${width} ${height}`, width, height });
+      mountChart(frame, svg, legendList(legend), title);
+    },
+  };
+}
+
+/** Splits an underscore-joined label into lines that fit a slot of the given width (10px monospace, about 6px per glyph). */
+function splitLabel(label, slot) {
+  const fits = (text) => text.length * 6 <= slot - 6;
+  if (fits(label) || !label.includes('_')) return [label];
+  const lines = [];
+  let current = '';
+  for (const part of label.split('_')) {
+    const candidate = current ? `${current}_${part}` : part;
+    if (current && !fits(candidate)) { lines.push(`${current}_`); current = part; } else current = candidate;
+  }
+  lines.push(current);
+  return lines;
 }
 
 /* ------------------------------------------------------- dashboard charts */
@@ -345,13 +459,14 @@ function renderCategoryChart(width) {
   const shares = M.DERIVED.categoryShares;
   const rows = M.PUBLISHED.categories.map((category, index) => ({
     label: category.name,
+    labelClass: 'label-strong',
     sublabel: `${M.formatPercent(shares[index].sharePct, 1)} of revenue · derived`,
     value: category.revenueBRL,
     display: M.formatMillionsBRL(category.revenueBRL),
     kind: 'pub',
     tip: `${category.name}\n${M.formatMillionsBRL(category.revenueBRL)} published (README: approximately)\n${M.formatPercent(shares[index].sharePct, 2)} of total revenue, derived\nRank ${category.rank} of the exported top 10`,
   }));
-  horizontalBars(dom.category.chart, width, { rows, max: first.revenueBRL * 1.12, labelWidth: 150, barHeight: 22, rowGap: 26, title: 'Two documented leading categories, revenue in R$ millions', legend: [{ swatch: 'swatch-pub', label: 'Published', note: 'README figure' }] });
+  const job = horizontalBars(dom.category.chart, width, { rows, max: first.revenueBRL * 1.12, barHeight: 22, rowGap: 26, title: 'Two documented leading categories, revenue in R$ millions', legend: [{ swatch: 'swatch-pub', label: 'Published', note: 'README figure' }] });
   clear(dom.category.caption);
   dom.category.caption.append(
     el('strong', { text: `${first.name} leads ${second.name} by ${M.formatMillionsBRL(M.DERIVED.categoryGapBRL)} (${M.formatSignedPercent(M.DERIVED.categoryGapPct)}).` }),
@@ -361,6 +476,7 @@ function renderCategoryChart(width) {
   M.PUBLISHED.categories.forEach((category, index) => {
     dom.category.rows.append(row([cell(category.name), cell(M.formatMillionsBRL(category.revenueBRL), { num: true }), cell(`${M.formatPercent(shares[index].sharePct, 2)} (derived)`, { num: true }), cell('README, Key Business Insights')]));
   });
+  return job;
 }
 
 function renderTopTenChart(width) {
@@ -369,14 +485,14 @@ function renderTopTenChart(width) {
     const share = (category.revenueBRL / M.PUBLISHED.revenueBRL) * 100;
     return {
       label: category.label,
-      labelClass: documented ? 'label-strong' : undefined,
+      labelClass: documented ? 'label-strong' : 'label-plain',
       value: category.revenueBRL,
       display: M.formatMillionsBRL(category.revenueBRL),
       kind: documented ? 'pub' : 'rest',
       tip: `${category.rank}. ${category.label}${category.truncated ? ' (label truncated in the export)' : ''}\n${M.formatMillionsBRL(category.revenueBRL)} as printed on the exported chart\n${M.formatPercent(share, 2)} of total revenue, derived\n${documented ? 'Also named in the README' : 'Exported chart label only'}`,
     };
   });
-  horizontalBars(dom.topTen.chart, width, { rows, max: rows[0].value * 1.12, labelWidth: 132, barHeight: 16, rowGap: 9, title: 'Top 10 product categories by revenue, as exported, in R$ millions', legend: [{ swatch: 'swatch-pub', label: 'Named in the README', note: 'published figures' }, { swatch: 'swatch-rest', label: 'Exported chart labels only' }] });
+  const job = horizontalBars(dom.topTen.chart, width, { rows, max: rows[0].value * 1.12, barHeight: 16, rowGap: 9, title: 'Top 10 product categories by revenue, as exported, in R$ millions', legend: [{ swatch: 'swatch-pub', label: 'Named in the README', note: 'published figures, bold labels' }, { swatch: 'swatch-rest', label: 'Exported chart labels only' }] });
   clear(dom.topTen.caption);
   dom.topTen.caption.append(
     el('strong', { text: `The ten exported categories sum to ${M.formatMillionsBRL(M.DERIVED.topTenTotalBRL)}, ${M.formatPercent(M.DERIVED.topTenShareOfRevenuePct, 1)} of total revenue (derived).` }),
@@ -386,6 +502,7 @@ function renderTopTenChart(width) {
   for (const category of M.EXPORTED.topCategories) {
     dom.topTen.rows.append(row([cell(String(category.rank), { num: true }), cell(category.label + (category.truncated ? ' (truncated in the export)' : '')), cell(M.formatMillionsBRL(category.revenueBRL), { num: true }), cell(`${M.formatPercent((category.revenueBRL / M.PUBLISHED.revenueBRL) * 100, 2)} (derived)`, { num: true }), cell(category.rank <= 2 ? 'README and exported chart' : 'Exported chart data label')]));
   }
+  return job;
 }
 
 function renderStatusChart(width) {
@@ -396,15 +513,17 @@ function renderStatusChart(width) {
   const right = 10;
   const top = 18;
   const plotHeight = 170;
-  const bottom = 44;
   const plot = Math.max(80, width - left - right);
+  const slot = plot / counts.length;
+  const labelLines = counts.map((item) => splitLabel(item.label, slot));
+  const lineCount = Math.max(...labelLines.map((lines) => lines.length));
+  const bottom = 32 + lineCount * 12;
   const svg = svgEl('svg', { xmlns: SVG_NS });
   for (const tick of [0, 25_000, 50_000, 75_000, 100_000]) {
     const y = top + plotHeight - (tick / max) * plotHeight;
     svg.append(svgEl('line', { class: tick === 0 ? 'axis' : 'grid-line', x1: left, x2: left + plot, y1: y, y2: y }));
     svg.append(svgEl('text', { x: left - 8, y, 'text-anchor': 'end', 'dominant-baseline': 'middle', class: 'label-mono', text: tick === 0 ? '0' : `${tick / 1000}K` }));
   }
-  const slot = plot / counts.length;
   const barWidth = Math.min(24, slot * 0.5);
   counts.forEach((item, index) => {
     const x = left + slot * index + slot / 2 - barWidth / 2;
@@ -415,13 +534,14 @@ function renderStatusChart(width) {
     const hit = svgEl('rect', { class: 'hit', x: left + slot * index, y: top - 10, width: slot, height: plotHeight + 10 });
     svg.append(mark(shape, hit, `${item.label}\n${M.formatInt(item.orders)} orders, printed on the exported chart\n${M.formatPercent(shares[index].sharePct, 2)} of the exported total, derived`, outline));
     svg.append(svgEl('text', { x: x + barWidth / 2, y: yTop - 7, 'text-anchor': 'middle', class: 'label-value', text: M.formatInt(item.orders) }));
-    svg.append(svgEl('text', { x: left + slot * index + slot / 2, y: top + plotHeight + 18, 'text-anchor': 'middle', class: 'label-mono', text: item.label }));
-    svg.append(svgEl('text', { x: left + slot * index + slot / 2, y: top + plotHeight + 33, 'text-anchor': 'middle', class: 'label-mono', text: M.formatPercent(shares[index].sharePct, 2) }));
+    const centre = left + slot * index + slot / 2;
+    labelLines[index].forEach((line, lineIndex) => {
+      svg.append(svgEl('text', { x: centre, y: top + plotHeight + 18 + lineIndex * 12, 'text-anchor': 'middle', class: 'label-mono', text: line }));
+    });
+    svg.append(svgEl('text', { x: centre, y: top + plotHeight + 18 + lineCount * 12 + 3, 'text-anchor': 'middle', class: 'label-mono', text: M.formatPercent(shares[index].sharePct, 2) }));
   });
   const height = top + plotHeight + bottom;
-  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-  svg.setAttribute('width', width);
-  svg.setAttribute('height', height);
+  setAttrs(svg, { viewBox: `0 0 ${width} ${height}`, width, height });
   mountChart(dom.status.chart, svg, legendList([{ swatch: 'swatch-pub', label: 'Exported', note: 'data labels of the Orders by Status chart' }]), 'Orders by status group, as exported');
   clear(dom.status.caption);
   dom.status.caption.append(
@@ -448,7 +568,7 @@ function renderOutcomeChart(width) {
   const values = outcomeValues(M.DERIVED);
   const displays = outcomeDisplays(values);
   const how = ['97.02% × 91.88%', '97.02% − on time', '100% − 97.02%'];
-  stackedRows(dom.outcome.chart, width, {
+  const job = stackedRows(dom.outcome.chart, width, {
     rows: [{ values, displays, tips: OUTCOME_SEGMENTS.map((segment, index) => `${segment.label}\n${displays[index]} of all orders, derived\n${how[index]}`) }],
     segments: OUTCOME_SEGMENTS,
     title: 'Delivery outcomes as shares of all orders, derived from the published rates',
@@ -464,6 +584,7 @@ function renderOutcomeChart(width) {
   OUTCOME_SEGMENTS.forEach((segment, index) => {
     dom.outcome.rows.append(row([cell(segment.label), cell(displays[index], { num: true }), cell(how[index])]));
   });
+  return job;
 }
 
 /* --------------------------------------------------------------- simulator */
@@ -491,7 +612,7 @@ function writeLever(key) {
   range.value = String(value);
   number.value = String(value);
   number.removeAttribute('aria-invalid');
-  range.setAttribute('aria-valuetext', `${signedDisplay(key, value)}, hypothetical change`);
+  range.setAttribute('aria-valuetext', value === 0 ? 'no change, published baseline' : `${signedDisplay(key, value)}, hypothetical change`);
 }
 
 function syncPresets() {
@@ -505,30 +626,31 @@ function syncPresets() {
 function renderOutputs() {
   const s = sim.scenario;
   const o = dom.outputs;
-  setStat(o.revenue, M.formatMillionsBRL(s.revenueBRL), s.isBaseline ? 'published baseline, no change' : `hypothetical · published R$15.84M`);
+  const derivedNote = s.isBaseline ? 'derived from the published rates and the implied order count, not a published figure' : 'hypothetical';
+  setStat(o.revenue, M.formatMillionsBRL(s.revenueBRL), s.isBaseline ? 'published baseline, no change' : 'hypothetical · published R$15.84M');
   setStat(o.revenueChange, M.formatSignedMillionsBRL(s.revenueChangeBRL), `${M.formatSignedPercent(s.revenueDeltaPct)} versus published R$15.84M`);
-  setStat(o.orders, `≈ ${M.formatCompact(s.orders)}`, `${M.formatSignedInt(s.ordersChange)} versus ≈ ${M.formatCompact(M.DERIVED.impliedOrders)} implied by R$15.84M ÷ R$159.33`);
-  setStat(o.aov, M.formatBRL(s.averageOrderBRL), `${M.formatSignedPercent(s.changes.basketPct, 0)} versus published R$159.33`);
-  setStat(o.delivery, M.formatPercent(s.deliveredPct), `${M.formatPoints(s.changes.deliveryPoints)} versus published 97.02%`);
-  setStat(o.onTime, M.formatPercent(s.onTimeOfDeliveredPct), `${M.formatPoints(s.changes.onTimePoints)} versus published 91.88% of delivered orders`);
-  setStat(o.onTimeAll, M.formatPercent(s.onTimeOfAllPct), `${M.formatPoints(s.onTimeOfAllChangePoints)} versus derived ${M.formatPercent(M.DERIVED.onTimeOfAllPct)}`);
-  setStat(o.missed, `≈ ${M.formatInt(s.lateOrders + s.undeliveredOrders)}`, `${M.formatPercent(s.lateOfAllPct + s.notDeliveredPct)} of scenario orders: late ≈ ${M.formatInt(s.lateOrders)}, not delivered ≈ ${M.formatInt(s.undeliveredOrders)}`);
+  setStat(o.orders, `≈ ${M.formatCompact(s.orders)}`, s.isBaseline ? 'implied by R$15.84M ÷ R$159.33, not a published count' : `${M.formatSignedInt(s.ordersChange)} versus ≈ ${M.formatCompact(M.DERIVED.impliedOrders)} implied by R$15.84M ÷ R$159.33`);
+  setStat(o.aov, M.formatBRL(s.averageOrderBRL), s.isBaseline ? 'published baseline, no change' : `${M.formatSignedPercent(s.changes.basketPct, 0)} versus published R$159.33`);
+  setStat(o.delivery, M.formatPercent(s.deliveredPct), s.isBaseline ? 'published baseline, no change' : `${M.formatPoints(s.changes.deliveryPoints)} versus published 97.02%`);
+  setStat(o.onTime, M.formatPercent(s.onTimeOfDeliveredPct), s.isBaseline ? 'published baseline, of delivered orders' : `${M.formatPoints(s.changes.onTimePoints)} versus published 91.88% of delivered orders`);
+  setStat(o.onTimeAll, M.formatPercent(s.onTimeOfAllPct), s.isBaseline ? 'derived: 97.02% × 91.88%, not a published figure' : `${M.formatPoints(s.onTimeOfAllChangePoints)} versus derived ${M.formatPercent(M.DERIVED.onTimeOfAllPct)}`);
+  setStat(o.missed, `≈ ${M.formatInt(s.lateOrders + s.undeliveredOrders)}`, `${derivedNote}: ${M.formatPercent(s.lateOfAllPct + s.notDeliveredPct)} of ≈ ${M.formatCompact(s.orders)} orders, late ≈ ${M.formatInt(s.lateOrders)}, not delivered ≈ ${M.formatInt(s.undeliveredOrders)}`);
 }
 
 function renderScenarioChart(width) {
   const s = sim.scenario;
   const measures = [
-    { label: 'Revenue', base: M.formatMillionsBRL(M.PUBLISHED.revenueBRL), value: M.formatMillionsBRL(s.revenueBRL), index: s.multiplier * 100, change: M.formatSignedPercent(s.revenueDeltaPct), changeAbs: M.formatSignedMillionsBRL(s.revenueChangeBRL) },
-    { label: 'Orders (≈)', base: `≈ ${M.formatCompact(M.DERIVED.impliedOrders)}`, value: `≈ ${M.formatCompact(s.orders)}`, index: s.volumeFactor * 100, change: M.formatSignedPercent(s.changes.volumePct, 0), changeAbs: M.formatSignedInt(s.ordersChange) },
-    { label: 'Avg. order value', base: M.formatBRL(M.PUBLISHED.averageOrderBRL), value: M.formatBRL(s.averageOrderBRL), index: s.basketFactor * 100, change: M.formatSignedPercent(s.changes.basketPct, 0), changeAbs: signedBRL(s.averageOrderChangeBRL) },
+    { label: 'Revenue', base: M.formatMillionsBRL(M.PUBLISHED.revenueBRL), value: M.formatMillionsBRL(s.revenueBRL), index: s.index.revenue, change: M.formatSignedPercent(s.revenueDeltaPct), changeAbs: M.formatSignedMillionsBRL(s.revenueChangeBRL) },
+    { label: 'Orders (≈)', base: `≈ ${M.formatCompact(M.DERIVED.impliedOrders)}`, value: `≈ ${M.formatCompact(s.orders)}`, index: s.index.orders, change: M.formatSignedPercent(s.changes.volumePct, 0), changeAbs: M.formatSignedInt(s.ordersChange) },
+    { label: 'Avg. order value', base: M.formatBRL(M.PUBLISHED.averageOrderBRL), value: M.formatBRL(s.averageOrderBRL), index: s.index.averageOrder, change: M.formatSignedPercent(s.changes.basketPct, 0), changeAbs: signedBRL(s.averageOrderChangeBRL) },
   ];
   const maxIndex = Math.max(100, ...measures.map((m) => m.index));
   const rows = [];
   for (const measure of measures) {
-    rows.push({ label: measure.label, value: 100, display: measure.base, kind: 'pub', tip: `${measure.label}: published baseline\n${measure.base}\nIndex 100 by definition`, groupStart: true });
+    rows.push({ label: measure.label, labelClass: 'label-strong', value: 100, display: measure.base, kind: 'pub', tip: `${measure.label}: published baseline\n${measure.base}\nIndex 100 by definition`, groupStart: true });
     rows.push({ value: measure.index, display: `${measure.value} (${measure.change})`, kind: 'hypo', tip: `${measure.label}: hypothetical scenario\n${measure.value}\n${measure.change} (${measure.changeAbs}) versus published\nIndex ${r1(measure.index)}` });
   }
-  horizontalBars(dom.scenario.chart, width, { rows, max: Math.ceil((maxIndex * 1.08) / 20) * 20, labelWidth: 128, barHeight: 16, rowGap: 3, groupGap: 16, valueWidth: 118, hatchId: 'hatch-scenario', title: 'Published baseline versus hypothetical scenario, indexed to the baseline = 100', legend: [{ swatch: 'swatch-pub', label: 'Published baseline', note: '= 100' }, { swatch: 'swatch-hypo', label: 'Hypothetical scenario', note: '(hatched)' }] });
+  const job = horizontalBars(dom.scenario.chart, width, { rows, max: Math.ceil((maxIndex * 1.08) / 20) * 20, barHeight: 16, rowGap: 3, groupGap: 16, hatchId: 'hatch-scenario', title: 'Published baseline versus hypothetical scenario, indexed to the baseline = 100', legend: [{ swatch: 'swatch-pub', label: 'Published baseline', note: '= 100' }, { swatch: 'swatch-hypo', label: 'Hypothetical scenario', note: '(hatched)' }] });
   clear(dom.scenario.caption);
   dom.scenario.caption.append(
     el('strong', { text: s.isBaseline ? 'No change: the scenario equals the published baseline.' : `Hypothetical: ${describeChanges(s.changes)}.` }),
@@ -538,6 +660,7 @@ function renderScenarioChart(width) {
   for (const measure of measures) {
     dom.scenario.rows.append(row([cell(measure.label), cell(measure.base, { num: true }), cell(`${measure.value} (hypothetical)`, { num: true }), cell(`${measure.change} · ${measure.changeAbs}`, { num: true }), cell(String(r1(measure.index)), { num: true })]));
   }
+  return job;
 }
 
 function renderScenarioOutcomes(width) {
@@ -546,7 +669,7 @@ function renderScenarioOutcomes(width) {
   const next = outcomeValues(s);
   const baseDisplays = outcomeDisplays(base);
   const nextDisplays = outcomeDisplays(next);
-  stackedRows(dom.scenarioOutcomes.chart, width, {
+  const job = stackedRows(dom.scenarioOutcomes.chart, width, {
     rows: [
       { label: 'Published', sublabel: 'derived from two rates', values: base, displays: baseDisplays, tips: OUTCOME_SEGMENTS.map((segment, index) => `${segment.label}: published, derived\n${baseDisplays[index]} of all orders`) },
       { label: 'Hypothetical', sublabel: 'scenario', values: next, displays: nextDisplays, hatched: true, tips: OUTCOME_SEGMENTS.map((segment, index) => `${segment.label}: hypothetical scenario\n${nextDisplays[index]} of all orders\n${M.formatPoints(next[index] - base[index])} versus published, derived`) },
@@ -569,16 +692,16 @@ function renderScenarioOutcomes(width) {
   OUTCOME_SEGMENTS.forEach((segment, index) => {
     dom.scenarioOutcomes.rows.append(row([cell(segment.label), cell(baseDisplays[index], { num: true }), cell(`${nextDisplays[index]} (${M.formatPoints(next[index] - base[index])})`, { num: true }), cell(`≈ ${M.formatInt(counts[index])}`, { num: true })]));
   });
+  return job;
 }
 
 function recompute({ announce = false, reason = '', charts: redraw = true } = {}) {
+  // Widths are read before anything is written, so a lever change forces one layout: the text measurement.
+  const jobs = redraw ? chartJobs([dom.scenario.chart, dom.scenarioOutcomes.chart], { force: true }) : [];
   sim.scenario = M.calculateScenario(sim.changes);
   for (const key of Object.keys(M.LIMITS)) writeLever(key);
   renderOutputs();
-  if (redraw) {
-    renderChart(dom.scenario.chart, { force: true });
-    renderChart(dom.scenarioOutcomes.chart, { force: true });
-  }
+  runChartJobs(jobs);
   syncPresets();
   if (announce) announceScenario(reason);
 }
@@ -602,7 +725,7 @@ function setLever(key, raw, { source }) {
     dom.levers[key].number.value = String(sim.changes[key]);
     return;
   }
-  const stepped = Math.round(number / input.step) * input.step;
+  const stepped = M.roundTo(Math.round(number / input.step) * input.step, input.decimals);
   const clamped = M.clampChange(key, stepped);
   const notes = [];
   if (Math.abs(stepped - number) > 1e-9) notes.push(`rounded to the nearest ${input.step}${input.unit === '%' ? '%' : ' points'}`);
@@ -655,7 +778,7 @@ function buildModel() {
     dom.modelCols[COLUMN_OF[table.id]].append(button);
   }
   if (typeof ResizeObserver === 'function') new ResizeObserver(() => queueResize()).observe(dom.modelDiagram);
-  if (WIDE_DIAGRAM.addEventListener) WIDE_DIAGRAM.addEventListener('change', () => queueResize());
+  if (NARROW_DIAGRAM.addEventListener) NARROW_DIAGRAM.addEventListener('change', () => queueResize());
   drawConnectors();
   renderTableDetail(null);
 }
@@ -663,7 +786,7 @@ function buildModel() {
 function drawConnectors() {
   const svg = dom.modelLines;
   clear(svg);
-  if (!WIDE_DIAGRAM.matches) return;
+  if (NARROW_DIAGRAM.matches) return;
   const origin = dom.modelDiagram.getBoundingClientRect();
   if (origin.width === 0) return;
   svg.setAttribute('viewBox', `0 0 ${origin.width} ${origin.height}`);
@@ -712,6 +835,22 @@ function selectTable(id, { focusDetail = false } = {}) {
   if (focusDetail && next) dom.tableDetail.focus();
 }
 
+/** The dashboard visuals a table reaches: through its own columns for dimensions, through the measures that read it for facts. */
+function visualsFor(table) {
+  if (table.group === 'measure') {
+    return M.DASHBOARD_VISUALS.filter((v) => v.fields.some((f) => f.startsWith('KPI_Measures.'))).map((v) => ({ visual: v, via: v.fields.filter((f) => f.startsWith('KPI_Measures.')).map((f) => f.slice('KPI_Measures.'.length)) }));
+  }
+  if (table.group === 'fact') {
+    const readers = M.DAX_MEASURES.filter((d) => d.reads.includes(table.id));
+    return M.DASHBOARD_VISUALS
+      .map((v) => ({ visual: v, via: readers.filter((d) => v.fields.includes(`KPI_Measures.${d.name}`)).map((d) => `measure ${d.name}`) }))
+      .filter((entry) => entry.via.length);
+  }
+  return M.DASHBOARD_VISUALS
+    .map((v) => ({ visual: v, via: v.fields.filter((f) => f.startsWith(`${table.id}.`)) }))
+    .filter((entry) => entry.via.length);
+}
+
 function renderTableDetail(id) {
   const body = dom.tableDetailBody;
   clear(body);
@@ -721,20 +860,37 @@ function renderTableDetail(id) {
     return;
   }
   const table = tableById(id);
+  const visuals = visualsFor(table);
   dom.tableDetailHeading.textContent = `${table.title} · ${GROUP_NOUN[table.group]}`;
   body.append(el('p', { class: 'detail-headline', text: table.id }));
   body.append(el('ul', { class: 'detail-chips' }, [
     el('li', { class: `is-${table.group}` }, [el('strong', { text: GROUP_LABEL[table.group] })]),
-    el('li', {}, [document.createTextNode('Columns seen '), el('strong', { text: String(table.columnsSeen.length) })]),
+    el('li', {}, [document.createTextNode(table.group === 'measure' ? 'Measures seen ' : 'Columns seen '), el('strong', { text: String(table.group === 'measure' ? table.measuresSeen.length : table.columnsSeen.length) })]),
     el('li', {}, [document.createTextNode('Measures '), el('strong', { text: String(table.measures.length) })]),
-    el('li', {}, [document.createTextNode('Visuals '), el('strong', { text: String(table.visuals.length) })]),
+    el('li', {}, [document.createTextNode('Visuals '), el('strong', { text: String(visuals.length) })]),
   ]));
   body.append(el('div', { class: 'detail-block' }, [el('h4', { text: 'Documented role' }), el('p', { text: table.description })]));
-  body.append(el('div', { class: 'detail-block' }, [
-    el('h4', { text: table.group === 'measure' ? 'Measures listed (model view and README)' : 'Columns visible in the published model view (partial)' }),
-    el('ul', { class: 'column-chips' }, (table.group === 'measure' ? table.measures.map((m) => M.DAX_MEASURES.find((d) => d.id === m).name) : table.columnsSeen).map((name) => el('li', { text: name }))),
-  ]));
-  if (table.group !== 'measure') {
+  if (table.group === 'measure') {
+    body.append(el('div', { class: 'detail-block' }, [
+      el('h4', { text: 'Measures visible in the published model view (partial)' }),
+      el('ul', { class: 'column-chips' }, table.measuresSeen.map((name) => el('li', { text: name }))),
+      el('p', { text: 'The model view also shows a hidden Value column; its measure list is scrolled, so more measures may exist.' }),
+    ]));
+    body.append(el('div', { class: 'detail-block' }, [
+      el('h4', { text: 'Measures named by the README and the report layout' }),
+      el('ul', { class: 'column-chips' }, table.measures.map((m) => M.DAX_MEASURES.find((d) => d.id === m)).map((d) => el('li', { text: `${d.name}${d.published ? '' : ' (definition not published)'}` }))),
+    ]));
+  } else {
+    body.append(el('div', { class: 'detail-block' }, [
+      el('h4', { text: 'Columns visible in the published model view (partial)' }),
+      el('ul', { class: 'column-chips' }, table.columnsSeen.map((name) => el('li', { text: name }))),
+    ]));
+    if (table.columnsFromLayout.length) {
+      body.append(el('div', { class: 'detail-block' }, [
+        el('h4', { text: 'Columns named by the report layout, not visible in the scrolled panel' }),
+        el('ul', { class: 'column-chips' }, table.columnsFromLayout.map((name) => el('li', { text: name }))),
+      ]));
+    }
     const measures = M.DAX_MEASURES.filter((d) => d.reads.includes(table.id));
     body.append(el('div', { class: 'detail-block' }, [
       el('h4', { text: 'Published measures that read it' }),
@@ -743,14 +899,13 @@ function renderTableDetail(id) {
         : el('p', { text: 'None of the five published DAX measures reads this table directly.' }),
     ]));
   }
-  const visuals = M.DASHBOARD_VISUALS.filter((v) => table.visuals.includes(v.id));
   body.append(el('div', { class: 'detail-block' }, [
-    el('h4', { text: 'Dashboard visuals using its fields' }),
+    el('h4', { text: table.group === 'fact' ? 'Dashboard visuals reached through its measures' : 'Dashboard visuals using its fields' }),
     visuals.length
-      ? el('ul', { class: 'detail-list' }, visuals.map((v) => el('li', {}, [el('strong', { text: v.title }), document.createTextNode(` (${v.type.toLowerCase()}): ${v.fields.filter((f) => f.startsWith(`${table.id}.`) || table.id === 'KPI_Measures' && f.startsWith('KPI_Measures.')).join(', ') || v.fields.join(', ')}${v.filter ? `; filter: ${v.filter}` : ''}`)])))
-      : el('p', { text: 'No visual on the published report page queries this table directly.' }),
+      ? el('ul', { class: 'detail-list' }, visuals.map(({ visual, via }) => el('li', {}, [el('strong', { text: visual.title }), document.createTextNode(` (${visual.type.toLowerCase()}): ${via.join(', ')}${visual.filter ? `; filter: ${visual.filter}` : ''}`)])))
+      : el('p', { text: table.group === 'fact' ? 'No published measure reads this table, so no visual on the published report page is traced to it.' : 'No visual on the published report page queries this table directly.' }),
   ]));
-  body.append(el('div', { class: 'detail-block' }, [el('h4', { text: 'Provenance' }), el('p', { text: `Listed in the README's data model. ${table.group === 'measure' ? 'Measure names' : 'Column names'} are transcribed from the model-view screenshot (panels are scrolled, so the list is partial); the report wiring is read from the report layout inside the published .pbix file. Join keys and cardinalities are not asserted.` })]));
+  body.append(el('div', { class: 'detail-block' }, [el('h4', { text: 'Provenance' }), el('p', { text: `Listed in the README's data model. ${table.group === 'measure' ? 'Measure names' : 'Column names'} marked as seen are transcribed from the model-view screenshot, whose panels are scrolled, so the lists are partial; names marked as from the report layout are read from the report layout inside the published .pbix file, which also gives the visual wiring. Join keys and cardinalities are not asserted.` })]));
 }
 
 /* --------------------------------------------------------------------- init */

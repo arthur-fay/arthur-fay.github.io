@@ -97,6 +97,35 @@ describe('analytics lab page: simulator', () => {
   });
 });
 
+describe('analytics lab page: static table rows and the no-JavaScript fallback', () => {
+  it('prints the four published chart tables in the markup, cell for cell what the engine renders', () => {
+    const num = (text) => `<td class="is-num">${escape(text)}</td>`;
+    const td = (text) => `<td>${escape(text)}</td>`;
+    const shares = M.DERIVED.categoryShares;
+    const categoryRows = M.PUBLISHED.categories.map((c, i) => `<tr>${td(c.name)}${num(M.formatMillionsBRL(c.revenueBRL))}${num(`${M.formatPercent(shares[i].sharePct, 2)} (derived)`)}${td('README, Key Business Insights')}</tr>`).join('');
+    has(`<tbody id="category-rows">${categoryRows}</tbody>`, 'category rows');
+    const topRows = M.EXPORTED.topCategories.map((c) => `<tr>${num(String(c.rank))}${td(c.label + (c.truncated ? ' (truncated in the export)' : ''))}${num(M.formatMillionsBRL(c.revenueBRL))}${num(`${M.formatPercent((c.revenueBRL / M.PUBLISHED.revenueBRL) * 100, 2)} (derived)`)}${td(c.rank <= 2 ? 'README and exported chart' : 'Exported chart data label')}</tr>`).join('');
+    has(`<tbody id="top-ten-rows">${topRows}</tbody>`, 'top-ten rows');
+    const statusRows = M.EXPORTED.statusCounts.map((row, i) => `<tr>${td(row.label)}${num(M.formatInt(row.orders))}${num(`${M.formatPercent(M.DERIVED.statusShares[i].sharePct, 2)} (derived)`)}${td('Exported chart data label')}</tr>`).join('')
+      + `<tr>${td('Total (sum)')}${num(M.formatInt(M.DERIVED.statusTotalOrders))}${num('100%')}${td('Derived: sum of the three labels')}</tr>`;
+    has(`<tbody id="status-rows">${statusRows}</tbody>`, 'status rows');
+    const how = ['97.02% × 91.88%', '97.02% − on time', '100% − 97.02%'];
+    const outcomes = [['On time', M.DERIVED.onTimeOfAllPct], ['Delivered late', M.DERIVED.lateOfAllPct], ['Not delivered', M.DERIVED.notDeliveredPct]];
+    const outcomeRows = outcomes.map(([label, value], i) => `<tr>${td(label)}${num(M.formatPercent(value, 2))}${td(how[i])}</tr>`).join('');
+    has(`<tbody id="outcome-rows">${outcomeRows}</tbody>`, 'outcome rows');
+    assert.equal(count('<tbody id="scenario-rows"></tbody>'), 1, 'the hypothetical tables start empty');
+    assert.equal(count('<tbody id="scenario-outcome-rows"></tbody>'), 1);
+  });
+
+  it('says what needs JavaScript, once per interactive section, and starts the status line without JavaScript in mind', () => {
+    assert.equal(count('<noscript>'), 3);
+    has('<noscript><p class="empty-state">The four charts below need JavaScript. Every figure they draw is in the KPI tiles above and in the table view beneath each chart, which is printed in the page.</p></noscript>');
+    has('<noscript><p class="empty-state">The simulator and its two charts need JavaScript; nothing below is a published figure.</p></noscript>');
+    has('<noscript><p class="empty-state">The data-model explorer needs JavaScript. The ten documented tables, the DAX measures and the report wiring are listed in the text and tables below.</p></noscript>');
+    has('id="sim-status" role="status" aria-live="polite">The simulator needs JavaScript: with it, every output recalculates as the levers move. Without it, the published figures stay in the tiles and tables above.<');
+  });
+});
+
 describe('analytics lab page: model, pipeline and report wiring', () => {
   it('states the model facts, the pipeline stages and the report wiring from the engine', () => {
     for (const fact of M.MODEL_FACTS) has(`<li>${escape(fact)}</li>`, 'model fact');

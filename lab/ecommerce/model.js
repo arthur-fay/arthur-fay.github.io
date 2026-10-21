@@ -123,10 +123,29 @@ export const EXPORTED = deepFreeze({
 /* ------------------------------------------------------------------ derived */
 
 const sum = (values) => values.reduce((total, value) => total + value, 0);
-const round = (value, decimals) => {
-  const factor = 10 ** decimals;
-  return Math.round(value * factor) / factor;
-};
+
+/**
+ * Decimal rounding, half away from zero, taken from the value's shortest
+ * decimal representation: an exact half such as 18.45 rounds to 18.5 the way
+ * a reader expects, whichever side of it the binary value happens to fall,
+ * and negative halves round the same way as positive ones.
+ */
+export function roundTo(value, decimals = 0) {
+  const magnitude = Math.abs(value);
+  let rounded;
+  if (magnitude >= 2 ** 53) {
+    rounded = magnitude; // a double this large is already an integer
+  } else {
+    // Shift the shortest decimal representation ("18.45", "1.5e-7") rather than the binary value, so 18.45 becomes 184.5, not 184.49999….
+    const [mantissa, exponent = '0'] = String(magnitude).split('e');
+    const shifted = Math.round(Number(`${mantissa}e${Number(exponent) + decimals}`));
+    const text = String(shifted);
+    rounded = text.includes('e') ? shifted / 10 ** decimals : Number(`${text}e${-decimals}`);
+  }
+  if (rounded === 0) return 0; // never a negative zero
+  return value < 0 ? -rounded : rounded;
+}
+const round = roundTo;
 
 /**
  * Arithmetic on the published and exported figures. Each value is a
@@ -179,7 +198,7 @@ export const DERIVED = deepFreeze((() => {
 export const METRICS = deepFreeze([
   {
     id: 'orders', title: 'Total orders', display: PUBLISHED.ordersDisplay, unit: 'orders', measure: 'Total Orders',
-    definition: 'The number of rows in fact_orders, one row per order.',
+    definition: 'The number of rows in fact_orders.',
     caveat: 'Published rounded to thousands; the exact count is not in the README. The exported status chart sums to 99,441 orders.',
   },
   {
@@ -223,22 +242,22 @@ export const DAX_MEASURES = deepFreeze([
 
 /** The dimensional model as the README documents it, with the columns visible in the published model view (partial: the panels are scrolled). */
 export const MODEL_TABLES = deepFreeze([
-  { id: 'fact_orders', group: 'fact', title: 'Orders', description: 'One row per order. Total Orders counts its rows, and the delivery measures divide delivered orders by it.', columnsSeen: ['analysis_scope', 'average_review_score', 'customer_order_value', 'customer_state', 'customer_unique_id', 'days_late_vs_estimate', 'delivered_on_time_flag', 'distinct_product_count', 'distinct_seller_count'], measures: ['total-orders'], visuals: ['cards', 'status'] },
-  { id: 'fact_order_items', group: 'fact', title: 'Order items', description: 'One row per order line. Total Revenue sums merchandise_revenue and freight_revenue here; the model view shows four relationships ending on this table.', columnsSeen: ['analysis_scope', 'customer_line_value', 'customer_unique_id', 'freight_revenue', 'merchandise_revenue', 'order_date_key', 'order_id', 'order_item_id', 'order_purchase_date'], measures: ['total-revenue'], visuals: ['cards', 'trend', 'top10'] },
-  { id: 'fact_cohort_retention', group: 'fact', title: 'Cohort retention', description: 'Cohort-level retention facts listed in the README. No published measure or dashboard visual reads it, so the lab shows nothing from it.', columnsSeen: ['cohort_index', 'cohort_month', 'cohort_month_start_date', 'cohort_month_start_date_key', 'cohort_size', 'retained_customers', 'retention_rate', 'retention_rate_pct'], measures: [], visuals: [] },
-  { id: 'dim_date', group: 'dimension', title: 'Date', description: 'Calendar dimension. The report layout slices the page by its year column, plots the trend by year_month and filters the trend to complete analysis months.', columnsSeen: ['date', 'date_key', 'day_of_month', 'day_of_week_name', 'day_of_week_number', 'is_complete_analysis_month', 'is_weekend', 'month_name', 'month_number', 'year', 'year_month'], measures: [], visuals: ['trend', 'slicer-year'] },
-  { id: 'dim_customer', group: 'dimension', title: 'Customer', description: 'Customer dimension listed in the README, with customer-level attributes visible in the model view. No published measure definition reads it.', columnsSeen: ['average_delivery_days', 'average_order_value', 'average_review_score', 'churn_proxy_90_day_flag', 'customer_lifetime_value', 'customer_retention_status', 'customer_unique_id', 'days_observed_after_first', 'days_to_second_purchase'], measures: [], visuals: [] },
-  { id: 'dim_product', group: 'dimension', title: 'Product', description: 'Product dimension. The Top 10 chart groups Total Revenue by its product_category column.', columnsSeen: ['category_translation_status', 'original_category_name', 'product_category', 'product_description_length', 'product_height_cm', 'product_id', 'product_length_cm', 'product_name_length', 'product_photos_qty'], measures: [], visuals: ['top10'] },
-  { id: 'dim_seller', group: 'dimension', title: 'Seller', description: 'Seller dimension listed in the README. No dashboard visual on the published page uses its columns.', columnsSeen: ['seller_average_latitude', 'seller_average_longitude', 'seller_city', 'seller_id', 'seller_state', 'seller_zip_code_prefix'], measures: [], visuals: [] },
-  { id: 'dim_payment_method', group: 'dimension', title: 'Payment method', description: 'Payment-method dimension listed in the README. No dashboard visual on the published page uses its columns.', columnsSeen: ['payment_method', 'payment_method_group'], measures: [], visuals: [] },
-  { id: 'dim_order_status', group: 'dimension', title: 'Order status', description: 'Order-status dimension. The report layout slices the page by status_group and groups the Orders by Status chart by it.', columnsSeen: ['order_status', 'status_group'], measures: [], visuals: ['status', 'slicer-status'] },
-  { id: 'KPI_Measures', group: 'measure', title: 'KPI measures', description: 'A dedicated measure table: every card and chart value on the page reads a measure from it. Its only column, Value, is hidden in the model view.', columnsSeen: ['Value (hidden)'], measures: ['total-orders', 'total-revenue', 'aov', 'delivery', 'on-time', 'delivered-orders', 'on-time-delivered-orders', 'total-customers'], visuals: ['cards', 'trend', 'top10', 'status'] },
+  { id: 'fact_orders', group: 'fact', title: 'Orders', description: 'Order-level fact table. Total Orders counts its rows, and the delivery measures divide delivered orders by it.', columnsFromLayout: [], columnsSeen: ['analysis_scope', 'average_review_score', 'customer_order_value', 'customer_state', 'customer_unique_id', 'days_late_vs_estimate', 'delivered_on_time_flag', 'distinct_product_count', 'distinct_seller_count'], measures: ['total-orders'], visuals: ['cards', 'status'] },
+  { id: 'fact_order_items', group: 'fact', title: 'Order items', description: 'Order-line fact table. Total Revenue sums merchandise_revenue and freight_revenue here; in the published model view more relationship lines end on this table than on any other.', columnsFromLayout: [], columnsSeen: ['analysis_scope', 'customer_line_value', 'customer_unique_id', 'freight_revenue', 'merchandise_revenue', 'order_date_key', 'order_id', 'order_item_id', 'order_purchase_date'], measures: ['total-revenue'], visuals: ['cards', 'trend', 'top10'] },
+  { id: 'fact_cohort_retention', group: 'fact', title: 'Cohort retention', description: 'Cohort-level retention facts listed in the README. No published measure or dashboard visual reads it, so the lab shows nothing from it.', columnsFromLayout: [], columnsSeen: ['cohort_index', 'cohort_month', 'cohort_month_start_date', 'cohort_month_start_date_key', 'cohort_size', 'retained_customers', 'retention_rate', 'retention_rate_pct'], measures: [], visuals: [] },
+  { id: 'dim_date', group: 'dimension', title: 'Date', description: 'Calendar dimension. The report layout slices the page by its year column, plots the trend by year_month and filters the trend to complete analysis months.', columnsFromLayout: ['year', 'year_month'], columnsSeen: ['date', 'date_key', 'day_of_month', 'day_of_week_name', 'day_of_week_number', 'is_complete_analysis_month', 'is_weekend', 'month_name', 'month_number'], measures: [], visuals: ['trend', 'slicer-year'] },
+  { id: 'dim_customer', group: 'dimension', title: 'Customer', description: 'Customer dimension listed in the README, with customer-level attributes visible in the model view. No published measure definition reads it.', columnsFromLayout: [], columnsSeen: ['average_delivery_days', 'average_order_value', 'average_review_score', 'churn_proxy_90_day_flag', 'customer_lifetime_value', 'customer_retention_status', 'customer_unique_id', 'days_observed_after_first', 'days_to_second_purchase'], measures: [], visuals: [] },
+  { id: 'dim_product', group: 'dimension', title: 'Product', description: 'Product dimension. The Top 10 chart groups Total Revenue by its product_category column.', columnsFromLayout: [], columnsSeen: ['category_translation_status', 'original_category_name', 'product_category', 'product_description_length', 'product_height_cm', 'product_id', 'product_length_cm', 'product_name_length', 'product_photos_qty'], measures: [], visuals: ['top10'] },
+  { id: 'dim_seller', group: 'dimension', title: 'Seller', description: 'Seller dimension listed in the README. No dashboard visual on the published page uses its columns.', columnsFromLayout: [], columnsSeen: ['seller_average_latitude', 'seller_average_longitude', 'seller_city', 'seller_id', 'seller_state', 'seller_zip_code_prefix'], measures: [], visuals: [] },
+  { id: 'dim_payment_method', group: 'dimension', title: 'Payment method', description: 'Payment-method dimension listed in the README. No dashboard visual on the published page uses its columns.', columnsFromLayout: [], columnsSeen: ['payment_method', 'payment_method_group'], measures: [], visuals: [] },
+  { id: 'dim_order_status', group: 'dimension', title: 'Order status', description: 'Order-status dimension. The report layout slices the page by status_group and groups the Orders by Status chart by it.', columnsFromLayout: [], columnsSeen: ['order_status', 'status_group'], measures: [], visuals: ['status', 'slicer-status'] },
+  { id: 'KPI_Measures', group: 'measure', title: 'KPI measures', description: 'A dedicated measure table: every card and chart value on the page reads a measure from it. Its only column, Value, is hidden in the model view, whose measure list is scrolled and partial.', columnsFromLayout: [], columnsSeen: ['Value (hidden)'], measuresSeen: ['Average Order Value', 'Average Review Score', 'Delivered Customers', 'Delivered Orders'], measures: ['total-orders', 'total-revenue', 'aov', 'delivery', 'on-time', 'delivered-orders', 'on-time-delivered-orders', 'total-customers'], visuals: ['cards', 'trend', 'top10', 'status'] },
 ]);
 
 /** What the README and the model view say about relationships; the lab asserts nothing beyond this. */
 export const MODEL_FACTS = deepFreeze([
   'The README documents a dimensional structure whose relationships "support filtering across dates, customers, products, sellers, payment methods, and order statuses".',
-  'In the published model view the many-side markers sit on fact_orders and fact_order_items; four relationship lines end on fact_order_items and dim_date shows two one-side markers.',
+  'In the published model view the many-side markers sit on the three fact tables and the one-side markers on the dimension tables; more relationship lines end on fact_order_items than on any other table.',
   'The page-level slicers (dim_date.year and dim_order_status.status_group) filter every card, so those two dimensions filter the fact rows the measures count.',
   'Column-level relationship keys and cross-filter directions are not published, so the diagram draws documented filter paths from each dimension to the fact layer rather than guessed joins.',
 ]);
@@ -256,7 +275,7 @@ export const DASHBOARD_VISUALS = deepFreeze([
 /** The toolchain the README names, in the order the data travels. */
 export const PIPELINE = deepFreeze([
   { id: 'sql', title: 'SQL', text: 'Queries over the transactional data. The README names SQL first among the tools and lists data cleaning and transformation among the skills; it does not detail which steps run in SQL and which in the notebooks.' },
-  { id: 'colab', title: 'Google Colab', text: 'Python notebooks for cleaning and transforming the data before it is modelled.' },
+  { id: 'colab', title: 'Google Colab', text: 'Notebooks for cleaning and transforming the data before it is modelled. The README names Google Colab and lists data cleaning and transformation among the skills; it publishes no notebook and does not describe the language or the steps.' },
   { id: 'model', title: 'Dimensional model', text: 'Power Query and data modelling in Power BI Desktop: three fact tables, six dimensions and a measure table, related so that dates, customers, products, sellers, payment methods and order statuses filter the facts.' },
   { id: 'dax', title: 'DAX measures', text: 'KPI_Measures holds the measures: row counts and sums over the facts, then ratios built with DIVIDE and a zero fallback.' },
   { id: 'report', title: 'Power BI report', text: 'The Executive Overview page: six cards, a monthly trend filtered to complete months, a Top 10 category bar chart, an orders-by-status column chart and two slicers with cross-filtering.' },
@@ -355,12 +374,16 @@ export function clampChange(key, value) {
  */
 export function calculateScenario(changes = DEFAULT_CHANGES) {
   const values = validateChanges(changes);
-  const volumeFactor = 1 + values.volumePct / 100;
-  const basketFactor = 1 + values.basketPct / 100;
-  const multiplier = volumeFactor * basketFactor;
-  const revenueBRL = PUBLISHED.revenueBRL * multiplier;
-  const averageOrderBRL = PUBLISHED.averageOrderBRL * basketFactor;
-  const orders = DERIVED.impliedOrders * volumeFactor;
+  // (100 + v)(100 + b) is exact for whole-number inputs, so an exact half such as +18.45% rounds the way a reader expects.
+  const volumeIndex = 100 + values.volumePct;
+  const basketIndex = 100 + values.basketPct;
+  const product = volumeIndex * basketIndex;
+  const volumeFactor = volumeIndex / 100;
+  const basketFactor = basketIndex / 100;
+  const multiplier = product / 10_000;
+  const revenueBRL = (PUBLISHED.revenueBRL * product) / 10_000;
+  const averageOrderBRL = (PUBLISHED.averageOrderBRL * basketIndex) / 100;
+  const orders = (DERIVED.impliedOrders * volumeIndex) / 100;
   const deliveredPct = PUBLISHED.deliveredPct + values.deliveryPoints;
   const onTimeOfDeliveredPct = PUBLISHED.onTimeOfDeliveredPct + values.onTimePoints;
   const onTimeOfAllPct = (deliveredPct * onTimeOfDeliveredPct) / 100;
@@ -375,7 +398,9 @@ export function calculateScenario(changes = DEFAULT_CHANGES) {
     multiplier,
     revenueBRL,
     revenueChangeBRL: revenueBRL - PUBLISHED.revenueBRL,
-    revenueDeltaPct: (multiplier - 1) * 100,
+    revenueDeltaPct: (product - 10_000) / 100,
+    /** The three scaled measures indexed to the published baseline = 100. */
+    index: { revenue: product / 100, orders: volumeIndex, averageOrder: basketIndex },
     averageOrderBRL,
     averageOrderChangeBRL: averageOrderBRL - PUBLISHED.averageOrderBRL,
     orders,
@@ -407,8 +432,9 @@ const MINUS = '−';
 /** "R$15.84M" style, as the README prints revenue. */
 export function formatMillionsBRL(amountBRL, decimals = 2) {
   assertFinite(amountBRL, 'Amount');
-  const sign = amountBRL < 0 ? MINUS : '';
-  return `${sign}R$${(Math.abs(amountBRL) / 1_000_000).toFixed(decimals)}M`;
+  const rounded = roundTo(Math.abs(amountBRL) / 1_000_000, decimals);
+  const sign = amountBRL < 0 && rounded !== 0 ? MINUS : '';
+  return `${sign}R$${rounded.toFixed(decimals)}M`;
 }
 
 /** "+R$2.38M" / "−R$1.10M" / "R$0.00M" for changes. */
@@ -422,22 +448,23 @@ export function formatSignedMillionsBRL(amountBRL, decimals = 2) {
 /** "R$159.33" style with thousands separators. */
 export function formatBRL(amountBRL, decimals = 2) {
   assertFinite(amountBRL, 'Amount');
-  const sign = amountBRL < 0 ? MINUS : '';
-  const [whole, fraction] = Math.abs(amountBRL).toFixed(decimals).split('.');
+  const rounded = roundTo(Math.abs(amountBRL), decimals);
+  const sign = amountBRL < 0 && rounded !== 0 ? MINUS : '';
+  const [whole, fraction] = rounded.toFixed(decimals).split('.');
   return `${sign}R$${group(whole)}${fraction ? `.${fraction}` : ''}`;
 }
 
 /** "99,441" style integers (rounded to the nearest whole number). */
 export function formatInt(value) {
   assertFinite(value, 'Value');
-  const rounded = Math.round(value);
+  const rounded = roundTo(value, 0);
   return `${rounded < 0 ? MINUS : ''}${group(String(Math.abs(rounded)))}`;
 }
 
 /** "+2,388" / "−1,105" / "0" for count changes. */
 export function formatSignedInt(value) {
   assertFinite(value, 'Value');
-  const rounded = Math.round(value);
+  const rounded = roundTo(value, 0);
   if (rounded === 0) return '0';
   return `${rounded > 0 ? '+' : MINUS}${group(String(Math.abs(rounded)))}`;
 }
@@ -447,15 +474,16 @@ export function formatCompact(value, decimals = 1) {
   assertFinite(value, 'Value');
   const sign = value < 0 ? MINUS : '';
   const magnitude = Math.abs(value);
-  if (magnitude >= 1_000_000) return `${sign}${(magnitude / 1_000_000).toFixed(decimals)}M`;
-  if (magnitude >= 1_000) return `${sign}${(magnitude / 1_000).toFixed(decimals)}K`;
-  return `${sign}${Math.round(magnitude)}`;
+  if (magnitude >= 1_000_000) return `${sign}${roundTo(magnitude / 1_000_000, decimals).toFixed(decimals)}M`;
+  if (magnitude >= 1_000) return `${sign}${roundTo(magnitude / 1_000, decimals).toFixed(decimals)}K`;
+  return `${sign}${roundTo(magnitude, 0)}`;
 }
 
 /** "97.02%" style. */
 export function formatPercent(value, decimals = 2) {
   assertFinite(value, 'Percentage');
-  return `${value < 0 ? MINUS : ''}${Math.abs(value).toFixed(decimals)}%`;
+  const rounded = roundTo(Math.abs(value), decimals);
+  return `${value < 0 && rounded !== 0 ? MINUS : ''}${rounded.toFixed(decimals)}%`;
 }
 
 /** "+3.2%" / "−1.0%" / "0.0%" for relative changes; values that round to zero are shown as zero without a sign. */

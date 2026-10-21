@@ -45,8 +45,8 @@ after(async () => {
 });
 
 /** Opens a page and collects console errors, page errors, failed requests and every request URL. */
-async function open(url, { viewport = VIEWPORTS.desktop, colorScheme = 'dark', reducedMotion = 'no-preference', hasTouch = false } = {}) {
-  const context = await browser.newContext({ viewport, colorScheme, reducedMotion, hasTouch, isMobile: hasTouch });
+async function open(url, { viewport = VIEWPORTS.desktop, colorScheme = 'dark', reducedMotion = 'no-preference', hasTouch = false, javaScriptEnabled = true } = {}) {
+  const context = await browser.newContext({ viewport, colorScheme, reducedMotion, hasTouch, isMobile: hasTouch, javaScriptEnabled });
   await context.addInitScript(() => {
     document.addEventListener('DOMContentLoaded', () => { document.documentElement.style.scrollBehavior = 'auto'; });
   });
@@ -87,7 +87,20 @@ const clipped = (page) => page.evaluate(() => {
   for (const el of document.querySelectorAll('body *')) {
     const rect = el.getBoundingClientRect();
     if (!rect.width || !rect.height || getComputedStyle(el).visibility === 'hidden') continue;
-    if (rect.right > width + 0.5 && !inScroller(el)) found.push(`${el.tagName.toLowerCase()}#${el.id || ''} right=${rect.right.toFixed(1)}`);
+    if ((rect.right > width + 0.5 || rect.left < -0.5) && !inScroller(el)) found.push(`${el.tagName.toLowerCase()}#${el.id || ''} left=${rect.left.toFixed(1)} right=${rect.right.toFixed(1)}`);
+  }
+  return found.slice(0, 8);
+});
+/** Chart text drawn outside its own SVG: labels pushed past the edge at narrow widths or by long values. */
+const strayChartText = (page) => page.evaluate(() => {
+  const found = [];
+  for (const svg of document.querySelectorAll('.chart-frame > svg')) {
+    const width = Number(svg.getAttribute('width'));
+    const height = Number(svg.getAttribute('height'));
+    for (const text of svg.querySelectorAll('text')) {
+      const box = text.getBBox();
+      if (box.x < -0.5 || box.y < -0.5 || box.x + box.width > width + 0.5 || box.y + box.height > height + 0.5) found.push(`${svg.parentElement.id}: "${text.textContent}" x=${box.x.toFixed(1)} w=${box.width.toFixed(1)} y=${box.y.toFixed(1)} h=${box.height.toFixed(1)} in ${width}×${height}`);
+    }
   }
   return found.slice(0, 8);
 });
@@ -114,6 +127,10 @@ const accessibleNameGaps = (page) => page.evaluate(() => {
       || (el.tagName === 'TABLE' || el.tagName === 'DIV' ? '' : visibleText(el))
       || (el.getAttribute('title') || '');
     if (!name.trim()) gaps.push(`${el.tagName.toLowerCase()}#${el.id || ''}.${el.className || ''}`);
+  }
+  // An ARIA name on a generic element is not exposed; it needs a role.
+  for (const el of document.querySelectorAll('div[aria-label], span[aria-label], div[aria-labelledby], span[aria-labelledby]')) {
+    if (!el.getAttribute('role')) gaps.push(`${el.tagName.toLowerCase()}#${el.id || ''} carries an ARIA name without a role`);
   }
   return gaps;
 });
@@ -147,9 +164,14 @@ describe('analytics lab: page integrity across viewports and themes', () => {
           assert.deepEqual(await duplicateIds(page), []);
           assert.deepEqual(await accessibleNameGaps(page), [], 'controls without an accessible name');
           assert.equal(await count(page, '#category-chart svg, #top-ten-chart svg, #status-chart svg, #outcome-chart svg, #scenario-chart svg, #scenario-outcomes svg'), 6, 'all six charts are drawn');
+          assert.deepEqual(await strayChartText(page), [], 'no chart text is drawn outside its chart');
           await setRange(page, 'volume-range', 20);
           assert.equal(await stat(page, 'out-revenue'), M.formatMillionsBRL(M.calculateScenario({ volumePct: 20 }).revenueBRL));
+          await setRange(page, 'basket-range', -30);
+          await setRange(page, 'ontime-range', -25);
           assert.equal(await overflow(page), 0, 'still no overflow after a scenario change');
+          assert.deepEqual(await clipped(page), [], 'nothing is cut off after a scenario change');
+          assert.deepEqual(await strayChartText(page), [], 'no chart text outside its chart after a scenario change');
           assert.ok(requests.every((url) => url.startsWith(server.baseUrl)), `only same-origin requests: ${requests.filter((u) => !u.startsWith(server.baseUrl)).join(', ')}`);
           assert.deepEqual(problems, []);
         } finally {
@@ -158,6 +180,35 @@ describe('analytics lab: page integrity across viewports and themes', () => {
       });
     }
   }
+
+  it('reads without JavaScript: the KPIs, the chart tables, the DAX and the wiring stay in the markup and the notes say what is missing', async () => {
+    const { page, response, close } = await open(LAB, { javaScriptEnabled: false });
+    try {
+      assert.equal(response.status(), 200);
+      for (const metric of M.METRICS) assert.equal(await page.locator(`[data-metric="${metric.id}"]`).evaluate((p) => p.firstChild.textContent), metric.display);
+      assert.equal(await count(page, '.chart-frame svg'), 0, 'no chart is drawn');
+      assert.equal(await count(page, '.table-button'), 0, 'no explorer is built');
+      // Playwright's text engine skips <noscript>, so the notes are located by structure and read directly.
+      const notes = page.locator('noscript > p.empty-state');
+      assert.equal(await notes.count(), 3);
+      for (const [index, lead] of [['The four charts below need JavaScript.', 0], ['The simulator and its two charts need JavaScript', 1], ['The data-model explorer needs JavaScript.', 2]].map(([text, i]) => [i, text])) {
+        assert.ok(await notes.nth(index).isVisible(), `note ${index} is rendered`);
+        assert.ok((await notes.nth(index).textContent()).startsWith(lead), `note ${index} says what is missing`);
+      }
+      assert.ok((await status(page)).startsWith('The simulator needs JavaScript'));
+      for (const [figure, rows, expected] of [['#categories', '#category-rows', 2], ['#top-ten', '#top-ten-rows', 10], ['#status-mix', '#status-rows', 4], ['#delivery-outcomes', '#outcome-rows', 3]]) {
+        await page.locator(`${figure} .table-view summary`).click();
+        assert.equal(await count(page, `${rows} tr`), expected, `${figure} rows without JavaScript`);
+        assert.ok(await page.locator(`${rows} tr`).first().isVisible(), `${figure} table opens without JavaScript`);
+      }
+      assert.ok((await page.locator('#top-ten-rows').textContent()).includes('computers acce… (truncated in the export)'));
+      assert.equal(await count(page, '.dax-card .dax-block'), M.DAX_MEASURES.filter((d) => d.published).length, 'the published DAX is in the markup');
+      assert.equal(await count(page, '.dax-card'), M.DAX_MEASURES.filter((d) => d.published).length + 1, 'plus the card naming the unpublished measures');
+      assert.equal(await count(page, '#wiring-table tbody tr'), M.DASHBOARD_VISUALS.length);
+    } finally {
+      await close();
+    }
+  });
 
   it('enforces the content security policy: inline scripts and inline styles are blocked', async () => {
     const { page, problems, close } = await open(LAB);
@@ -236,6 +287,8 @@ describe('analytics lab: published dashboard', () => {
       assert.equal(await count(page, '#top-ten-chart .mark'), 10);
       assert.equal(await count(page, '#top-ten-chart .bar-pub'), 2, 'the two README categories are emphasised');
       assert.equal(await count(page, '#top-ten-chart .bar-rest'), 8);
+      assert.equal(await count(page, '#top-ten-chart text.label-strong'), 2, 'the two README categories carry bold labels');
+      assert.equal(await count(page, '#top-ten-chart text.label-plain'), 8, 'the exported-only labels are plain');
       assert.ok((await page.locator('#top-ten-chart').textContent()).includes('computers acce…'), 'the truncated label is shown as printed');
       assert.ok((await page.locator('#top-ten-caption').textContent()).includes(M.formatMillionsBRL(M.DERIVED.topTenTotalBRL)));
       assert.equal(await count(page, '#status-chart .mark'), 3);
@@ -289,6 +342,48 @@ describe('analytics lab: published dashboard', () => {
     }
   });
 
+  it('toggles the tooltip with a tap on a touch screen', async () => {
+    const { page, problems, close } = await open(LAB, { viewport: VIEWPORTS.mobile, hasTouch: true });
+    try {
+      const tip = page.locator('#category-chart .chart-tip');
+      await page.locator('#category-chart').evaluate((frame) => frame.scrollIntoView({ block: 'center' }));
+      const mark = page.locator('#category-chart .mark').first();
+      const box = await mark.boundingBox();
+      await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+      assert.ok(await tip.isVisible(), 'a tap shows the tooltip');
+      assert.ok((await tip.textContent()).includes('R$1.44M'));
+      assert.equal(await count(page, '#category-chart .mark.is-active'), 1);
+      await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+      assert.ok(await tip.isHidden(), 'a second tap on the same mark hides it');
+      assert.equal(await count(page, '#category-chart .mark.is-active'), 0);
+      assert.deepEqual(problems, []);
+    } finally {
+      await close();
+    }
+  });
+
+  it('keeps focus and the active mark when a chart is redrawn at a new width', async () => {
+    const { page, close } = await open(LAB);
+    try {
+      const third = M.EXPORTED.topCategories[2].label;
+      await page.locator('#top-ten-chart svg').focus();
+      await page.keyboard.press('Home');
+      await page.keyboard.press('ArrowRight');
+      await page.keyboard.press('ArrowRight');
+      assert.ok((await page.locator('#top-ten-chart .chart-tip').textContent()).startsWith(`3. ${third}`));
+      const before = await page.locator('#top-ten-chart svg').getAttribute('width');
+      await page.setViewportSize({ width: 900, height: 800 });
+      await page.waitForFunction((previous) => { const svg = document.querySelector('#top-ten-chart svg'); return svg && svg.getAttribute('width') !== previous; }, before);
+      assert.equal(await page.evaluate(() => document.activeElement === document.querySelector('#top-ten-chart svg')), true, 'the redrawn chart holds focus');
+      assert.equal(await page.evaluate(() => [...document.querySelectorAll('#top-ten-chart .mark')].findIndex((m) => m.classList.contains('is-active'))), 2, 'the same mark is active');
+      assert.ok((await page.locator('#top-ten-chart .chart-tip').textContent()).startsWith(`3. ${third}`), 'the tooltip still reads it');
+      await page.keyboard.press('ArrowRight');
+      assert.ok((await page.locator('#top-ten-chart .chart-tip').textContent()).startsWith('4. '), 'the keyboard keeps working on the redrawn chart');
+    } finally {
+      await close();
+    }
+  });
+
   it('re-renders the charts at the container width when the viewport changes', async () => {
     const { page, close } = await open(LAB);
     try {
@@ -311,9 +406,19 @@ describe('analytics lab: what-if simulator', () => {
     const { page, close } = await open(LAB);
     try {
       await expectOutputs(page, M.BASELINE);
+      assert.equal(await stat(page, 'out-orders'), '≈ 99.4K', 'literal, not the engine formatter');
+      assert.equal(await stat(page, 'out-ontime-all'), '89.14%');
+      assert.equal(await stat(page, 'out-missed'), '≈ 10,795');
       assert.equal(await page.locator('[data-preset="baseline"]').getAttribute('aria-pressed'), 'true');
       assert.ok((await status(page)).startsWith('Published baseline loaded'));
-      for (const id of ['volume-range', 'basket-range', 'delivery-range', 'ontime-range']) assert.equal(await page.inputValue(`#${id}`), '0');
+      for (const id of ['volume-range', 'basket-range', 'delivery-range', 'ontime-range']) {
+        assert.equal(await page.inputValue(`#${id}`), '0');
+        assert.equal(await page.getAttribute(`#${id}`, 'aria-valuetext'), 'no change, published baseline');
+      }
+      assert.ok((await page.locator('#out-revenue small').textContent()).includes('published baseline, no change'));
+      assert.ok((await page.locator('#out-orders small').textContent()).includes('implied by R$15.84M ÷ R$159.33, not a published count'));
+      assert.ok((await page.locator('#out-ontime-all small').textContent()).includes('derived: 97.02% × 91.88%, not a published figure'));
+      assert.ok((await page.locator('#out-missed small').textContent()).startsWith('derived from the published rates and the implied order count, not a published figure'));
       assert.ok((await page.locator('#scenario-caption').textContent()).includes('No change'));
       assert.ok((await page.locator('#hypo-banner').textContent()).includes('Not a reported result'));
     } finally {
@@ -343,13 +448,42 @@ describe('analytics lab: what-if simulator', () => {
       await page.locator('#scenario-figure .table-view summary').click();
       const rows = await page.$$eval('#scenario-rows tr', (trs) => trs.map((tr) => [...tr.children].map((td) => td.textContent)));
       assert.equal(rows[0][2], `${M.formatMillionsBRL(all.revenueBRL)} (hypothetical)`);
-      assert.equal(rows[0][4], String(Math.round(all.multiplier * 1000) / 10));
+      assert.equal(rows[0][4], String(M.roundTo(all.index.revenue, 1)));
+      assert.equal(rows[1][4], String(all.index.orders));
+      assert.equal(rows[2][4], String(all.index.averageOrder));
+      assert.ok((await page.locator('#out-missed small').textContent()).startsWith('hypothetical:'));
       await page.locator('#scenario-outcomes-figure .table-view summary').click();
       const outcomes = await page.$$eval('#scenario-outcome-rows tr', (trs) => trs.map((tr) => [...tr.children].map((td) => td.textContent)));
       assert.equal(outcomes[0][1], M.formatPercent(M.DERIVED.onTimeOfAllPct));
       assert.ok(outcomes[0][2].startsWith(M.formatPercent(all.onTimeOfAllPct)));
       assert.equal(outcomes[2][3], `≈ ${M.formatInt(all.undeliveredOrders)}`);
       assert.deepEqual(problems, []);
+    } finally {
+      await close();
+    }
+  });
+
+  it('rounds a half-way percentage away from zero: volume +3% with basket +15% reads +18.5% and index 118.5', async () => {
+    const { page, close } = await open(LAB);
+    try {
+      await setRange(page, 'volume-range', 3);
+      await setRange(page, 'basket-range', 15);
+      assert.equal(await stat(page, 'out-revenue'), 'R$18.76M');
+      assert.equal(await stat(page, 'out-revenue-change'), '+R$2.92M');
+      assert.equal(await page.locator('#out-revenue-change small').textContent(), '+18.5% versus published R$15.84M');
+      assert.ok((await status(page)).includes('(+R$2.92M, +18.5%)'));
+      assert.ok((await page.locator('#scenario-caption').textContent()).includes('R$18.76M (+18.5%)'));
+      await page.locator('#scenario-figure .table-view summary').click();
+      const rows = await page.$$eval('#scenario-rows tr', (trs) => trs.map((tr) => [...tr.children].map((td) => td.textContent)));
+      assert.equal(rows[0][3], '+18.5% · +R$2.92M');
+      assert.equal(rows[0][4], '118.5');
+      assert.equal(rows[1][4], '103');
+      assert.equal(rows[2][4], '115');
+      await setRange(page, 'volume-range', -15);
+      await setRange(page, 'basket-range', -15);
+      const down = await page.$$eval('#scenario-rows tr', (trs) => trs.map((tr) => [...tr.children].map((td) => td.textContent)));
+      assert.equal(down[0][4], '72.3');
+      assert.equal(await page.locator('#out-revenue-change small').textContent(), '−27.8% versus published R$15.84M');
     } finally {
       await close();
     }
@@ -398,6 +532,8 @@ describe('analytics lab: what-if simulator', () => {
       await expectOutputs(page, M.BASELINE);
       assert.equal(await page.locator('[data-preset="baseline"]').getAttribute('aria-pressed'), 'true');
       assert.ok((await status(page)).startsWith('Reset. Published baseline'));
+      assert.equal(await page.getAttribute('#volume-range', 'aria-valuetext'), 'no change, published baseline');
+      assert.ok((await page.locator('#scenario-caption').textContent()).startsWith('No change'));
     } finally {
       await close();
     }
@@ -437,9 +573,15 @@ describe('analytics lab: data-model explorer', () => {
       const body = await page.locator('#table-detail-body').textContent();
       assert.ok(body.includes('Total Orders') && body.includes('COUNTROWS(fact_orders)') && body.includes('Six KPI cards') && body.includes('Orders by Status'));
       assert.equal(await count(page, '#table-detail-body .column-chips li'), M.MODEL_TABLES.find((t) => t.id === 'fact_orders').columnsSeen.length);
+      assert.ok(body.includes('Dashboard visuals reached through its measures') && body.includes('measure Total Orders'), 'a fact table reaches visuals through the measures that read it');
+      await page.locator('[data-table="fact_cohort_retention"]').click();
+      assert.ok((await page.locator('#table-detail-body').textContent()).includes('No published measure reads this table, so no visual on the published report page is traced to it.'));
       await page.locator('[data-table="KPI_Measures"]').click();
       assert.equal(await count(page, '.table-button[aria-pressed="true"]'), 1, 'one table is selected at a time');
-      assert.ok((await page.locator('#table-detail-body').textContent()).includes('Delivered Orders'));
+      const measures = await page.locator('#table-detail-body').textContent();
+      assert.ok(measures.includes('Measures visible in the published model view (partial)') && measures.includes('Average Review Score') && measures.includes('Delivered Customers'), 'the model-view measure names are listed as seen');
+      assert.ok(measures.includes('Measures named by the README and the report layout') && measures.includes('Delivered Orders (definition not published)'));
+      assert.equal(await count(page, '#table-detail-body .column-chips li'), M.MODEL_TABLES.find((t) => t.id === 'KPI_Measures').measuresSeen.length + M.DAX_MEASURES.length);
       await page.locator('[data-table="KPI_Measures"]').click();
       assert.equal(await count(page, '.table-button[aria-pressed="true"]'), 0, 'activating the selected table again clears the selection');
       assert.ok((await page.locator('#table-detail-body').textContent()).includes('Select a table'));
@@ -456,6 +598,9 @@ describe('analytics lab: data-model explorer', () => {
       assert.equal(await page.evaluate(() => document.activeElement.id), 'table-detail');
       const body = await page.locator('#table-detail-body').textContent();
       assert.ok(body.includes('Year Range') && body.includes('Monthly Revenue Trend') && body.includes('is_complete_analysis_month'));
+      assert.ok(body.includes('Columns named by the report layout, not visible in the scrolled panel') && body.includes('year_month'), 'layout-only columns are labelled as such');
+      const dimDate = M.MODEL_TABLES.find((t) => t.id === 'dim_date');
+      assert.equal(await count(page, '#table-detail-body .column-chips li'), dimDate.columnsSeen.length + dimDate.columnsFromLayout.length);
       assert.ok(body.includes('None of the five published DAX measures reads this table directly.'));
     } finally {
       await close();

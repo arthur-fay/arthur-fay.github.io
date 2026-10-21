@@ -145,6 +145,9 @@ describe('calculateScenario: formulas', () => {
     assert.equal(base.onTimeOfDeliveredPct, 91.88);
     close(base.orders, M.DERIVED.impliedOrders, 1e-9, 'orders');
     close(base.onTimeOfAllPct, M.DERIVED.onTimeOfAllPct, 1e-9, 'on-time of all');
+    close(base.lateOrders, 7_832.0404, 1e-4, 'late orders (literal: 99,416.3058 × 0.9702 × 0.0812)');
+    close(base.undeliveredOrders, 2_962.6059, 1e-4, 'undelivered orders (literal: 99,416.3058 × 0.0298)');
+    assert.equal(M.formatInt(base.lateOrders + base.undeliveredOrders), '10,795', 'missed orders as the page prints them at baseline');
     assert.deepEqual(M.calculateScenario({}), base, 'an empty object means no change');
     assert.deepEqual(M.BASELINE, base);
   });
@@ -169,6 +172,35 @@ describe('calculateScenario: formulas', () => {
     close(s.lateOfAllPct, 98.52 - (98.52 * 95.88) / 100, 1e-9, 'late of all');
     close(s.deliveredOrders, s.orders * 0.9852, 1e-6, 'delivered orders');
     close(s.onTimeOrders, s.orders * 0.9852 * 0.9588, 1e-6, 'on-time orders');
+    close(s.orders, 114_328.7516, 1e-4, 'orders (literal: 99,416.3058 × 1.15)');
+    close(s.deliveredOrders, 112_636.6861, 1e-4, 'delivered orders (literal: × 0.9852)');
+    close(s.onTimeOrders, 107_996.0547, 1e-4, 'on-time orders (literal: × 0.9588)');
+    close(s.lateOrders, 4_640.6315, 1e-4, 'late orders (literal)');
+    close(s.undeliveredOrders, 1_692.0655, 1e-4, 'undelivered orders (literal)');
+    assert.equal(M.formatInt(s.lateOrders + s.undeliveredOrders), '6,333', 'missed orders as the page prints them');
+  });
+
+  it('computes the percentage change and the indices exactly, so half-way cases round the way decimal arithmetic does', () => {
+    const s = M.calculateScenario({ volumePct: 3, basketPct: 15 });
+    assert.equal(s.revenueDeltaPct, 18.45, '1.03 × 1.15 − 1 is exactly 18.45%');
+    assert.equal(M.formatSignedPercent(s.revenueDeltaPct), '+18.5%', 'rounded half away from zero, not to 18.4% through 18.449999…');
+    assert.deepEqual(s.index, { revenue: 118.45, orders: 103, averageOrder: 115 });
+    assert.equal(M.roundTo(s.index.revenue, 1), 118.5);
+    const down = M.calculateScenario({ volumePct: -15, basketPct: -15 });
+    assert.equal(down.revenueDeltaPct, -27.75);
+    assert.equal(M.formatSignedPercent(down.revenueDeltaPct), '−27.8%');
+    assert.deepEqual(down.index, { revenue: 72.25, orders: 85, averageOrder: 85 });
+    assert.equal(M.roundTo(down.index.revenue, 1), 72.3);
+    assert.deepEqual(M.BASELINE.index, { revenue: 100, orders: 100, averageOrder: 100 });
+    for (const [v, b] of [[7, 9], [-33, 21], [50, 30], [-50, -30], [1, -1], [0, 30]]) {
+      const scenario = M.calculateScenario({ volumePct: v, basketPct: b });
+      close(scenario.index.revenue, ((100 + v) * (100 + b)) / 100, 1e-12, `revenue index for ${v}/${b}`);
+      assert.equal(scenario.index.orders, 100 + v);
+      assert.equal(scenario.index.averageOrder, 100 + b);
+      close(scenario.multiplier, scenario.index.revenue / 100, 1e-12, 'the multiplier is the revenue index over 100');
+      close(scenario.revenueDeltaPct, scenario.index.revenue - 100, 1e-12, 'the percentage change is the index less 100');
+      assert.ok(Object.isFrozen(scenario.index));
+    }
   });
 
   it('is multiplicative, symmetric in volume and basket, and separates the four levers', () => {
@@ -300,7 +332,8 @@ describe('definitions and documentation', () => {
     for (const metric of M.METRICS) {
       for (const field of ['id', 'title', 'display', 'unit', 'measure', 'definition', 'caveat']) assert.ok(typeof metric[field] === 'string' && metric[field].length > 0, `${metric.id}.${field}`);
       assert.ok(measureNames.has(metric.measure), `${metric.id} maps to a listed measure`);
-      assert.ok(metric.definition.length >= 40 && metric.caveat.length >= 40, `${metric.id} explains itself`);
+      assert.ok(metric.definition.length >= 30 && metric.caveat.length >= 40, `${metric.id} explains itself`);
+      assert.ok(/[.)]$/.test(metric.definition) && /[.)]$/.test(metric.caveat), `${metric.id} definition and caveat are sentences`);
     }
     assert.equal(M.METRICS.find((m) => m.id === 'on-time').unit, 'percent of delivered orders', 'the on-time denominator is stated');
     assert.equal(M.METRICS.find((m) => m.id === 'delivery').unit, 'percent of orders');
@@ -340,7 +373,11 @@ describe('definitions and documentation', () => {
     assert.equal(M.MODEL_TABLES.length, 10);
     const table = (id) => M.MODEL_TABLES.find((t) => t.id === id);
     assert.ok(table('fact_order_items').columnsSeen.includes('merchandise_revenue') && table('fact_order_items').columnsSeen.includes('freight_revenue'));
-    assert.ok(table('dim_date').columnsSeen.includes('year') && table('dim_date').columnsSeen.includes('year_month') && table('dim_date').columnsSeen.includes('is_complete_analysis_month'));
+    const dateColumns = [...table('dim_date').columnsSeen, ...table('dim_date').columnsFromLayout];
+    assert.ok(dateColumns.includes('year') && dateColumns.includes('year_month') && table('dim_date').columnsSeen.includes('is_complete_analysis_month'));
+    assert.deepEqual(table('dim_date').columnsFromLayout, ['year', 'year_month'], 'the two columns the layout queries but the scrolled panel does not show are declared as such');
+    assert.deepEqual(table('KPI_Measures').columnsSeen, ['Value (hidden)']);
+    assert.deepEqual(table('KPI_Measures').measuresSeen, ['Average Order Value', 'Average Review Score', 'Delivered Orders'].toSpliced(2, 0, 'Delivered Customers'), 'the four measure names visible in the model view, in order');
     assert.ok(table('dim_product').columnsSeen.includes('product_category'));
     assert.ok(table('dim_order_status').columnsSeen.includes('status_group'));
     const measureIds = new Set(M.DAX_MEASURES.map((d) => d.id));
@@ -348,6 +385,10 @@ describe('definitions and documentation', () => {
     for (const t of M.MODEL_TABLES) {
       assert.ok(t.description.length >= 40 && t.title.length > 0, `${t.id} is described`);
       assert.ok(t.columnsSeen.length >= 1, `${t.id} lists columns seen`);
+      assert.ok(Array.isArray(t.columnsFromLayout), `${t.id} declares its layout-only columns`);
+      if (t.id !== 'dim_date') assert.deepEqual(t.columnsFromLayout, [], `${t.id} has no layout-only column`);
+      for (const column of t.columnsFromLayout) assert.ok(!t.columnsSeen.includes(column), `${t.id}.${column} is listed once`);
+      if (t.group !== 'measure') assert.equal(t.measuresSeen, undefined, `${t.id} lists no measures seen`);
       for (const id of t.measures) assert.ok(measureIds.has(id), `${t.id} measure ${id}`);
       for (const id of t.visuals) assert.ok(visualIds.has(id), `${t.id} visual ${id}`);
     }
@@ -363,7 +404,10 @@ describe('definitions and documentation', () => {
         const [tableName, column] = field.split('.');
         assert.ok(tables.has(tableName), `${visual.id}: ${field} names a documented table`);
         if (tableName === 'KPI_Measures') assert.ok(measureNames.has(column), `${visual.id}: ${column} is a listed measure`);
-        else assert.ok(M.MODEL_TABLES.find((t) => t.id === tableName).columnsSeen.includes(column), `${visual.id}: ${field} is a column seen in the model view`);
+        else {
+          const table = M.MODEL_TABLES.find((t) => t.id === tableName);
+          assert.ok([...table.columnsSeen, ...table.columnsFromLayout].includes(column), `${visual.id}: ${field} is a column seen in the model view or named by the report layout`);
+        }
       }
     }
     assert.equal(M.DASHBOARD_VISUALS.find((v) => v.id === 'cards').fields.length, 6);
@@ -468,6 +512,36 @@ describe('formatting helpers', () => {
     assert.equal(M.formatPercent(89.141976), '89.14%');
     assert.equal(M.formatPercent(9.0909, 1), '9.1%');
     assert.equal(M.formatPercent(-3.456, 1), '−3.5%');
+  });
+
+  it('rounds half away from zero from the shortest decimal representation, never to a negative zero', () => {
+    assert.equal(M.roundTo(18.45, 1), 18.5);
+    assert.equal(M.roundTo(-18.45, 1), -18.5);
+    assert.equal(M.roundTo(1.005, 2), 1.01, 'not 1 through 1.00499999…');
+    assert.equal(M.roundTo(0.615, 2), 0.62);
+    assert.equal(M.roundTo(2.5), 3);
+    assert.equal(M.roundTo(-2.5), -3);
+    assert.equal(M.roundTo(1.25, 1), 1.3);
+    assert.equal(M.roundTo(159.33, 2), 159.33);
+    assert.equal(M.roundTo(99_416.3), 99_416);
+    assert.equal(M.roundTo(0, 1), 0);
+    assert.ok(Object.is(M.roundTo(-0.04, 1), 0), 'a negative value that rounds to zero is a plain zero');
+    assert.ok(Object.is(M.roundTo(-0, 2), 0));
+    assert.equal(M.roundTo(1e21, 2), 1e21, 'a value too large to carry a fraction is returned as it is');
+    assert.equal(M.roundTo(2 ** 53 + 2, 3), 2 ** 53 + 2);
+    assert.equal(M.roundTo(1.5e-7, 7), 2e-7, 'exponent notation is shifted the same way');
+    assert.equal(M.roundTo(-1.5e-7, 7), -2e-7);
+    assert.equal(M.roundTo(123.456e3, 1), 123_456);
+    assert.equal(M.formatPercent(18.45, 1), '18.5%');
+    assert.equal(M.formatSignedPercent(18.45), '+18.5%');
+    assert.equal(M.formatBRL(1.005), 'R$1.01');
+    assert.equal(M.formatMillionsBRL(1_005_000), 'R$1.01M', 'not R$1.00M');
+    assert.equal(M.formatSignedMillionsBRL(-1_005_000), '−R$1.01M');
+    assert.equal(M.formatPoints(0.05), '+0.1 pts');
+    assert.equal(M.formatPoints(-0.05), '−0.1 pts');
+    assert.equal(M.formatCompact(99_450), '99.5K');
+    assert.equal(M.formatInt(2.5), '3');
+    assert.equal(M.formatSignedInt(-2.5), '−3');
   });
 
   it('refuses non-finite input', () => {

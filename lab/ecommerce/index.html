@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0b0e13" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'none'; base-uri 'self'; form-action 'none'" />
-  <meta name="description" content="E-Commerce Executive Analytics Lab by Arthur Fay: the six published KPIs of the original Power BI project with their exact DAX definitions, a comparison of its documented leading categories, a hypothetical what-if simulator, and an interactive walkthrough of the dimensional model, the measures and the report wiring behind the executive dashboard." />
+  <meta name="description" content="E-Commerce Executive Analytics Lab by Arthur Fay: the six published KPIs of the original Power BI project with the DAX definitions its README publishes, a comparison of its documented leading categories, a hypothetical what-if simulator, and an interactive walkthrough of the dimensional model, the measures and the report wiring behind the executive dashboard." />
   <meta name="author" content="Arthur Fay" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="E-Commerce Executive Analytics Lab — Arthur Fay" />
@@ -61,7 +61,7 @@
       <section class="lab-hero container" aria-labelledby="lab-title">
         <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> PROJECT 02 / ANALYTICS LAB <span class="hero-serial">/ 2026</span></p>
         <h1 id="lab-title">E-Commerce Executive<br/><em>Analytics Lab<span class="period">.</span></em></h1>
-        <p class="hero-description">The six published KPIs of the original Power BI project with the DAX measure behind each one, its two documented leading categories side by side, a what-if simulator for hypothetical volume, basket and delivery assumptions, and a walkthrough of the dimensional model, the measures and the report wiring that produce the executive dashboard. Published figures and hypothetical projections are labelled apart on every tile.</p>
+        <p class="hero-description">The six published KPIs of the original Power BI project with the published DAX behind five of them, its two documented leading categories side by side, a what-if simulator for hypothetical volume, basket and delivery assumptions, and a walkthrough of the dimensional model, the measures and the report wiring that produce the executive dashboard. Published figures and hypothetical projections are labelled apart on every tile.</p>
         <p class="project-disclosure lab-disclosure"><span aria-hidden="true">i</span> Published figures are the rounded summaries of the public project README (checked against commit 795257d on 21 October 2026), not a row-level dataset: no transaction, monthly value or customer record is reconstructed here. Every simulator output is a hypothetical projection from the stated assumptions, never a reported result, and nothing on this page is a forecast.</p>
         <div class="hero-buttons">
           <a class="button button-primary" href="#dashboard">Open the dashboard <span aria-hidden="true">↓</span></a>
@@ -81,7 +81,7 @@
         <div class="container">
           <div class="section-heading">
             <div><p class="section-index">01 / EXECUTIVE DASHBOARD</p><h2 id="dashboard-heading">Six published KPIs, <em>defined exactly.</em></h2></div>
-            <p class="section-intro">The figures the original Power BI dashboard reports, as its README publishes them, each with the measure that computes it and the caveat its rounding carries. Open any tile for the DAX.</p>
+            <p class="section-intro">The figures the original Power BI dashboard reports, as its README publishes them, each with the measure that computes it, quoted where the README publishes it, and the caveat its rounding carries. Open any tile for the measure and its caveat.</p>
           </div>
           <div class="source-strip">
             <span class="prov prov-pub">Published</span>
@@ -91,7 +91,7 @@
             <li class="kpi-tile">
               <p class="kpi-label">Total orders</p>
               <p class="kpi-value" data-metric="orders">99K<small>orders</small></p>
-              <p class="kpi-definition">The number of rows in fact_orders, one row per order.</p>
+              <p class="kpi-definition">The number of rows in fact_orders.</p>
               <details class="kpi-more"><summary>Measure and caveat</summary>
                 <pre class="dax-block"><code>Total Orders =
 COUNTROWS(fact_orders)</code></pre>
@@ -162,6 +162,7 @@ DIVIDE(
             </li>
           </ul>
 
+          <noscript><p class="empty-state">The four charts below need JavaScript. Every figure they draw is in the KPI tiles above and in the table view beneath each chart, which is printed in the page.</p></noscript>
           <div class="dash-grid">
             <figure class="chart-card" id="categories" aria-labelledby="categories-title">
               <div class="chart-head"><h3 id="categories-title">Two documented leading categories</h3><span class="prov prov-pub">Published</span></div>
@@ -174,7 +175,7 @@ DIVIDE(
                 <footer>README, <a class="text-link" href="https://github.com/arthur-fay/customer-revenue-analytics/blob/main/README.md#key-business-insights" target="_blank" rel="noopener noreferrer">Key Business Insights <span aria-hidden="true">↗</span></a></footer>
               </blockquote>
               <details class="table-view"><summary>Table view</summary>
-                <div class="lab-table-wrap"><table class="lab-table viz-table"><caption>THE TWO DOCUMENTED LEADING CATEGORIES — README FIGURES AND DERIVED SHARES</caption><thead><tr><th scope="col">Category</th><th scope="col">Revenue</th><th scope="col">Share of total revenue</th><th scope="col">Provenance</th></tr></thead><tbody id="category-rows"></tbody></table></div>
+                <div class="lab-table-wrap"><table class="lab-table viz-table"><caption>THE TWO DOCUMENTED LEADING CATEGORIES — README FIGURES AND DERIVED SHARES</caption><thead><tr><th scope="col">Category</th><th scope="col">Revenue</th><th scope="col">Share of total revenue</th><th scope="col">Provenance</th></tr></thead><tbody id="category-rows"><tr><td>Health and beauty</td><td class="is-num">R$1.44M</td><td class="is-num">9.09% (derived)</td><td>README, Key Business Insights</td></tr><tr><td>Watches and gifts</td><td class="is-num">R$1.31M</td><td class="is-num">8.27% (derived)</td><td>README, Key Business Insights</td></tr></tbody></table></div>
               </details>
             </figure>
             <figure class="chart-card" id="top-ten" aria-labelledby="top-ten-title">
@@ -183,7 +184,7 @@ DIVIDE(
               <div class="chart-frame" id="top-ten-chart"></div>
               <figcaption class="chart-caption" id="top-ten-caption"></figcaption>
               <details class="table-view"><summary>Table view</summary>
-                <div class="lab-table-wrap"><table class="lab-table viz-table"><caption>TOP 10 PRODUCT CATEGORIES BY REVENUE — DATA LABELS OF THE EXPORTED CHART</caption><thead><tr><th scope="col">Rank</th><th scope="col">Category label</th><th scope="col">Revenue</th><th scope="col">Share of total revenue</th><th scope="col">Provenance</th></tr></thead><tbody id="top-ten-rows"></tbody></table></div>
+                <div class="lab-table-wrap"><table class="lab-table viz-table"><caption>TOP 10 PRODUCT CATEGORIES BY REVENUE — DATA LABELS OF THE EXPORTED CHART</caption><thead><tr><th scope="col">Rank</th><th scope="col">Category label</th><th scope="col">Revenue</th><th scope="col">Share of total revenue</th><th scope="col">Provenance</th></tr></thead><tbody id="top-ten-rows"><tr><td class="is-num">1</td><td>health beauty</td><td class="is-num">R$1.44M</td><td class="is-num">9.09% (derived)</td><td>README and exported chart</td></tr><tr><td class="is-num">2</td><td>watches gifts</td><td class="is-num">R$1.31M</td><td class="is-num">8.27% (derived)</td><td>README and exported chart</td></tr><tr><td class="is-num">3</td><td>bed bath table</td><td class="is-num">R$1.24M</td><td class="is-num">7.83% (derived)</td><td>Exported chart data label</td></tr><tr><td class="is-num">4</td><td>sports leisure</td><td class="is-num">R$1.16M</td><td class="is-num">7.32% (derived)</td><td>Exported chart data label</td></tr><tr><td class="is-num">5</td><td>computers acce… (truncated in the export)</td><td class="is-num">R$1.06M</td><td class="is-num">6.69% (derived)</td><td>Exported chart data label</td></tr><tr><td class="is-num">6</td><td>furniture decor</td><td class="is-num">R$0.90M</td><td class="is-num">5.68% (derived)</td><td>Exported chart data label</td></tr><tr><td class="is-num">7</td><td>housewares</td><td class="is-num">R$0.78M</td><td class="is-num">4.92% (derived)</td><td>Exported chart data label</td></tr><tr><td class="is-num">8</td><td>cool stuff</td><td class="is-num">R$0.72M</td><td class="is-num">4.55% (derived)</td><td>Exported chart data label</td></tr><tr><td class="is-num">9</td><td>auto</td><td class="is-num">R$0.69M</td><td class="is-num">4.36% (derived)</td><td>Exported chart data label</td></tr><tr><td class="is-num">10</td><td>garden tools</td><td class="is-num">R$0.58M</td><td class="is-num">3.66% (derived)</td><td>Exported chart data label</td></tr></tbody></table></div>
               </details>
             </figure>
             <figure class="chart-card" id="status-mix" aria-labelledby="status-title">
@@ -192,7 +193,7 @@ DIVIDE(
               <div class="chart-frame" id="status-chart"></div>
               <figcaption class="chart-caption" id="status-caption"></figcaption>
               <details class="table-view"><summary>Table view</summary>
-                <div class="lab-table-wrap"><table class="lab-table viz-table"><caption>ORDERS BY STATUS GROUP — DATA LABELS OF THE EXPORTED CHART</caption><thead><tr><th scope="col">Status group</th><th scope="col">Orders</th><th scope="col">Share of exported total</th><th scope="col">Provenance</th></tr></thead><tbody id="status-rows"></tbody></table></div>
+                <div class="lab-table-wrap"><table class="lab-table viz-table"><caption>ORDERS BY STATUS GROUP — DATA LABELS OF THE EXPORTED CHART</caption><thead><tr><th scope="col">Status group</th><th scope="col">Orders</th><th scope="col">Share of exported total</th><th scope="col">Provenance</th></tr></thead><tbody id="status-rows"><tr><td>completed</td><td class="is-num">96,478</td><td class="is-num">97.02% (derived)</td><td>Exported chart data label</td></tr><tr><td>open_or_incomplete</td><td class="is-num">1,729</td><td class="is-num">1.74% (derived)</td><td>Exported chart data label</td></tr><tr><td>failed</td><td class="is-num">1,234</td><td class="is-num">1.24% (derived)</td><td>Exported chart data label</td></tr><tr><td>Total (sum)</td><td class="is-num">99,441</td><td class="is-num">100%</td><td>Derived: sum of the three labels</td></tr></tbody></table></div>
               </details>
             </figure>
             <figure class="chart-card" id="delivery-outcomes" aria-labelledby="outcomes-title">
@@ -201,13 +202,13 @@ DIVIDE(
               <div class="chart-frame" id="outcome-chart"></div>
               <figcaption class="chart-caption" id="outcome-caption"></figcaption>
               <details class="table-view"><summary>Table view</summary>
-                <div class="lab-table-wrap"><table class="lab-table viz-table"><caption>DELIVERY OUTCOMES AS SHARES OF ALL ORDERS — DERIVED FROM THE TWO PUBLISHED RATES</caption><thead><tr><th scope="col">Outcome</th><th scope="col">Share of all orders</th><th scope="col">How it is derived</th></tr></thead><tbody id="outcome-rows"></tbody></table></div>
+                <div class="lab-table-wrap"><table class="lab-table viz-table"><caption>DELIVERY OUTCOMES AS SHARES OF ALL ORDERS — DERIVED FROM THE TWO PUBLISHED RATES</caption><thead><tr><th scope="col">Outcome</th><th scope="col">Share of all orders</th><th scope="col">How it is derived</th></tr></thead><tbody id="outcome-rows"><tr><td>On time</td><td class="is-num">89.14%</td><td>97.02% × 91.88%</td></tr><tr><td>Delivered late</td><td class="is-num">7.88%</td><td>97.02% − on time</td></tr><tr><td>Not delivered</td><td class="is-num">2.98%</td><td>100% − 97.02%</td></tr></tbody></table></div>
               </details>
             </figure>
           </div>
           <div class="trend-note" role="note" aria-labelledby="trend-title">
-            <div class="chart-head"><h3 id="trend-title">Monthly revenue trend: published as a picture, not redrawn here</h3><span class="prov prov-pub">Published</span></div>
-            <p>The dashboard plots Total Revenue by dim_date.year_month, filtered to complete analysis months, on an axis that runs from January 2017 to July 2018 in the export. The README summarises it in one sentence ("monthly revenue increased considerably throughout the analysis period") and publishes no monthly values, so this lab draws no trend line: a redrawn curve would be a guess. The original chart is in the <a class="text-link" href="https://github.com/arthur-fay/customer-revenue-analytics/blob/main/README.md#dashboard-preview" target="_blank" rel="noopener noreferrer">dashboard preview <span aria-hidden="true">↗</span></a>.</p>
+            <div class="chart-head"><h3 id="trend-title">Monthly revenue trend: published as a picture, not redrawn here</h3><span class="prov prov-exp">Exported</span></div>
+            <p>The dashboard plots Total Revenue by dim_date.year_month, filtered to complete analysis months (a filter read from the report layout), on an axis that runs from January 2017 to July 2018 in the export. The README summarises it in one sentence ("monthly revenue increased considerably throughout the analysis period") and publishes no monthly values, so this lab draws no trend line: a redrawn curve would be a guess. The original chart is in the <a class="text-link" href="https://github.com/arthur-fay/customer-revenue-analytics/blob/main/README.md#dashboard-preview" target="_blank" rel="noopener noreferrer">dashboard preview <span aria-hidden="true">↗</span></a>.</p>
           </div>
         </div>
       </section>
@@ -219,8 +220,8 @@ DIVIDE(
             <p class="section-intro">Move order volume, average basket value, delivery rate and on-time performance away from the published baseline and watch revenue, orders and delivery outcomes recalculate immediately. <strong>Everything the simulator shows is hypothetical</strong>: a projection from the formulas below, not a reported result and not a forecast.</p>
           </div>
           <div class="sim-layout">
-            <aside class="lab-panel" aria-labelledby="sim-controls-heading">
-              <h2 id="sim-controls-heading">Assumptions</h2>
+            <section class="lab-panel" aria-labelledby="sim-controls-heading">
+              <h3 id="sim-controls-heading">Assumptions</h3>
               <p class="lab-panel-note">Four hypothetical levers. Each slider also accepts a typed value; values outside the allowed range are clamped and reported. Zero everywhere is the published baseline.</p>
               <div class="preset-row" role="group" aria-label="Scenario presets">
                 <button type="button" class="preset-button" data-preset="baseline" aria-pressed="true">Published baseline</button>
@@ -253,17 +254,18 @@ DIVIDE(
               <div class="panel-actions">
                 <button type="button" class="button button-outline button-small" id="reset-scenario">Reset to baseline</button>
               </div>
-              <p class="lab-status" id="sim-status" role="status" aria-live="polite">Loading the simulator…</p>
+              <p class="lab-status" id="sim-status" role="status" aria-live="polite">The simulator needs JavaScript: with it, every output recalculates as the levers move. Without it, the published figures stay in the tiles and tables above.</p>
               <details class="lab-help">
                 <summary>Keyboard help</summary>
                 <ul>
-                  <li>Sliders: <kbd>←</kbd> <kbd>→</kbd> change one step, <kbd>Page Up</kbd> <kbd>Page Down</kbd> ten steps, <kbd>Home</kbd> <kbd>End</kbd> jump to the limits.</li>
+                  <li>Sliders: <kbd>←</kbd> <kbd>→</kbd> change one step, <kbd>Page Up</kbd> <kbd>Page Down</kbd> jump by about a tenth of the range, <kbd>Home</kbd> <kbd>End</kbd> jump to the limits.</li>
                   <li>Typed fields: enter a number and press <kbd>Enter</kbd> or <kbd>Tab</kbd>; out-of-range values are clamped.</li>
                   <li>Charts: focus a chart with <kbd>Tab</kbd>, then read each mark with <kbd>←</kbd> <kbd>→</kbd>; every value is also in the table view beneath the chart.</li>
                 </ul>
               </details>
-            </aside>
+            </section>
             <div class="sim-stage">
+              <noscript><p class="empty-state">The simulator and its two charts need JavaScript; nothing below is a published figure.</p></noscript>
               <p class="hypo-banner" id="hypo-banner"><span class="prov prov-hypo">Hypothetical</span> Projection from the assumptions on the left. Not a reported result, not a forecast.</p>
               <div role="group" aria-label="Hypothetical scenario outputs"><dl class="lab-stats sim-outputs">
                 <div><dt>Scenario revenue</dt><dd id="out-revenue">—<small>hypothetical</small></dd></div>
@@ -329,7 +331,8 @@ DIVIDE(
           </div>
           <div class="model-layout">
             <div class="model-stage">
-              <div class="model-diagram" id="model-diagram" aria-label="Dimensional model: dimensions on the left and right, fact tables and the measure table in the centre">
+              <noscript><p class="empty-state">The data-model explorer needs JavaScript. The ten documented tables, the DAX measures and the report wiring are listed in the text and tables below.</p></noscript>
+              <div class="model-diagram" id="model-diagram" role="group" aria-label="Dimensional model: dimensions on the left and right, fact tables and the measure table in the centre">
                 <svg class="model-lines" id="model-lines" aria-hidden="true" focusable="false"></svg>
                 <div class="model-col model-col-left" id="model-col-left"></div>
                 <div class="model-col model-col-center" id="model-col-center"></div>
@@ -344,7 +347,7 @@ DIVIDE(
               </ul>
               <ul class="model-facts" aria-label="What the sources say about relationships">
                 <li>The README documents a dimensional structure whose relationships "support filtering across dates, customers, products, sellers, payment methods, and order statuses".</li>
-                <li>In the published model view the many-side markers sit on fact_orders and fact_order_items; four relationship lines end on fact_order_items and dim_date shows two one-side markers.</li>
+                <li>In the published model view the many-side markers sit on the three fact tables and the one-side markers on the dimension tables; more relationship lines end on fact_order_items than on any other table.</li>
                 <li>The page-level slicers (dim_date.year and dim_order_status.status_group) filter every card, so those two dimensions filter the fact rows the measures count.</li>
                 <li>Column-level relationship keys and cross-filter directions are not published, so the diagram draws documented filter paths from each dimension to the fact layer rather than guessed joins.</li>
               </ul>
@@ -355,7 +358,7 @@ DIVIDE(
             </section>
           </div>
 
-          <div class="dax-section" aria-labelledby="dax-heading">
+          <section class="dax-section" aria-labelledby="dax-heading">
             <div class="chart-head"><h3 id="dax-heading">DAX measures and how they depend on each other</h3><span class="prov prov-pub">Published</span></div>
             <p class="card-note">The five measures the README quotes, verbatim, with their lineage: counts and sums over the fact tables first, then ratios built with DIVIDE and a zero fallback. Three measures the dashboard uses are referenced without a published definition and are listed as such.</p>
             <div class="dax-grid">
@@ -388,15 +391,16 @@ DIVIDE(
                   <li><strong>On-Time Delivered Orders</strong>: referenced by the on-time measure; its definition is not published. fact_orders carries a delivered_on_time_flag column in the model view.</li>
                   <li><strong>Total Customers</strong>: drives the Total Customers card in the report layout; its definition is not published.</li>
                 </ul>
+                <p class="dax-meta">The model view also lists Average Review Score and Delivered Customers; the published report page does not use them and the README does not define them.</p>
               </article>
             </div>
-          </div>
+          </section>
 
-          <div class="flow-section" aria-labelledby="flow-heading">
+          <section class="flow-section" aria-labelledby="flow-heading">
             <div class="chart-head"><h3 id="flow-heading">How the data reaches the executive dashboard</h3><span class="prov prov-pub">Documented</span></div>
             <ol class="pipeline" aria-label="Pipeline stages">
               <li><span class="pipeline-index">01</span><h4>SQL</h4><p>Queries over the transactional data. The README names SQL first among the tools and lists data cleaning and transformation among the skills; it does not detail which steps run in SQL and which in the notebooks.</p></li>
-              <li><span class="pipeline-index">02</span><h4>Google Colab</h4><p>Python notebooks for cleaning and transforming the data before it is modelled.</p></li>
+              <li><span class="pipeline-index">02</span><h4>Google Colab</h4><p>Notebooks for cleaning and transforming the data before it is modelled. The README names Google Colab and lists data cleaning and transformation among the skills; it publishes no notebook and does not describe the language or the steps.</p></li>
               <li><span class="pipeline-index">03</span><h4>Dimensional model</h4><p>Power Query and data modelling in Power BI Desktop: three fact tables, six dimensions and a measure table, related so that dates, customers, products, sellers, payment methods and order statuses filter the facts.</p></li>
               <li><span class="pipeline-index">04</span><h4>DAX measures</h4><p>KPI_Measures holds the measures: row counts and sums over the facts, then ratios built with DIVIDE and a zero fallback.</p></li>
               <li><span class="pipeline-index">05</span><h4>Power BI report</h4><p>The Executive Overview page: six cards, a monthly trend filtered to complete months, a Top 10 category bar chart, an orders-by-status column chart and two slicers with cross-filtering.</p></li>
@@ -416,7 +420,7 @@ DIVIDE(
                 </tbody>
               </table>
             </div>
-          </div>
+          </section>
         </div>
       </section>
 
@@ -427,8 +431,8 @@ DIVIDE(
         </div>
         <div class="explain-grid method-grid">
           <article class="explain-card"><span class="principle-top">STEP 01 / SQL</span><h3>Query the transactional data</h3><p>SQL is the first tool the README names: querying and shaping the e-commerce transactional data before analysis. The README lists "data cleaning and transformation" among the skills demonstrated, without separating the SQL work from the notebook work, and this lab keeps that separation open rather than inventing it.</p></article>
-          <article class="explain-card"><span class="principle-top">STEP 02 / GOOGLE COLAB</span><h3>Transform in Python notebooks</h3><p>Google Colab hosts the Python notebooks that clean and transform the data. No notebook is published in the repository, so the lab describes the step and reproduces nothing from it.</p></article>
-          <article class="explain-card"><span class="principle-top">STEP 03 / DIMENSIONAL MODELLING</span><h3>Model facts and dimensions</h3><p>Power Query and data modelling in Power BI Desktop produce the documented star-shaped model: fact_orders, fact_order_items and fact_cohort_retention, six dimensions, and KPI_Measures. The README states that the relationships support filtering across dates, customers, products, sellers, payment methods and order statuses.</p></article>
+          <article class="explain-card"><span class="principle-top">STEP 02 / GOOGLE COLAB</span><h3>Transform in notebooks</h3><p>Google Colab hosts the notebooks that clean and transform the data: the README names the tool and the skill, not the language or the steps. No notebook is published in the repository, so the lab describes the step and reproduces nothing from it.</p></article>
+          <article class="explain-card"><span class="principle-top">STEP 03 / DIMENSIONAL MODELLING</span><h3>Model facts and dimensions</h3><p>Power Query and data modelling in Power BI Desktop produce the documented dimensional model: fact_orders, fact_order_items and fact_cohort_retention, six dimensions, and KPI_Measures. The README states that the relationships support filtering across dates, customers, products, sellers, payment methods and order statuses.</p></article>
           <article class="explain-card"><span class="principle-top">STEP 04 / DAX</span><h3>Define the KPIs as measures</h3><p>Five measures are published verbatim: a row count, a two-column sum, and three DIVIDE ratios with a zero fallback. The lab quotes them exactly, draws their lineage and names the three referenced measures whose definitions are not published.</p></article>
           <article class="explain-card"><span class="principle-top">STEP 05 / POWER BI</span><h3>Build the executive page</h3><p>One report page with six cards, a monthly trend filtered to complete analysis months, a Top 10 category chart, an orders-by-status chart and two slicers with cross-filtering, as read from the report layout in the published .pbix file.</p></article>
           <article class="explain-card explain-card-evidence"><span class="principle-top">EVIDENCE / INSPECT IT YOURSELF</span><h3>Every source, one click away</h3>
