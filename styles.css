@@ -6,11 +6,11 @@
    The first two rule blocks are design tokens read by the contrast tests
    (tests/unit/*contrast*.test.js); keep them as single flat blocks.
    ========================================================================== */
-:root{color-scheme:dark;--bg:#0b0e13;--bg2:#10141b;--surface:#131921;--surface2:#19202a;--text:#ebe8df;--muted:#a1a79f;--fine:#858c86;--line:#262e39;--line2:#38424f;--accent:#c5e77d;--accent-dark:#a9ca5f;--on-accent:#0b0e13;--cyan:#80c9d2;--warm:#e3b25c;--grid:#1c232d;--hatch:#2b3440;--shadow:0 30px 80px rgba(0,0,0,.35);--font-display:"Iowan Old Style",Charter,"Bitstream Charter",Cambria,Georgia,"Times New Roman",serif;--font-body:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Inter,Roboto,"Helvetica Neue",Arial,sans-serif;--font-mono:ui-monospace,"SF Mono",Menlo,Consolas,"JetBrains Mono","Liberation Mono","DejaVu Sans Mono",monospace;--header-h:72px;--container:1240px;--gutter:clamp(16px,5vw,64px);--ease:cubic-bezier(.22,.72,.18,1);--fast:.22s;--slow:.6s}
-html[data-theme="light"]{color-scheme:light;--bg:#f4f2ec;--bg2:#ece9e0;--surface:#fbfaf6;--surface2:#efede6;--text:#161a20;--muted:#4f5862;--fine:#5f6872;--line:#d9d5c9;--line2:#bdb8a8;--accent:#3a5c14;--accent-dark:#2c470e;--on-accent:#ffffff;--cyan:#1b7381;--warm:#9a6a12;--grid:#e3dfd3;--hatch:#cfcabb;--shadow:0 24px 60px rgba(40,44,30,.12)}
+:root{color-scheme:dark;--bg:#0b0e13;--bg2:#10141b;--surface:#131921;--surface2:#19202a;--text:#ebe8df;--muted:#a1a79f;--fine:#858c86;--line:#262e39;--line2:#38424f;--accent:#c5e77d;--accent-dark:#a9ca5f;--on-accent:#0b0e13;--cyan:#80c9d2;--warm:#e3b25c;--grid:#1c232d;--hatch:#2b3440;--plate:#202a36;--plate-hi:#303b4a;--plate-side:#0d1117;--plate-edge:#7f8c9c;--node-top:#2a3139;--node-l:#141a22;--node-r:#1c232c;--glow-alpha:.1;--shade-alpha:.5;--shadow:0 30px 80px rgba(0,0,0,.35);--font-display:"Iowan Old Style",Charter,"Bitstream Charter",Cambria,Georgia,"Times New Roman",serif;--font-body:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Inter,Roboto,"Helvetica Neue",Arial,sans-serif;--font-mono:ui-monospace,"SF Mono",Menlo,Consolas,"JetBrains Mono","Liberation Mono","DejaVu Sans Mono",monospace;--header-h:72px;--container:1240px;--gutter:clamp(16px,5vw,64px);--ease:cubic-bezier(.22,.72,.18,1);--fast:.22s;--slow:.6s}
+html[data-theme="light"]{color-scheme:light;--bg:#f4f2ec;--bg2:#ece9e0;--surface:#fbfaf6;--surface2:#efede6;--text:#161a20;--muted:#4f5862;--fine:#5f6872;--line:#d9d5c9;--line2:#bdb8a8;--accent:#3a5c14;--accent-dark:#2c470e;--on-accent:#ffffff;--cyan:#1b7381;--warm:#9a6a12;--grid:#e3dfd3;--hatch:#cfcabb;--plate:#cfc8b6;--plate-hi:#e7e2d5;--plate-side:#b9b2a0;--plate-edge:#6b6556;--node-top:#fbfaf6;--node-l:#cbc6b8;--node-r:#e4e0d4;--glow-alpha:.05;--shade-alpha:.12;--shadow:0 24px 60px rgba(40,44,30,.12)}
 
 /* Pages without the theme script (the 404 page) follow the system preference. */
-@media (prefers-color-scheme:light){html:not([data-theme]){color-scheme:light;--bg:#f4f2ec;--bg2:#ece9e0;--surface:#fbfaf6;--surface2:#efede6;--text:#161a20;--muted:#4f5862;--fine:#5f6872;--line:#d9d5c9;--line2:#bdb8a8;--accent:#3a5c14;--accent-dark:#2c470e;--on-accent:#ffffff;--cyan:#1b7381;--warm:#9a6a12;--grid:#e3dfd3;--hatch:#cfcabb;--shadow:0 24px 60px rgba(40,44,30,.12)}}
+@media (prefers-color-scheme:light){html:not([data-theme]){color-scheme:light;--bg:#f4f2ec;--bg2:#ece9e0;--surface:#fbfaf6;--surface2:#efede6;--text:#161a20;--muted:#4f5862;--fine:#5f6872;--line:#d9d5c9;--line2:#bdb8a8;--accent:#3a5c14;--accent-dark:#2c470e;--on-accent:#ffffff;--cyan:#1b7381;--warm:#9a6a12;--grid:#e3dfd3;--hatch:#cfcabb;--plate:#cfc8b6;--plate-hi:#e7e2d5;--plate-side:#b9b2a0;--plate-edge:#6b6556;--node-top:#fbfaf6;--node-l:#cbc6b8;--node-r:#e4e0d4;--glow-alpha:.05;--shade-alpha:.12;--shadow:0 24px 60px rgba(40,44,30,.12)}}
 
 /* --------------------------------------------------------------------------
    Base
@@ -119,26 +119,62 @@ html[data-theme="light"] .theme-icon-sun{display:none}
 .hero-description{font-size:clamp(17px,1.35vw,19px);line-height:1.65;color:var(--muted);max-width:60ch;margin:0 0 36px}
 .hero-description strong{color:var(--text);font-weight:500}
 .hero-buttons{display:flex;flex-wrap:wrap;gap:12px}
-.hero-fields{margin:44px 0 0;padding-top:20px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px 22px;font-size:11px;color:var(--fine);font-weight:600}
+.hero .hero-buttons{align-items:center;gap:12px 22px}
+.hero-github{margin-left:4px}
+.hero-index-row{margin:40px 0 0;padding-top:18px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:flex-start;gap:2px 20px;font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+.hero-index-label{color:var(--accent);font-weight:700;padding:7px 0}
+.hero-index{list-style:none;margin:0;padding:0;min-width:0;display:flex;flex-wrap:wrap;gap:2px 20px}
+@media (min-width:981px){.hero-index{display:grid;grid-template-columns:repeat(2,max-content);column-gap:28px}}
+.hero-index a{display:inline-flex;align-items:baseline;gap:8px;padding:7px 0;color:var(--text);position:relative;transition:color var(--fast)}
+.hero-index a::after{content:"";position:absolute;left:0;right:0;bottom:4px;height:1px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform var(--fast) var(--ease)}
+.hero-index a:hover,.hero-index a:focus-visible{color:var(--accent)}
+.hero-index a:hover::after,.hero-index a:focus-visible::after{transform:scaleX(1)}
+.hero-index-num{color:var(--accent)}
+.hero-fields{margin:10px 0 0;display:flex;flex-wrap:wrap;gap:8px 22px;font-size:11px;color:var(--fine);font-weight:600}
 .hero-fields span:first-child{color:var(--accent)}
-.hero-figure{margin:0;position:relative;background:color-mix(in srgb,var(--surface) 88%,transparent);padding:18px 20px 20px}
+.hero-figure{margin:0;position:relative;background:color-mix(in srgb,var(--surface) 90%,transparent);padding:18px 20px 20px;box-shadow:var(--shadow)}
 .figure-row{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:11px;font-weight:700;color:var(--fine)}
 .figure-row b{color:var(--accent);font-weight:700}
 .figure-row .figure-dim{letter-spacing:.2em}
 .iso{width:100%;height:auto;margin:14px 0 10px;overflow:visible;font-family:var(--font-mono)}
-.iso text{font-size:10.5px;letter-spacing:.06em;fill:var(--muted)}
+.iso text{font-size:11.5px;letter-spacing:.06em;fill:var(--muted)}
 .iso .iso-label-strong{fill:var(--text);font-weight:700}
 .iso .iso-label-accent{fill:var(--accent);font-weight:700}
-.iso .iso-slab{fill:color-mix(in srgb,var(--surface2) 72%,transparent);stroke:var(--line2);stroke-width:1.1;stroke-linejoin:round}
-.iso .iso-slab-top{fill:color-mix(in srgb,var(--surface2) 42%,transparent)}
-.iso .iso-grid{fill:none;stroke:var(--line);stroke-width:.8}
-.iso .iso-edge{fill:none;stroke:var(--line2);stroke-width:1.1;stroke-linejoin:round;stroke-linecap:round}
-.iso .iso-node{fill:var(--surface);stroke:var(--text);stroke-width:1.1;stroke-linejoin:round}
-.iso .iso-node-accent{fill:color-mix(in srgb,var(--accent) 24%,var(--surface));stroke:var(--accent)}
-.iso .iso-node-cyan{fill:color-mix(in srgb,var(--cyan) 22%,var(--surface));stroke:var(--cyan)}
-.iso .iso-leader{fill:none;stroke:var(--line2);stroke-width:.9;stroke-dasharray:2 3}
+/* Sheet lighting and the shadow cast by the bottom plate (opacities are theme tokens). */
+.iso .iso-glow-a{stop-color:var(--accent);stop-opacity:var(--glow-alpha)}
+.iso .iso-glow-b{stop-color:var(--accent);stop-opacity:0}
+.iso .iso-shade-a{stop-color:#000;stop-opacity:var(--shade-alpha)}
+.iso .iso-shade-b{stop-color:#000;stop-opacity:0}
+.iso .iso-post{fill:none;stroke:var(--line2);stroke-width:1;stroke-dasharray:3 4}
+.iso .iso-backdrop{transition:transform .9s var(--ease);transform:translate(calc(var(--px,0) * 3.4px),calc(var(--py,0) * 3px))}
+/* Plates: lit top faces (brighter towards the top of the stack), hatched cut faces, drafted outlines. */
+.iso .iso-hatch-bg-l{fill:var(--plate-side)}
+.iso .iso-hatch-bg-r{fill:color-mix(in srgb,var(--plate-side) 55%,var(--plate))}
+.iso .iso-hatch-line{fill:none;stroke:var(--plate-edge);stroke-width:.7;stroke-opacity:.5}
+.iso .iso-top{stroke:none;fill:var(--plate)}
+.iso .depth-2 .iso-top{fill:color-mix(in srgb,var(--plate-hi) 25%,var(--plate))}
+.iso .depth-3 .iso-top{fill:color-mix(in srgb,var(--plate-hi) 50%,var(--plate))}
+.iso .depth-4 .iso-top{fill:color-mix(in srgb,var(--plate-hi) 75%,var(--plate))}
+.iso .depth-5 .iso-top{fill:var(--plate-hi)}
+.iso .iso-grid{fill:none;stroke:var(--plate-edge);stroke-width:.6;stroke-opacity:.45}
+.iso .iso-slab{fill:none;stroke:var(--plate-edge);stroke-width:1.2;stroke-linejoin:round}
+.iso .iso-leader{fill:none;stroke:var(--plate-edge);stroke-width:.9}
+/* Blocks: three faces each, so they read as solids; accent blocks form the spine, cyan blocks are stores. */
+.iso .iso-node path{stroke:var(--text);stroke-width:1.1;stroke-linejoin:round}
+.iso .iso-node-top{fill:var(--node-top)}
+.iso .iso-node-l{fill:var(--node-l)}
+.iso .iso-node-r{fill:var(--node-r)}
+.iso .iso-node-accent path{stroke:var(--accent)}
+.iso .iso-node-accent .iso-node-top{fill:color-mix(in srgb,var(--accent) 38%,var(--node-top))}
+.iso .iso-node-accent .iso-node-l{fill:color-mix(in srgb,var(--accent) 16%,var(--node-l))}
+.iso .iso-node-accent .iso-node-r{fill:color-mix(in srgb,var(--accent) 26%,var(--node-r))}
+.iso .iso-node-cyan path{stroke:var(--cyan)}
+.iso .iso-node-cyan .iso-node-top{fill:color-mix(in srgb,var(--cyan) 34%,var(--node-top))}
+.iso .iso-node-cyan .iso-node-l{fill:color-mix(in srgb,var(--cyan) 14%,var(--node-l))}
+.iso .iso-node-cyan .iso-node-r{fill:color-mix(in srgb,var(--cyan) 24%,var(--node-r))}
 .iso .iso-dim{fill:none;stroke:var(--accent);stroke-width:.9}
-.iso .iso-flow{fill:none;stroke:var(--accent);stroke-width:1.7;stroke-linecap:round;stroke-dasharray:3 6;opacity:.85}
+.iso .iso-flow-under{fill:none;stroke:var(--accent);stroke-width:7;stroke-opacity:.16;stroke-linecap:round}
+.iso .iso-flow{fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-dasharray:3 6}
 .iso .iso-mark{fill:none;stroke:var(--accent);stroke-width:1}
 .iso .iso-mark-text{fill:var(--accent);font-size:9px;font-weight:700}
 .iso .iso-draw{stroke-dasharray:1;stroke-dashoffset:1;animation:iso-draw 1.1s var(--ease) forwards}
@@ -450,7 +486,7 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
   .hero-inner{padding-top:44px;padding-bottom:48px;gap:36px}
   .hero h1{font-size:clamp(46px,11.5vw,76px)}
   .hero-description{font-size:17px}
-  .hero-fields{margin-top:34px}
+  .hero-index-row{margin-top:32px}
   .hero-figure{padding:14px 14px 16px}
   .figure-row{flex-wrap:wrap;gap:4px 12px}
   .iso-legend{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px}
@@ -483,7 +519,7 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
   .footer-inner>span{width:100%;order:3}
 }
 @media (max-width:600px){
-  .iso text,.iso .iso-leader,.iso .iso-dims{display:none}
+  .iso text,.iso .iso-leader,.iso .iso-dims,.iso .iso-marks{display:none}
   .plate-art text{display:none}
 }
 @media (max-width:480px){
@@ -492,7 +528,9 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
   .header-actions{gap:10px}
   .hero h1{font-size:clamp(42px,13vw,64px)}
   .hero-buttons{flex-direction:column}
+  .hero .hero-buttons{gap:12px}
   .hero-buttons .button{width:100%}
+  .hero-github{margin:4px 0 0;justify-content:center}
   .eyebrow{font-size:10.5px;gap:8px 10px}
   .iso-legend{grid-template-columns:1fr 1fr}
   .figure-dim{display:none}
@@ -525,7 +563,7 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   .iso .iso-draw,.iso .iso-fade,.iso .iso-flow{animation:none;stroke-dashoffset:0;opacity:1}
-  .iso [data-depth]{transform:none!important;transition:none}
+  .iso [data-depth],.iso .iso-backdrop{transform:none!important;transition:none}
   html.js .cut-panel.is-active .stratum,html.js .cut-panel.is-active .cut-head{animation:none}
   .project:hover .art-flow,.project:focus-within .art-flow{animation:none}
 }

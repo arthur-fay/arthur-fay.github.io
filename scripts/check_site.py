@@ -27,6 +27,12 @@ REQUIRED = {
     f"{SEC_DIR}/index.html", f"{SEC_DIR}/lab.css", f"{SEC_DIR}/app.js",
     f"{SEC_DIR}/detection.js", f"{SEC_DIR}/README.md",
 }
+# Wording the owner removed on purpose: fields the four projects do not evidence, and
+# negative "no credentials" disclaimers. Keep the homepage positive and evidence-based.
+FORBIDDEN_HOMEPAGE_PHRASES = (
+    "artificial intelligence", "machine learning", "no employment history",
+    "no degrees", "no certifications", "no awards",
+)
 FORBIDDEN_JS = (
     "fetch(", "XMLHttpRequest", "sendBeacon(", "gtag(", "analytics.js",
     "WebSocket(", "eval(", "new Function(", "document.write(", "innerHTML",
@@ -186,6 +192,14 @@ def main() -> None:
         f"{SITE}/",
     )
     assert index.projects == 4, f"index.html: expected 4 project cards, found {index.projects}"
+    folded_index = (ROOT / "index.html").read_text(encoding="utf-8").casefold()
+    for phrase in FORBIDDEN_HOMEPAGE_PHRASES:
+        assert phrase not in folded_index, f"index.html: unsupported or negative wording must stay out: {phrase}"
+    hero_index = re.search(r'<ul class="hero-index"[^>]*>(.*?)</ul>', folded_index, re.S)
+    assert hero_index, "index.html: the hero must carry the plate index"
+    for plate in ("plate-atlas", "plate-commerce", "plate-pathfinding", "plate-security"):
+        assert f'href="#{plate}"' in hero_index.group(1), f"index.html: the hero's plate index must link directly to #{plate}"
+    assert 'class="button button-primary" href="#work"' in folded_index, "index.html: the hero's primary call to action must lead to the projects"
     assert {"all", "interactive", "security"} <= set(index.filters), "index.html: project filters incomplete"
     assert f"/{LAB_DIR}/" in index.internal_pages, "index.html: Project 03 must link to the lab page"
     assert f"/{SEC_DIR}/" in index.internal_pages, "index.html: Project 04 must link to the security lab page"

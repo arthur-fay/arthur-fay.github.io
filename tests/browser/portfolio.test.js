@@ -247,6 +247,100 @@ describe('portfolio: motion, hero drawing and reveals', () => {
       await close();
     }
   });
+  for (const colorScheme of ['dark', 'light']) {
+    it(`draws the system section (${colorScheme}) as five shaded plates with hatched cut faces, solid blocks and a spine`, async () => {
+      const { page, close } = await open('/', { colorScheme, reducedMotion: 'reduce' });
+      try {
+        const stats = await page.evaluate(() => {
+          const q = (selector) => document.querySelectorAll(`.iso ${selector}`);
+          const luminance = (paint) => {
+            const parts = paint.match(/[\d.]+/g).map(Number);
+            const [r, g, b] = paint.startsWith('color(srgb') ? parts.map((v) => v * 255) : parts;
+            return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+          };
+          const svg = document.querySelector('.iso').getBoundingClientRect();
+          const sheet = document.querySelector('.hero-figure').getBoundingClientRect();
+          // The spine must stay visible where it crosses the opaque plates: hit-test the midpoint of each segment.
+          const matrix = document.querySelector('.iso').getScreenCTM();
+          const spineHits = [...document.querySelectorAll('.iso .iso-flow')].map((segment) => {
+            const [, x, y1, y2] = segment.getAttribute('d').match(/^M([\d.]+) ([\d.]+)V([\d.]+)$/).map(Number);
+            const point = new DOMPoint(x, (y1 + y2) / 2).matrixTransform(matrix);
+            const hit = document.elementFromPoint(point.x, point.y);
+            return hit ? hit.getAttribute('class') : 'none';
+          });
+          return {
+            spineHits,
+            plates: q('[data-depth]').length, tops: q('.iso-top').length, sides: q('.iso-side').length, patterns: q('pattern').length,
+            blocks: q('.iso-node').length, faces: q('.iso-node path').length, spine: q('.iso-flow').length, posts: q('.iso-post').length, shadow: q('.iso-shade').length,
+            topPlate: luminance(getComputedStyle(q('.depth-5 .iso-top')[0]).fill),
+            bottomPlate: luminance(getComputedStyle(q('.depth-1 .iso-top')[0]).fill),
+            sideFill: getComputedStyle(q('.iso-side')[0]).fill,
+            edgeStroke: getComputedStyle(q('.iso-slab')[0]).stroke,
+            fits: svg.left >= sheet.left && svg.right <= sheet.right && svg.top >= sheet.top && svg.bottom <= sheet.bottom,
+          };
+        });
+        assert.equal(stats.plates, 5);
+        assert.equal(stats.tops, 5);
+        assert.equal(stats.sides, 10, 'two cut faces per plate');
+        assert.equal(stats.patterns, 2, 'hatch patterns for the cut faces');
+        assert.equal(stats.blocks, 17);
+        assert.equal(stats.faces, 51, 'every block has three faces');
+        assert.equal(stats.spine, 4);
+        assert.deepEqual(stats.spineHits.map((hit) => /iso-flow/.test(hit)), [true, true, true, true], `the spine is visible where it crosses each plate (${stats.spineHits.join(' | ')})`);
+        assert.equal(stats.posts, 1);
+        assert.equal(stats.shadow, 1);
+        assert.ok(stats.topPlate > stats.bottomPlate, `the stack is lit from the top (${stats.topPlate.toFixed(1)} > ${stats.bottomPlate.toFixed(1)})`);
+        assert.match(stats.sideFill, /iso-hatch/, 'cut faces are hatched');
+        assert.match(stats.edgeStroke, /^rgb/, 'plate outlines resolve to a real colour');
+        assert.ok(stats.fits, 'the drawing stays inside its sheet');
+      } finally {
+        await close();
+      }
+    });
+  }
+});
+
+describe('portfolio: recruiter path and evidence-based claims', () => {
+  it('leads from the hero straight to the four plates and keeps the section-cut explorer', async () => {
+    const { page, close } = await open('/');
+    try {
+      const primary = page.locator('.hero .hero-buttons .button-primary');
+      assert.equal(await primary.getAttribute('href'), '#work');
+      assert.match((await primary.textContent()).replace(/\s+/g, ' ').trim(), /^View projects/);
+      assert.equal(await page.locator('.hero .hero-buttons a[href="#systems"]').count(), 1, 'the section cut keeps its hero entry point');
+      assert.equal(await page.locator('.hero .hero-buttons a[href="https://github.com/arthur-fay"]').count(), 1);
+      assert.deepEqual(await page.$$eval('.hero-index a', (links) => links.map((a) => a.getAttribute('href'))), ['#plate-atlas', '#plate-commerce', '#plate-pathfinding', '#plate-security']);
+      await primary.click();
+      await page.waitForFunction(() => window.location.hash === '#work');
+      const workTop = await page.$eval('#work', (el) => el.getBoundingClientRect().top);
+      assert.ok(workTop >= 0 && workTop <= 120, `the projects section sits just below the sticky header (top=${workTop})`);
+      assert.equal(await page.locator('.project:visible').count(), 4, 'all four case studies are shown');
+      for (const plate of PROJECTS) {
+        await page.locator(`.hero-index a[href="#plate-${plate}"]`).click();
+        await page.waitForFunction((id) => window.location.hash === `#${id}`, `plate-${plate}`);
+        const top = await page.$eval(`#plate-${plate}`, (el) => el.getBoundingClientRect().top);
+        assert.ok(top >= 0 && top <= 120, `plate ${plate} is brought into view (top=${top})`);
+      }
+    } finally {
+      await close();
+    }
+  });
+
+  it('states only evidence-backed fields and describes the author positively', async () => {
+    const { page, close } = await open('/');
+    try {
+      const text = (await page.locator('body').innerText()).toLowerCase();
+      assert.ok(!text.includes('artificial intelligence') && !/\bai\b/.test(text), 'no unsupported artificial-intelligence claim');
+      const about = (await page.locator('#about').innerText()).toLowerCase();
+      assert.ok(!/no employment|degrees|certifications|awards/.test(about), 'the about section no longer leads with what is not claimed');
+      assert.ok(about.includes('public work') && about.includes('source code'), 'the about note points to the verifiable record');
+      assert.deepEqual(await page.$$eval('.hero-fields span', (spans) => spans.map((s) => s.textContent.trim())), ['Fields', 'Software engineering', 'Data science', 'Engineering research', 'Technical systems']);
+      assert.equal(await page.locator('.about-fields li').count(), 6);
+      assert.equal(await page.locator('.hero-index a').count(), 4);
+    } finally {
+      await close();
+    }
+  });
 });
 
 describe('portfolio: navigation, theme and metadata', () => {
