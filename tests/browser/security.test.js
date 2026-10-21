@@ -729,7 +729,7 @@ describe('portfolio page with the security lab', () => {
       assert.ok(await page.locator('.project-security').isVisible());
       assert.equal(await page.locator('#filter-status').textContent(), 'Showing 1 project.');
       await page.locator('[data-filter="interactive"]').click();
-      assert.equal(await count(page, '.project:not([hidden])'), 2, 'both labs are interactive');
+      assert.equal(await count(page, '.project:not([hidden])'), 3, 'all three labs are interactive');
       await page.locator('[data-filter="engineering"]').click();
       assert.equal(await count(page, '.project:not([hidden])'), 3);
       await page.locator('[data-filter="all"]').click();

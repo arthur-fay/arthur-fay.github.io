@@ -28,7 +28,9 @@ jobs:
           node --check lab/pathfinding/app.js
           node --check lab/security-events/detection.js
           node --check lab/security-events/app.js
-      - name: Run unit tests for both labs (Node built-in test runner, no dependencies)
+          node --check lab/ecommerce/model.js
+          node --check lab/ecommerce/app.js
+      - name: Run unit tests for all labs (Node built-in test runner, no dependencies)
         run: node --test tests/unit/*.test.js
   browser:
     name: Browser tests (Playwright, desktop and mobile viewports)

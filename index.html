@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0b0e13" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'none'; base-uri 'self'; form-action 'none'" />
-  <meta name="description" content="Arthur Fay — The Architect Lab: an independent developer's portfolio of software, data and research systems. Forecasting research with its uncertainty left in, an e-commerce analytics model, and two interactive engineering labs that run in your browser, each with source code and documented limits." />
+  <meta name="description" content="Arthur Fay — The Architect Lab: an independent developer's portfolio of software, data and research systems. Forecasting research with its uncertainty left in, and three interactive labs that run in your browser: e-commerce analytics, pathfinding and security event detection, each with source code and documented limits." />
   <meta name="author" content="Arthur Fay" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Arthur Fay — The Architect Lab" />
@@ -69,7 +69,7 @@
           <div class="hero-copy">
             <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Arthur Fay <span class="eyebrow-sep" aria-hidden="true">—</span> The Architect Lab <span class="hero-serial">/ Sheet 00 · 2026</span></p>
             <h1 id="hero-title"><span class="outline">Systems</span> that<br/>show their <em>work<span class="period">.</span></em></h1>
-            <p class="hero-description">I'm Arthur Fay, an independent developer. I design and build <strong>software, data and research systems</strong>: forecasting research with its uncertainty left in, an analytics model for executive decisions, and interactive engineering labs that run in your browser. Every project is published with its source code, its evidence and its limits.</p>
+            <p class="hero-description">I'm Arthur Fay, an independent developer. I design and build <strong>software, data and research systems</strong>: forecasting research with its uncertainty left in, an executive analytics model explored in its own lab, and engineering labs that run in your browser. Every project is published with its source code, its evidence and its limits.</p>
             <div class="hero-buttons">
               <a class="button button-primary" href="#work">View projects <span aria-hidden="true">↓</span></a>
               <a class="button button-secondary" href="#systems">Explore the section cut <span aria-hidden="true">↓</span></a>
@@ -104,7 +104,7 @@
       <section class="ledger" aria-label="Portfolio at a glance">
         <div class="container ledger-grid">
           <div class="stat"><span class="stat-number">04</span><span class="stat-description"><b>Public projects</b>Each with source code and documented limits</span></div>
-          <div class="stat"><span class="stat-number">02</span><span class="stat-description"><b>Interactive labs</b>Running in your browser with no dependencies</span></div>
+          <div class="stat"><span class="stat-number">03</span><span class="stat-description"><b>Interactive labs</b>Running in your browser with no dependencies</span></div>
           <div class="stat"><span class="stat-number">00</span><span class="stat-description"><b>Frameworks, fonts, trackers</b>Plain HTML, CSS and JavaScript under a strict CSP</span></div>
           <div class="stat"><span class="stat-number">03</span><span class="stat-description"><b>Layers of automated checks</b>Static integrity, unit and browser tests on every pull request</span></div>
         </div>
@@ -155,8 +155,8 @@
                 <li class="stratum"><span class="stratum-index">L1</span><h4>Source data</h4><p>E-commerce transactional data, documented together with the data model in the project repository.</p><ul class="stratum-tech" aria-label="Technologies"><li>Transactional data</li></ul></li>
               </ol>
               <footer class="cut-foot">
-                <div class="cut-foot-links"><a class="text-link" href="#plate-commerce">Read plate 02 <span aria-hidden="true">↓</span></a><a class="text-link quiet-link" href="https://github.com/arthur-fay/customer-revenue-analytics" target="_blank" rel="noopener noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a></div>
-                <p class="cut-foot-note">The dashboard screenshots, the data-model diagram and the Power BI file live in the repository; no figures are repeated here.</p>
+                <div class="cut-foot-links"><a class="text-link" href="/lab/ecommerce/">Open the analytics lab <span aria-hidden="true">→</span></a><a class="text-link quiet-link" href="#plate-commerce">Read plate 02 <span aria-hidden="true">↓</span></a><a class="text-link quiet-link" href="https://github.com/arthur-fay/customer-revenue-analytics" target="_blank" rel="noopener noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a></div>
+                <p class="cut-foot-note">The lab republishes the README's summary figures with their provenance and adds labelled hypothetical scenarios; screenshots, the data-model diagram and the Power BI file stay in the repository.</p>
               </footer>
             </section>
             <section class="cut-panel" role="tabpanel" id="cut-pathfinding" aria-labelledby="tab-pathfinding">
@@ -259,8 +259,8 @@
               </div>
             </div>
           </article>
-          <article class="project project-commerce" id="plate-commerce" data-category="analytics" aria-labelledby="commerce-title" data-reveal>
-            <div class="plate-head"><span class="project-num">Plate 02 <span class="project-slash">/</span> Analytics</span><span class="project-label">Business intelligence · SQL · Python · Power BI</span></div>
+          <article class="project project-commerce" id="plate-commerce" data-category="analytics interactive" aria-labelledby="commerce-title" data-reveal>
+            <div class="plate-head"><span class="project-num">Plate 02 <span class="project-slash">/</span> Analytics</span><span class="project-label">Business intelligence · SQL · Python · Power BI · interactive lab</span></div>
             <div class="plate-grid">
               <figure class="plate-figure">
                 <div class="plate-art frame">
@@ -286,19 +286,20 @@
                     <rect class="art-box-accent" x="320" y="240" width="56" height="30"/><text class="art-text-accent" x="348" y="259" text-anchor="middle">Power BI</text>
                   </svg>
                 </div>
-                <figcaption><b>Fig. 02</b>Drawing of the project's documented dimensional model and toolchain; table names follow the repository README. The dashboard screenshots and the Power BI file are in the repository.</figcaption>
+                <figcaption><b>Fig. 02</b>Drawing of the project's documented dimensional model and toolchain; table names follow the repository README. The interactive lab republishes the README's figures with their provenance; the screenshots and the Power BI file are in the repository.</figcaption>
               </figure>
               <div class="project-body">
                 <h3 id="commerce-title">E-Commerce<span class="project-subtitle">Executive Analytics Dashboard</span></h3>
-                <p class="project-description">An end-to-end analytics project that turns e-commerce transactional data into an interactive executive dashboard covering revenue, customers, order performance, delivery reliability and product categories, built with <strong>SQL, Google Colab, a dimensional data model, DAX and Power BI</strong>.</p>
+                <p class="project-description">An end-to-end analytics project that turns e-commerce transactional data into an interactive executive dashboard covering revenue, customers, order performance, delivery reliability and product categories, built with <strong>SQL, Google Colab, a dimensional data model, DAX and Power BI</strong>. Its published KPIs, DAX measures and data model are explored in an <strong>interactive analytics lab</strong> on this site, with a what-if simulator for hypothetical scenarios.</p>
+                <p class="project-disclosure"><span aria-hidden="true">i</span> The lab republishes the README's rounded summary figures with their provenance and adds clearly labelled hypothetical scenarios; no transaction, monthly value or customer record is reconstructed, and no projection is presented as performance.</p>
                 <dl class="plate-facts">
                   <div><dt>Problem</dt><dd>Give business leaders one clear view of overall e-commerce performance: orders, revenue, customers, average order value, delivery reliability and product-category revenue.</dd></div>
                   <div><dt>Architecture</dt><dd>SQL and Google Colab notebooks transform the transactional data; a dimensional model with fact tables (orders, order items, cohort retention) and dimensions (date, customer, product, seller, payment method, order status) feeds a KPI_Measures table of DAX measures and the Power BI report.</dd></div>
-                  <div><dt>Evidence</dt><dd>The <a href="https://github.com/arthur-fay/customer-revenue-analytics/blob/main/README.md#dashboard-preview" target="_blank" rel="noopener noreferrer">dashboard preview</a> and the <a href="https://github.com/arthur-fay/customer-revenue-analytics/blob/main/README.md#data-model" target="_blank" rel="noopener noreferrer">documented data model</a> in the project repository.</dd></div>
-                  <div><dt>Limits</dt><dd>The drawing above shows the documented model, not any figures from it. Dashboard screenshots, annotated views, the KPI results and the Power BI file are only in the source repository.</dd></div>
+                  <div><dt>Evidence</dt><dd>The <a href="https://github.com/arthur-fay/customer-revenue-analytics/blob/main/README.md#dashboard-preview" target="_blank" rel="noopener noreferrer">dashboard preview</a> and the <a href="https://github.com/arthur-fay/customer-revenue-analytics/blob/main/README.md#data-model" target="_blank" rel="noopener noreferrer">documented data model</a> in the project repository; on this site, the <a href="/lab/ecommerce/">interactive analytics lab</a>, its <a href="https://github.com/arthur-fay/arthur-fay.github.io/blob/main/lab/ecommerce/model.js" target="_blank" rel="noopener noreferrer">analytics engine</a> and its <a href="https://github.com/arthur-fay/arthur-fay.github.io/blob/main/lab/ecommerce/README.md" target="_blank" rel="noopener noreferrer">methods and tests</a>.</dd></div>
+                  <div><dt>Limits</dt><dd>The drawing above shows the documented model, not any figures from it. The lab shows only the README's rounded summary figures and the export's printed data labels, each labelled by provenance; every scenario it projects is hypothetical. Screenshots, annotated views and the Power BI file stay in the source repository.</dd></div>
                 </dl>
-                <div class="tag-list" aria-label="Analytics project technologies"><span>SQL</span><span>Google Colab</span><span>Python</span><span>DAX</span><span>Power BI</span><span>Data modelling</span></div>
-                <div class="project-links"><a href="https://github.com/arthur-fay/customer-revenue-analytics" target="_blank" rel="noopener noreferrer" class="text-link">Explore project on GitHub <span aria-hidden="true">↗</span></a><a href="https://github.com/arthur-fay/customer-revenue-analytics/blob/main/README.md#dashboard-preview" target="_blank" rel="noopener noreferrer" class="text-link quiet-link">View actual dashboard <span aria-hidden="true">↗</span></a><a href="https://github.com/arthur-fay/customer-revenue-analytics/blob/main/README.md#data-model" target="_blank" rel="noopener noreferrer" class="text-link quiet-link">Inspect data model <span aria-hidden="true">↗</span></a></div>
+                <div class="tag-list" aria-label="Analytics project technologies"><span>SQL</span><span>Google Colab</span><span>Python</span><span>DAX</span><span>Power BI</span><span>Data modelling</span><span>Interactive lab</span></div>
+                <div class="project-links"><a href="/lab/ecommerce/" class="text-link">Open the interactive analytics lab <span aria-hidden="true">→</span></a><a href="https://github.com/arthur-fay/customer-revenue-analytics" target="_blank" rel="noopener noreferrer" class="text-link quiet-link">Explore project on GitHub <span aria-hidden="true">↗</span></a><a href="https://github.com/arthur-fay/customer-revenue-analytics/blob/main/README.md#dashboard-preview" target="_blank" rel="noopener noreferrer" class="text-link quiet-link">View actual dashboard <span aria-hidden="true">↗</span></a><a href="https://github.com/arthur-fay/customer-revenue-analytics/blob/main/README.md#data-model" target="_blank" rel="noopener noreferrer" class="text-link quiet-link">Inspect data model <span aria-hidden="true">↗</span></a></div>
               </div>
             </div>
           </article>
@@ -400,11 +401,11 @@
         <div class="container about-inner">
           <div class="about-aside" data-reveal>
             <div class="about-heading"><p class="section-index">04 / About</p><h2 id="about-title">An independent developer,<br/><em>building to be inspected.</em></h2></div>
-            <p class="about-note">Every claim on this page points to public work: four projects with their source code, two labs running live on this site, and a test suite that re-runs the labs and checks their plate drawings against the results.</p>
+            <p class="about-note">Every claim on this page points to public work: four projects with their source code, three labs running live on this site, and a test suite that re-runs the labs and checks their plate drawings against the results.</p>
           </div>
           <div class="about-copy" data-reveal="late">
             <p>I'm <strong>Arthur Fay</strong>, an independent developer who designs and builds software, data and research systems end to end: data pipelines and forecasting research, analytics models and executive dashboards, and interactive engineering labs with their own test suites. I am most interested in the part between an idea and a dependable, inspectable implementation.</p>
-            <p><strong>The Architect Lab</strong> is where that work is drawn up. Each project is released with its source code, the evidence behind it and a plain statement of what it does not claim: ATLAS keeps its failed calibration in the record, and the two labs run entirely in your browser so every number can be checked on the spot.</p>
+            <p><strong>The Architect Lab</strong> is where that work is drawn up. Each project is released with its source code, the evidence behind it and a plain statement of what it does not claim: ATLAS keeps its failed calibration in the record, and the three labs run entirely in your browser so every number can be checked on the spot.</p>
             <ul class="about-fields" aria-label="Fields of work">
               <li><span class="field-index" aria-hidden="true">01</span>Software engineering</li>
               <li><span class="field-index" aria-hidden="true">02</span>Data science</li>
@@ -443,7 +444,7 @@
           <div class="footer-block"><dt>Project</dt><dd><strong>Arthur Fay — The Architect Lab</strong><br/>Independent portfolio of software, data and research systems.</dd></div>
           <div class="footer-block"><dt>Sheet index</dt><dd class="footer-index"><a href="#top">00 Index</a><a href="#systems">01 Systems</a><a href="#work">02 Work</a><a href="#approach">03 Method</a><a href="#about">04 About</a><a href="#contact">05 Connect</a></dd></div>
           <div class="footer-block"><dt>Construction</dt><dd>Plain HTML, CSS and JavaScript. No frameworks, web fonts, trackers or third-party requests, under a strict Content Security Policy. <a href="https://github.com/arthur-fay/arthur-fay.github.io" target="_blank" rel="noopener noreferrer">Source ↗</a></dd></div>
-          <div class="footer-block"><dt>Labs</dt><dd><a href="/lab/pathfinding/">Pathfinding Lab</a><br/><a href="/lab/security-events/">Security Events Lab</a></dd></div>
+          <div class="footer-block"><dt>Labs</dt><dd><a href="/lab/ecommerce/">E-Commerce Analytics Lab</a><br/><a href="/lab/pathfinding/">Pathfinding Lab</a><br/><a href="/lab/security-events/">Security Events Lab</a></dd></div>
         </dl>
         <div class="footer-inner"><a href="#top" class="footer-brand">AF<span>/ Arthur Fay</span><span class="sr-only">, back to top</span></a><span>© <span id="copyright-year">2026</span> Arthur Fay. Portfolio content.</span><a href="https://github.com/arthur-fay" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div>
         <p class="footer-note">Independent portfolio. Project descriptions reflect their public repositories; no claim of City affiliation or operational validation.</p>

@@ -212,9 +212,9 @@ describe('portfolio page', () => {
       assert.equal(await count(page, '.project'), 4);
       assert.equal(await count(page, '#project-list > .project'), 4, 'cards are direct children of the list');
       await page.locator('[data-filter="interactive"]').click();
-      assert.equal(await count(page, '.project:not([hidden])'), 2, 'both labs are interactive');
+      assert.equal(await count(page, '.project:not([hidden])'), 3, 'all three labs are interactive');
       assert.ok(await page.locator('.project-lab').isVisible());
-      assert.equal(await page.locator('#filter-status').textContent(), 'Showing 2 projects.');
+      assert.equal(await page.locator('#filter-status').textContent(), 'Showing 3 projects.');
       await page.locator('[data-filter="analytics"]').click();
       assert.equal(await count(page, '.project:not([hidden])'), 1);
       assert.ok(await page.locator('.project-commerce').isVisible());
