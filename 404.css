@@ -1,0 +1,27 @@
+/* Accessible, dependency-free custom 404 page. Shared tokens live in /styles.css. */
+.not-found {
+  min-height: 85svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 18px;
+  padding-block: 80px;
+}
+.not-found h1 {
+  max-width: 880px;
+  margin: 0;
+  font: 400 clamp(44px, 7.5vw, 82px)/1.08 Georgia, "Times New Roman", serif;
+  letter-spacing: -.04em;
+}
+.not-found-accent { color: var(--accent); }
+.not-found-copy {
+  max-width: 480px;
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.8;
+}
+@media (max-width: 600px) {
+  .not-found { padding-block: 60px; }
+}
