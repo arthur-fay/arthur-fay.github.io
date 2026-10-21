@@ -86,6 +86,12 @@ function row(cells) {
 }
 
 const r1 = (value) => Math.round(value * 10) / 10;
+/** A BRL change with its sign (a true minus), signless when it rounds to zero. */
+const signedBRL = (value) => {
+  const rounded = Math.round(value * 100) / 100;
+  if (rounded === 0) return 'R$0.00';
+  return `${rounded > 0 ? '+' : '−'}${M.formatBRL(Math.abs(rounded))}`;
+};
 
 /* ------------------------------------------------------------ chart core */
 
@@ -514,7 +520,7 @@ function renderScenarioChart(width) {
   const measures = [
     { label: 'Revenue', base: M.formatMillionsBRL(M.PUBLISHED.revenueBRL), value: M.formatMillionsBRL(s.revenueBRL), index: s.multiplier * 100, change: M.formatSignedPercent(s.revenueDeltaPct), changeAbs: M.formatSignedMillionsBRL(s.revenueChangeBRL) },
     { label: 'Orders (≈)', base: `≈ ${M.formatCompact(M.DERIVED.impliedOrders)}`, value: `≈ ${M.formatCompact(s.orders)}`, index: s.volumeFactor * 100, change: M.formatSignedPercent(s.changes.volumePct, 0), changeAbs: M.formatSignedInt(s.ordersChange) },
-    { label: 'Avg. order value', base: M.formatBRL(M.PUBLISHED.averageOrderBRL), value: M.formatBRL(s.averageOrderBRL), index: s.basketFactor * 100, change: M.formatSignedPercent(s.changes.basketPct, 0), changeAbs: M.formatBRL(s.averageOrderChangeBRL) },
+    { label: 'Avg. order value', base: M.formatBRL(M.PUBLISHED.averageOrderBRL), value: M.formatBRL(s.averageOrderBRL), index: s.basketFactor * 100, change: M.formatSignedPercent(s.changes.basketPct, 0), changeAbs: signedBRL(s.averageOrderChangeBRL) },
   ];
   const maxIndex = Math.max(100, ...measures.map((m) => m.index));
   const rows = [];
@@ -565,12 +571,14 @@ function renderScenarioOutcomes(width) {
   });
 }
 
-function recompute({ announce = false, reason = '' } = {}) {
+function recompute({ announce = false, reason = '', charts: redraw = true } = {}) {
   sim.scenario = M.calculateScenario(sim.changes);
   for (const key of Object.keys(M.LIMITS)) writeLever(key);
   renderOutputs();
-  renderChart(dom.scenario.chart, { force: true });
-  renderChart(dom.scenarioOutcomes.chart, { force: true });
+  if (redraw) {
+    renderChart(dom.scenario.chart, { force: true });
+    renderChart(dom.scenarioOutcomes.chart, { force: true });
+  }
   syncPresets();
   if (announce) announceScenario(reason);
 }
@@ -762,8 +770,8 @@ function init() {
   }
   bindSimulator();
   buildModel();
+  recompute({ announce: false, charts: false });
   renderAllCharts();
-  recompute({ announce: false });
   dom.simStatus.textContent = 'Published baseline loaded: revenue R$15.84M, delivery rate 97.02%, on-time delivery 91.88% of delivered orders. Move a lever or choose a preset to project a hypothetical scenario.';
 }
 
