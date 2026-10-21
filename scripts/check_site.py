@@ -20,7 +20,7 @@ SITE = "https://arthur-fay.github.io"
 LAB_DIR = "lab/pathfinding"
 SEC_DIR = "lab/security-events"
 REQUIRED = {
-    "index.html", "404.html", "styles.css", "script.js",
+    "index.html", "404.html", "404.css", "styles.css", "script.js",
     "favicon.svg", "robots.txt", "sitemap.xml", ".nojekyll", "package.json",
     f"{LAB_DIR}/index.html", f"{LAB_DIR}/lab.css", f"{LAB_DIR}/app.js",
     f"{LAB_DIR}/pathfinding.js", f"{LAB_DIR}/README.md",
@@ -189,6 +189,16 @@ def main() -> None:
     assert {"all", "interactive", "security"} <= set(index.filters), "index.html: project filters incomplete"
     assert f"/{LAB_DIR}/" in index.internal_pages, "index.html: Project 03 must link to the lab page"
     assert f"/{SEC_DIR}/" in index.internal_pages, "index.html: Project 04 must link to the security lab page"
+    index_html = (ROOT / "index.html").read_text(encoding="utf-8")
+    for evidence_link in (
+        "demand-forecasting-model/blob/main/docs/BACKTESTING.md",
+        "customer-revenue-analytics/blob/main/README.md#data-model",
+        "arthur-fay.github.io/blob/main/lab/pathfinding/pathfinding.js",
+        "arthur-fay.github.io/blob/main/lab/security-events/detection.js",
+        "arthur-fay.github.io/blob/main/lab/pathfinding/README.md",
+        "arthur-fay.github.io/blob/main/lab/security-events/README.md",
+    ):
+        assert evidence_link in index_html, f"index.html: missing verified project evidence link {evidence_link}"
 
     lab = check_page(
         f"{LAB_DIR}/index.html",
@@ -229,7 +239,7 @@ def main() -> None:
     assert "status" in security.roles and security.live_regions >= 2, "security lab page needs live status regions"
     assert "<form" not in (ROOT / SEC_DIR / "index.html").read_text(encoding="utf-8").casefold(), "the security lab must not submit forms"
 
-    for stylesheet in ("styles.css", f"{LAB_DIR}/lab.css", f"{SEC_DIR}/lab.css"):
+    for stylesheet in ("styles.css", "404.css", f"{LAB_DIR}/lab.css", f"{SEC_DIR}/lab.css"):
         check_css(stylesheet)
     for script in ("script.js", f"{LAB_DIR}/app.js", f"{LAB_DIR}/pathfinding.js", f"{SEC_DIR}/app.js", f"{SEC_DIR}/detection.js"):
         check_javascript(script)
@@ -252,7 +262,19 @@ def main() -> None:
     sitemap = (ROOT / "sitemap.xml").read_text(encoding="utf-8")
     assert f"<loc>{SITE}/</loc>" in sitemap and f"<loc>{SITE}/{LAB_DIR}/</loc>" in sitemap and f"<loc>{SITE}/{SEC_DIR}/</loc>" in sitemap, "sitemap must list all three pages"
     assert f"{SITE}/sitemap.xml" in (ROOT / "robots.txt").read_text(encoding="utf-8")
-    assert 'href="/"' in (ROOT / "404.html").read_text(encoding="utf-8")
+    # The 404 page is served directly by GitHub Pages, so audit it separately:
+    # no canonical is appropriate for an error response and no JS is required.
+    not_found_html = (ROOT / "404.html").read_text(encoding="utf-8")
+    not_found = PageParser()
+    not_found.feed(not_found_html)
+    assert not_found.lang_ok and not_found.title_seen, "404.html: missing page metadata"
+    assert "default-src 'none'" in not_found.csp and "'unsafe-inline'" not in not_found.csp, "404.html: CSP missing or weakened"
+    assert not not_found.errors, "404.html: " + "; ".join(not_found.errors)
+    assert "/" in not_found.internal_pages, "404.html: missing return link"
+    assert ("link", "/styles.css") in not_found.assets and ("link", "/404.css") in not_found.assets, "404.html: missing local stylesheet"
+    assert "noindex" in not_found_html.casefold(), "404.html: error page should not be indexed"
+    for tag, path in not_found.assets:
+        assert path.startswith("/") and (ROOT / path.lstrip("/")).is_file(), f"404.html: missing local asset {tag} {path}"
     print(
         "Portfolio static verification passed "
         f"(index: {len(index.links)} links, {len(index.ids)} IDs; pathfinding lab: {len(lab.links)} links, {len(lab.ids)} IDs; "
