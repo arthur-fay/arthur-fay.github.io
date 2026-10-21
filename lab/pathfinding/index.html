@@ -26,9 +26,9 @@
   <div class="site-shell">
     <header class="site-header" id="top">
       <div class="container header-inner">
-        <a class="wordmark" href="/" aria-label="Arthur Fay, back to the portfolio">
-          <span class="wordmark-symbol" aria-hidden="true">A<span class="symbol-slash">/</span>F</span>
-          <span class="wordmark-name">Arthur Fay<span class="wordmark-sub">SOFTWARE · DATA · RESEARCH</span></span>
+        <a class="wordmark" href="/">
+          <svg class="wordmark-symbol" viewBox="0 0 42 42" aria-hidden="true" focusable="false"><rect class="mark-box" x=".5" y=".5" width="41" height="41" fill="none" stroke-width="1"/><path d="M10.5 31.5 21 10.5l10.5 21" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path class="mark-pen" d="M15 24.5h20.5M33 21v7" fill="none" stroke-width="2"/></svg>
+          <span class="wordmark-name">Arthur Fay <span class="wordmark-sub">The Architect Lab</span></span><span class="sr-only">, back to the portfolio</span>
         </a>
         <nav class="desktop-nav" aria-label="Primary navigation">
           <a href="/">Portfolio</a>
@@ -99,13 +99,13 @@
               </div>
               <p id="grid-help" class="sr-only">Use the arrow keys to move between cells, Home and End to jump within a row, Page Up and Page Down to move five rows, and Enter or Space to apply the selected drawing tool to the focused cell. Press 1 to 5 to choose a tool.</p>
               <p class="lab-status" id="lab-status" role="status" aria-live="polite">Loading the laboratory…</p>
-              <dl class="lab-stats" role="group" aria-label="Results of the last run">
+              <div role="group" aria-label="Results of the last run"><dl class="lab-stats">
                 <div><dt>Outcome</dt><dd id="stat-outcome">—</dd></div>
                 <div><dt>Path length</dt><dd id="stat-steps">—<small>moves</small></dd></div>
                 <div><dt>Path cost</dt><dd id="stat-cost">—<small>weighted sum</small></dd></div>
                 <div><dt>Expanded cells</dt><dd id="stat-expanded">—<small>closed set</small></dd></div>
                 <div><dt>Search time</dt><dd id="stat-time">—<small>pure computation</small></dd></div>
-              </dl>
+              </dl></div>
               <ul class="lab-legend" aria-label="Legend">
                 <li><span class="swatch swatch-open" aria-hidden="true"></span>Open (cost 1)</li>
                 <li><span class="swatch swatch-wall" aria-hidden="true"></span>Wall (impassable)</li>
@@ -290,7 +290,7 @@
         </div>
       </section>
     </main>
-    <footer class="site-footer"><div class="container footer-inner"><a href="/" class="footer-brand" aria-label="Back to the portfolio">AF<span> / ARTHUR FAY</span></a><span>© 2026 Arthur Fay. Portfolio content.</span><a href="https://github.com/arthur-fay" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div><div class="container footer-note">Independent portfolio. Grid-based algorithm simulation for demonstration and teaching; no claim of real-world robotics validation.</div></footer>
+    <footer class="site-footer"><div class="container footer-inner"><a href="/" class="footer-brand">AF<span>/ Arthur Fay</span><span class="sr-only">, back to the portfolio</span></a><span>© 2026 Arthur Fay. Portfolio content.</span><a href="https://github.com/arthur-fay" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div><div class="container footer-note">Independent portfolio. Grid-based algorithm simulation for demonstration and teaching; no claim of real-world robotics validation.</div></footer>
   </div>
 </body>
 </html>

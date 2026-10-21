@@ -1,6 +1,6 @@
-# Arthur Fay — Personal Engineering Portfolio
+# Arthur Fay — The Architect Lab
 
-A responsive, accessible, dependency-free engineering portfolio served at **https://arthur-fay.github.io/** using GitHub Pages.
+A responsive, accessible, dependency-free engineering portfolio served at **https://arthur-fay.github.io/** using GitHub Pages. The homepage is designed as a drafted monograph: numbered project plates with figures and captions, an interactive section cut through each system's architecture, an animated isometric system drawing in the hero, and title-block contact and footer blocks. See [docs/REDESIGN_2026-10.md](docs/REDESIGN_2026-10.md) for the audit, the creative direction, the measurements and the remaining limitations.
 
 **Status:** The portfolio is served from `main` by GitHub Pages. New work is prepared on review branches and pull requests; the owner controls whether and when to merge, and merging into `main` publishes the change.
 
@@ -18,11 +18,14 @@ No professional employment history, degrees, LinkedIn URL, email address, or awa
 
 ## Architecture
 
-- Plain semantic HTML + CSS + a small, dependency-free JavaScript enhancement file (`script.js`, shared across the portfolio and both lab pages). The custom 404 page uses local CSS and a restrictive Content Security Policy.
+- Plain semantic HTML + CSS + a small, dependency-free JavaScript enhancement file (`script.js`, shared across the portfolio and both lab pages: theme, mobile menu, filters, reading progress, the section-cut tabs, scroll reveals, the active navigation state and the hero drawing's pointer parallax). The custom 404 page uses local CSS and a restrictive Content Security Policy.
+- The homepage's drawings are original inline SVG (the hero's isometric system section, the ATLAS pipeline plate, the dimensional-model plate) or regenerated from real lab runs by the tests (the two lab plates). No raster imagery is loaded by the page; `social-card.png` is a self-rendered 1200 × 630 preview referenced only by the Open Graph and Twitter metadata.
+- Design tokens live in the first two rule blocks of `styles.css` (dark-first, with a paper light theme) and are read by the contrast tests; the display, body and monospace faces are system font stacks, so no web fonts are requested.
+- Every interaction degrades: the section cut shows all four panels in order without JavaScript, reveals never hide content, and all motion is disabled under `prefers-reduced-motion`.
 - `lab/pathfinding/` is a second page built the same way: ES modules (`pathfinding.js` holds the pure algorithms, `app.js` the UI), its own stylesheet on top of the shared design tokens, and the same strict CSP. See [lab/pathfinding/README.md](lab/pathfinding/README.md).
 - `lab/security-events/` is a third page with the same structure: `detection.js` is the pure engine (synthetic generator, strict event schema, sorting with deterministic tie-breaking, three streaming detection rules, evaluation, explanations), `app.js` the UI (SVG timeline, playback cursor, alerts, investigation view, paginated table, scores, comparison, local import/export), plus its own stylesheet and the same strict CSP. See [lab/security-events/README.md](lab/security-events/README.md).
 - Deliberately no React/Vite build step: **ready to publish and test with no npm dependencies or paid infrastructure**. `package.json` declares `"type": "module"` (so Node can import the ES modules in tests), the test scripts and metadata, and no dependencies.
-- Four real-project cards, working category filters (Engineering, Analytics, Interactive, Security), mobile navigation, theme toggle with user preference, accessible landmarks, skip link, reduced-motion support, custom 404 page and SEO metadata.
+- Four real-project plates, the interactive section cut (an accessible tab interface with arrow-key navigation and deep links such as `/#cut-security`), working category filters (Engineering, Analytics, Interactive, Security), mobile navigation, theme toggle with user preference, accessible landmarks, skip link, reduced-motion support, custom 404 page and SEO/social metadata.
 - No third-party scripts, analytics, forms, trackers, fonts, API credentials, or paid services.
 - No remote resources are requested to render the site; outgoing links only go to GitHub.
 
@@ -40,7 +43,7 @@ Then visit `http://localhost:8000` (portfolio), `http://localhost:8000/lab/pathf
 
 ```bash
 npm test               # offline integrity checks (scripts/check_site.py), syntax checks, unit tests for both labs
-npm run test:browser   # Playwright browser tests for both labs; see lab/pathfinding/README.md for the one-off setup
+npm run test:browser   # Playwright browser tests for the homepage and both labs; see lab/pathfinding/README.md for the one-off setup
 ```
 
 Continuous integration runs the same checks on every pull request (`.github/workflows/portfolio-ci.yml`).
