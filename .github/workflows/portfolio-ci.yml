@@ -24,7 +24,9 @@ jobs:
           node --check script.js
           node --check lab/pathfinding/pathfinding.js
           node --check lab/pathfinding/app.js
-      - name: Run pathfinding unit tests (Node built-in test runner, no dependencies)
+          node --check lab/security-events/detection.js
+          node --check lab/security-events/app.js
+      - name: Run unit tests for both labs (Node built-in test runner, no dependencies)
         run: node --test tests/unit/*.test.js
   browser:
     name: Browser tests (Playwright, desktop and mobile viewports)

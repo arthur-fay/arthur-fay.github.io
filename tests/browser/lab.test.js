@@ -199,22 +199,23 @@ describe('page integrity across viewports', () => {
 });
 
 describe('portfolio page', () => {
-  it('lists three projects, filters them, and links Project 03 to the lab', async () => {
+  it('lists four projects, filters them, and links Project 03 to the lab', async () => {
     const { page, close } = await open('/');
     try {
-      assert.equal(await count(page, '.project'), 3);
-      assert.equal(await count(page, '#project-list > .project'), 3, 'cards are direct children of the list');
+      assert.equal(await count(page, '.project'), 4);
+      assert.equal(await count(page, '#project-list > .project'), 4, 'cards are direct children of the list');
       await page.locator('[data-filter="interactive"]').click();
-      assert.equal(await count(page, '.project:not([hidden])'), 1);
-      assert.equal(await page.locator('#filter-status').textContent(), 'Showing 1 project.');
+      assert.equal(await count(page, '.project:not([hidden])'), 2, 'both labs are interactive');
+      assert.ok(await page.locator('.project-lab').isVisible());
+      assert.equal(await page.locator('#filter-status').textContent(), 'Showing 2 projects.');
       await page.locator('[data-filter="analytics"]').click();
       assert.equal(await count(page, '.project:not([hidden])'), 1);
       assert.ok(await page.locator('.project-commerce').isVisible());
       await page.locator('[data-filter="engineering"]').click();
-      assert.equal(await count(page, '.project:not([hidden])'), 2, 'the lab is also an engineering project');
+      assert.equal(await count(page, '.project:not([hidden])'), 3, 'both labs are also engineering projects');
       await page.locator('[data-filter="all"]').click();
-      assert.equal(await count(page, '.project:not([hidden])'), 3);
-      assert.equal(await page.locator('#filter-status').textContent(), 'Showing 3 projects.');
+      assert.equal(await count(page, '.project:not([hidden])'), 4);
+      assert.equal(await page.locator('#filter-status').textContent(), 'Showing 4 projects.');
       assert.ok((await page.locator('.project-lab').textContent()).includes('not a validated real-world robotics navigation system'));
       await page.locator('.project-lab a[href="/lab/pathfinding/"]').click();
       await page.waitForURL(`**${LAB}`);

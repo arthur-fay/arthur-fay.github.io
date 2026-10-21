@@ -12,14 +12,17 @@ A responsive, accessible, dependency-free portfolio website prepared for the Git
 
 **03 · Interactive Robotics & Pathfinding Lab** ([live page](https://arthur-fay.github.io/lab/pathfinding/), [documentation](lab/pathfinding/README.md)). A working, dependency-free grid pathfinding laboratory: draw walls and weighted terrain, then run breadth-first search, Dijkstra's algorithm or A* with animated exploration, pause/step/stop controls, deterministic maze generation and measured results. It is explicitly a grid-based algorithm simulation, not a validated real-world robotics navigation system. The algorithms live in a pure module covered by unit tests; the page is covered by Playwright browser tests.
 
+**04 · Security Event Detection & Investigation Lab** ([live page](https://arthur-fay.github.io/lab/security-events/), [documentation](lab/security-events/README.md)). A defensive, dependency-free, browser-only security monitoring simulator on **synthetic events only**: a seeded generator plants labelled scenarios (brute force, password spray, distributed failures, forgetful users, shared gateways, misconfigured clients) on top of routine sign-ins; three explainable sliding-window rules with configurable thresholds raise alerts; the timeline replays with play/pause/step/reset; every alert opens an investigation view; precision and recall are scored against the synthetic ground truth, and two threshold sets can be compared. Pseudonymous accounts, reserved documentation IP ranges, no real systems, no telemetry, strict schema for optional local JSON import. It is not a production SIEM and scores on synthetic scenarios do not establish real-world detection accuracy. The engine is a pure module covered by unit tests (including independent reference implementations of the rules); the page is covered by Playwright browser tests.
+
 No professional employment history, degrees, LinkedIn URL, email address, or awards are asserted or fabricated. Add them after verifying details and obtaining consent to publish contact information.
 
 ## Architecture
 
 - Plain semantic HTML + CSS + a small, dependency-free JavaScript enhancement file (`script.js`, shared by both pages).
 - `lab/pathfinding/` is a second page built the same way: ES modules (`pathfinding.js` holds the pure algorithms, `app.js` the UI), its own stylesheet on top of the shared design tokens, and the same strict CSP. See [lab/pathfinding/README.md](lab/pathfinding/README.md).
+- `lab/security-events/` is a third page with the same structure: `detection.js` is the pure engine (synthetic generator, strict event schema, sorting with deterministic tie-breaking, three streaming detection rules, evaluation, explanations), `app.js` the UI (SVG timeline, playback cursor, alerts, investigation view, paginated table, scores, comparison, local import/export), plus its own stylesheet and the same strict CSP. See [lab/security-events/README.md](lab/security-events/README.md).
 - Deliberately no React/Vite build step: **ready to publish and test with no npm dependencies or paid infrastructure**. `package.json` declares `"type": "module"` (so Node can import the ES modules in tests), the test scripts and metadata, and no dependencies.
-- Three real-project cards, working category filters, mobile navigation, theme toggle with user preference, accessible landmarks, skip link, reduced-motion support, custom 404 page and SEO metadata.
+- Four real-project cards, working category filters (Engineering, Analytics, Interactive, Security), mobile navigation, theme toggle with user preference, accessible landmarks, skip link, reduced-motion support, custom 404 page and SEO metadata.
 - No third-party scripts, analytics, forms, trackers, fonts, API credentials, or paid services.
 - No remote resources are requested to render the site; outgoing links only go to GitHub.
 
@@ -31,13 +34,13 @@ From the repository root, run:
 python -m http.server 8000
 ```
 
-Then visit `http://localhost:8000` (portfolio) and `http://localhost:8000/lab/pathfinding/` (lab). Avoid opening `file://` URLs: absolute asset paths and ES modules need an HTTP origin, as on GitHub Pages.
+Then visit `http://localhost:8000` (portfolio), `http://localhost:8000/lab/pathfinding/` (pathfinding lab) and `http://localhost:8000/lab/security-events/` (security lab). Avoid opening `file://` URLs: absolute asset paths and ES modules need an HTTP origin, as on GitHub Pages.
 
 ## Checks and tests
 
 ```bash
-npm test               # offline integrity checks (scripts/check_site.py), syntax checks, unit tests
-npm run test:browser   # Playwright browser tests; see lab/pathfinding/README.md for the one-off setup
+npm test               # offline integrity checks (scripts/check_site.py), syntax checks, unit tests for both labs
+npm run test:browser   # Playwright browser tests for both labs; see lab/pathfinding/README.md for the one-off setup
 ```
 
 Continuous integration runs the same checks on every pull request (`.github/workflows/portfolio-ci.yml`).
@@ -48,7 +51,7 @@ Continuous integration runs the same checks on every pull request (`.github/work
 2. After review and explicit owner approval, merge the portfolio pull request. All site files must be **at the repository root**, including `.nojekyll`; leave the ATLAS repository untouched.
 3. **Before merging**, decide whether the portfolio should go live immediately. Since Pages is already enabled and successfully ran against the initial `main`, a merge may deploy automatically. If you want to prevent that, disable Pages in **Settings → Pages** before merging. When you are ready to publish, use **Deploy from a branch → main → /(root)** if that is the selected source.
 4. After the portfolio merge and successful Pages deployment, verify `https://arthur-fay.github.io/` opens and displays the new portfolio. The site's current response has not yet been independently checked; do not confuse the initial README build with the portfolio being live.
-5. Check both desktop and mobile, navigation, theme switch, filter buttons, the 404 page, and all external GitHub links.
+5. Check both desktop and mobile, navigation, theme switch, filter buttons, both lab pages, the 404 page, and all external GitHub links.
 
 **No ATLAS release tag, dashboard publication flag, NYC data terms gate, or VPS is affected by this separate portfolio.**
 

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1017" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'none'; base-uri 'self'; form-action 'none'" />
+  <meta name="description" content="Security Event Detection & Investigation Lab by Arthur Fay: a defensive, browser-only simulator that generates clearly labelled synthetic authentication events, runs three explainable detection rules with configurable thresholds, replays the timeline, and scores the rules against synthetic ground truth." />
+  <meta name="author" content="Arthur Fay" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Security Event Detection & Investigation Lab — Arthur Fay" />
+  <meta property="og:description" content="Synthetic security events, explainable detection rules, an investigation view and honest precision/recall scoring, all computed locally in the browser." />
+  <meta property="og:url" content="https://arthur-fay.github.io/lab/security-events/" />
+  <meta name="twitter:card" content="summary" />
+  <link rel="canonical" href="https://arthur-fay.github.io/lab/security-events/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/lab/security-events/lab.css" />
+  <script defer src="/script.js"></script>
+  <script type="module" src="/lab/security-events/app.js"></script>
+  <title>Security Event Detection & Investigation Lab — Arthur Fay</title>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="reading-progress" id="reading-progress" aria-hidden="true"></div>
+  <div class="site-shell">
+    <header class="site-header" id="top">
+      <div class="container header-inner">
+        <a class="wordmark" href="/" aria-label="Arthur Fay, back to the portfolio">
+          <span class="wordmark-symbol" aria-hidden="true">A<span class="symbol-slash">/</span>F</span>
+          <span class="wordmark-name">Arthur Fay<span class="wordmark-sub">SOFTWARE · DATA · RESEARCH</span></span>
+        </a>
+        <nav class="desktop-nav" aria-label="Primary navigation">
+          <a href="/">Portfolio</a>
+          <a href="/#work">Work</a>
+          <a href="#lab">Lab</a>
+          <a href="#methodology">Method</a>
+        </nav>
+        <div class="header-actions">
+          <button type="button" class="theme-button icon-button" id="theme-toggle" aria-label="Switch to light theme" title="Toggle color theme">
+            <svg class="theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+            <svg class="theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20.7 13.4A9 9 0 0 1 10.6 3.3 9 9 0 1 0 20.7 13.4Z"/></svg>
+          </button>
+          <a class="header-github" href="https://github.com/arthur-fay/arthur-fay.github.io" target="_blank" rel="noopener noreferrer">Source <span aria-hidden="true">↗</span></a>
+          <button class="menu-toggle icon-button" id="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="mobile-nav">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </div>
+      <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation" hidden>
+        <a href="/">Portfolio</a>
+        <a href="/#work">Work</a>
+        <a href="#lab">Lab</a>
+        <a href="#methodology">Method</a>
+        <a href="https://github.com/arthur-fay/arthur-fay.github.io" target="_blank" rel="noopener noreferrer">Source ↗</a>
+      </nav>
+    </header>
+    <main id="main">
+      <section class="lab-hero container" aria-labelledby="lab-title">
+        <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> PROJECT 04 / SECURITY LAB <span class="hero-serial">/ 2026</span></p>
+        <h1 id="lab-title">Security Event Detection &amp;<br/><em>Investigation Lab<span class="period">.</span></em></h1>
+        <p class="hero-description">Generate a day of synthetic sign-in events, watch three explainable detection rules fire as the timeline replays, open any alert to see exactly which events triggered it and why, then change the thresholds and see precision and recall move. Every number on this page is computed in your browser from the events shown; nothing is pre-computed, estimated or sent anywhere.</p>
+        <p class="project-disclosure lab-disclosure"><span aria-hidden="true">i</span> A defensive, educational simulator using synthetic events only: pseudonymous accounts, reserved documentation IP ranges (RFC 5737 and RFC 3849) and synthetic timestamps. It is not a production SIEM, not a threat-intelligence feed and not a certified security product. It never connects to real systems, never collects credentials and never scans anything. Scores on these synthetic scenarios do not establish real-world detection accuracy.</p>
+        <div class="hero-buttons">
+          <a class="button button-primary" href="#lab">Open the lab <span aria-hidden="true">↓</span></a>
+          <a class="button button-secondary" href="#methodology">How detection works <span aria-hidden="true">↓</span></a>
+        </div>
+      </section>
+
+      <section class="lab-section" id="lab" aria-labelledby="lab-heading">
+        <div class="container">
+          <div class="section-heading">
+            <div><p class="section-index">01 / THE LABORATORY</p><h2 id="lab-heading">Generate events, <em>run the rules.</em></h2></div>
+            <p class="section-intro">Pick a preset and a seed, press Play to replay the day, select an alert to investigate it, and adjust the thresholds in the panel. The same preset and seed always reproduce the same events and alerts, in every browser.</p>
+          </div>
+          <div class="lab-layout">
+            <div class="lab-stage">
+              <p class="dataset-label" id="dataset-label" tabindex="-1">Loading the laboratory…</p>
+              <dl class="lab-stats" role="group" aria-label="Summary of the current dataset">
+                <div><dt>Events</dt><dd id="stat-events">—<small>synthetic</small></dd></div>
+                <div><dt>Successes</dt><dd id="stat-successes">—<small>sign-ins</small></dd></div>
+                <div><dt>Failures</dt><dd id="stat-failures">—<small>attempts</small></dd></div>
+                <div><dt>Accounts</dt><dd id="stat-accounts">—<small>pseudonymous</small></dd></div>
+                <div><dt>Sources</dt><dd id="stat-sources">—<small>documentation IPs</small></dd></div>
+                <div><dt>Alerts</dt><dd id="stat-alerts">—<small>by the current rules</small></dd></div>
+              </dl>
+
+              <section class="timeline-card" aria-labelledby="timeline-heading">
+                <div class="timeline-toolbar">
+                  <h3 id="timeline-heading">Timeline</h3>
+                  <div class="lab-actions" role="group" aria-label="Playback controls">
+                    <button type="button" class="button button-primary button-small" id="play">Play <span aria-hidden="true">↗</span></button>
+                    <button type="button" class="button button-outline button-small" id="pause" disabled>Pause</button>
+                    <button type="button" class="button button-outline button-small" id="step">Step</button>
+                    <button type="button" class="button button-outline button-small" id="reset">Reset</button>
+                    <button type="button" class="button button-outline button-small" id="skip">Show all</button>
+                  </div>
+                  <div class="speed-field">
+                    <label for="speed">Replay speed</label>
+                    <div class="range-row"><input type="range" id="speed" min="1" max="10" step="1" value="6" /><span class="range-value" id="speed-value" aria-hidden="true"></span></div>
+                  </div>
+                </div>
+                <p class="lab-status" id="lab-status" role="status" aria-live="polite">Loading the laboratory…</p>
+                <div class="timeline-frame" id="timeline" aria-describedby="timeline-summary"></div>
+                <p class="timeline-summary" id="timeline-summary"></p>
+                <ul class="lab-legend" aria-label="Timeline legend">
+                  <li><span class="swatch swatch-success" aria-hidden="true"></span>Successful sign-in (short mark)</li>
+                  <li><span class="swatch swatch-failure" aria-hidden="true"></span>Failed attempt (tall mark)</li>
+                  <li><span class="swatch swatch-r1" aria-hidden="true">1</span>R1 repeated failures</li>
+                  <li><span class="swatch swatch-r2" aria-hidden="true">2</span>R2 password spray</li>
+                  <li><span class="swatch swatch-r3" aria-hidden="true">3</span>R3 success after failures</li>
+                  <li><span class="swatch swatch-future" aria-hidden="true"></span>Not yet replayed</li>
+                </ul>
+              </section>
+
+              <div class="investigation-layout">
+                <section class="alerts-card" aria-labelledby="alerts-heading">
+                  <h3 id="alerts-heading">Alerts</h3>
+                  <p class="card-note">Grouped by rule, then by the affected source or account. Select an alert to open the investigation view.</p>
+                  <div id="alerts" class="alerts-list"></div>
+                </section>
+                <section class="detail-card" id="detail" aria-labelledby="detail-heading" tabindex="-1">
+                  <h3 id="detail-heading">Investigation</h3>
+                  <div id="detail-body" class="detail-body"></div>
+                </section>
+              </div>
+            </div>
+
+            <aside class="lab-panel" aria-labelledby="settings-heading">
+              <h2 id="settings-heading">Dataset</h2>
+              <p class="lab-panel-note">Synthetic events only. The preset chooses which scenarios are planted on top of routine activity; the seed fixes every random choice.</p>
+              <div class="field">
+                <label for="preset">Preset</label>
+                <select id="preset">
+                  <option value="mixed" selected>Mixed day: routine activity plus several attacks</option>
+                  <option value="quiet">Quiet day: routine activity, no attacks</option>
+                  <option value="noisy">Noisy day: many benign look-alikes, one brute force</option>
+                  <option value="stealthy">Stealthy day: attacks paced under the thresholds</option>
+                  <option value="large">Large day: about fifteen thousand events</option>
+                </select>
+                <p class="field-hint" id="preset-hint"></p>
+              </div>
+              <div class="field">
+                <label for="seed">Seed (0 – 4,294,967,295)</label>
+                <div class="field-inline">
+                  <input type="number" id="seed" min="0" max="4294967295" step="1" value="42" inputmode="numeric" />
+                  <button type="button" class="button button-outline button-small" id="new-seed">New seed</button>
+                </div>
+              </div>
+              <div class="panel-actions">
+                <button type="button" class="button button-primary button-small" id="generate">Generate dataset</button>
+                <button type="button" class="button button-outline button-small" id="export">Export JSON</button>
+              </div>
+              <hr />
+              <h2 id="thresholds-heading">Detection thresholds</h2>
+              <p class="lab-panel-note">Changes apply immediately to the whole dataset. Invalid values are reported here and the last valid thresholds stay in force until they are fixed.</p>
+              <fieldset class="rule-fieldset" id="rule-r1">
+                <legend><span class="rule-code">R1</span> Repeated failures from one source</legend>
+                <div class="field field-check"><input type="checkbox" id="r1-enabled" checked /><label for="r1-enabled">Enabled</label></div>
+                <div class="field-pair">
+                  <div class="field"><label for="r1-threshold">At least … failures</label><input type="number" id="r1-threshold" min="1" max="1000" step="1" value="5" inputmode="numeric" /></div>
+                  <div class="field"><label for="r1-window">within … seconds</label><input type="number" id="r1-window" min="1" max="86400" step="1" value="60" inputmode="numeric" /></div>
+                </div>
+              </fieldset>
+              <fieldset class="rule-fieldset" id="rule-r2">
+                <legend><span class="rule-code">R2</span> Password spraying</legend>
+                <div class="field field-check"><input type="checkbox" id="r2-enabled" checked /><label for="r2-enabled">Enabled</label></div>
+                <div class="field-pair">
+                  <div class="field"><label for="r2-accounts">At least … distinct accounts</label><input type="number" id="r2-accounts" min="1" max="1000" step="1" value="5" inputmode="numeric" /></div>
+                  <div class="field"><label for="r2-window">within … seconds</label><input type="number" id="r2-window" min="1" max="86400" step="1" value="120" inputmode="numeric" /></div>
+                </div>
+              </fieldset>
+              <fieldset class="rule-fieldset" id="rule-r3">
+                <legend><span class="rule-code">R3</span> Success following repeated failures</legend>
+                <div class="field field-check"><input type="checkbox" id="r3-enabled" checked /><label for="r3-enabled">Enabled</label></div>
+                <div class="field-pair">
+                  <div class="field"><label for="r3-failures">At least … failures before</label><input type="number" id="r3-failures" min="1" max="1000" step="1" value="3" inputmode="numeric" /></div>
+                  <div class="field"><label for="r3-window">within … seconds</label><input type="number" id="r3-window" min="1" max="86400" step="1" value="600" inputmode="numeric" /></div>
+                </div>
+                <div class="field">
+                  <label for="r3-scope">Count failures from</label>
+                  <select id="r3-scope"><option value="account" selected>any source (account scope)</option><option value="source">the same source only (source scope)</option></select>
+                </div>
+              </fieldset>
+              <ul class="config-errors" id="config-errors"></ul>
+              <div class="panel-actions">
+                <button type="button" class="button button-outline button-small" id="reset-thresholds">Reset thresholds</button>
+              </div>
+              <hr />
+              <h2 id="compare-heading">Comparison mode</h2>
+              <div class="field field-check"><input type="checkbox" id="compare" autocomplete="off" /><label for="compare">Compare with a second threshold set (B)</label></div>
+              <p class="lab-panel-note">Both sets run on the same events. The comparison table under <a href="#evaluation" class="text-link">Evaluation</a> shows how the alerts and scores differ.</p>
+              <div id="compare-fields" class="compare-fields" hidden>
+                <div class="panel-actions"><button type="button" class="button button-outline button-small" id="copy-to-b">Copy current thresholds into B</button></div>
+                <fieldset class="rule-fieldset">
+                  <legend><span class="rule-code">R1·B</span> Repeated failures</legend>
+                  <div class="field field-check"><input type="checkbox" id="b-r1-enabled" checked /><label for="b-r1-enabled">Enabled</label></div>
+                  <div class="field-pair">
+                    <div class="field"><label for="b-r1-threshold">At least … failures</label><input type="number" id="b-r1-threshold" min="1" max="1000" step="1" value="5" inputmode="numeric" /></div>
+                    <div class="field"><label for="b-r1-window">within … seconds</label><input type="number" id="b-r1-window" min="1" max="86400" step="1" value="60" inputmode="numeric" /></div>
+                  </div>
+                </fieldset>
+                <fieldset class="rule-fieldset">
+                  <legend><span class="rule-code">R2·B</span> Password spraying</legend>
+                  <div class="field field-check"><input type="checkbox" id="b-r2-enabled" checked /><label for="b-r2-enabled">Enabled</label></div>
+                  <div class="field-pair">
+                    <div class="field"><label for="b-r2-accounts">At least … distinct accounts</label><input type="number" id="b-r2-accounts" min="1" max="1000" step="1" value="5" inputmode="numeric" /></div>
+                    <div class="field"><label for="b-r2-window">within … seconds</label><input type="number" id="b-r2-window" min="1" max="86400" step="1" value="120" inputmode="numeric" /></div>
+                  </div>
+                </fieldset>
+                <fieldset class="rule-fieldset">
+                  <legend><span class="rule-code">R3·B</span> Success following failures</legend>
+                  <div class="field field-check"><input type="checkbox" id="b-r3-enabled" checked /><label for="b-r3-enabled">Enabled</label></div>
+                  <div class="field-pair">
+                    <div class="field"><label for="b-r3-failures">At least … failures before</label><input type="number" id="b-r3-failures" min="1" max="1000" step="1" value="3" inputmode="numeric" /></div>
+                    <div class="field"><label for="b-r3-window">within … seconds</label><input type="number" id="b-r3-window" min="1" max="86400" step="1" value="600" inputmode="numeric" /></div>
+                  </div>
+                  <div class="field">
+                    <label for="b-r3-scope">Count failures from</label>
+                    <select id="b-r3-scope"><option value="account" selected>any source (account scope)</option><option value="source">the same source only (source scope)</option></select>
+                  </div>
+                </fieldset>
+                <ul class="config-errors" id="config-errors-b"></ul>
+              </div>
+              <details class="lab-help">
+                <summary>Keyboard help</summary>
+                <ul>
+                  <li>Every control is a native button, checkbox, number field, select or slider: <kbd>Tab</kbd> moves between them, <kbd>Space</kbd> or <kbd>Enter</kbd> activates buttons, arrow keys change the slider.</li>
+                  <li>Alerts are buttons: activate one to open the investigation view, which receives focus when opened from the keyboard.</li>
+                  <li>The timeline is a picture; everything it shows is also in the alerts list, the event table and the text summary beneath it.</li>
+                  <li>Playback never starts on its own. Play, Pause, Step, Reset and Show all are explicit actions, so a reduced-motion preference changes nothing about what the page does by itself.</li>
+                </ul>
+              </details>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="lab-section lab-section-alt" id="events" aria-labelledby="events-heading">
+        <div class="container">
+          <div class="section-heading">
+            <div><p class="section-index">02 / EVENT TABLE</p><h2 id="events-heading">Every event, <em>filterable.</em></h2></div>
+            <p class="section-intro">The same events the rules saw, in processing order (by time, then by input position). Filter by outcome, account, source or label, or show only the events cited by an alert.</p>
+          </div>
+          <div class="filters-row" role="group" aria-label="Event filters">
+            <div class="field"><label for="filter-outcome">Outcome</label><select id="filter-outcome"><option value="all" selected>All</option><option value="success">Successes</option><option value="failure">Failures</option></select></div>
+            <div class="field"><label for="filter-account">Account contains</label><input type="text" id="filter-account" maxlength="64" autocomplete="off" spellcheck="false" /></div>
+            <div class="field"><label for="filter-source">Source contains</label><input type="text" id="filter-source" maxlength="64" autocomplete="off" spellcheck="false" /></div>
+            <div class="field"><label for="filter-verdict">Synthetic label</label><select id="filter-verdict"><option value="all" selected>All</option><option value="benign">Benign scenarios</option><option value="suspicious">Suspicious scenarios</option></select></div>
+            <div class="field field-check filter-check"><input type="checkbox" id="filter-flagged" /><label for="filter-flagged">Only events cited by an alert</label></div>
+            <div class="field filter-actions"><button type="button" class="button button-outline button-small" id="filter-clear">Clear filters</button></div>
+          </div>
+          <p class="table-status" id="table-status" role="status" aria-live="polite"></p>
+          <div class="lab-table-wrap">
+            <table class="lab-table event-table" id="event-table">
+              <caption>SYNTHETIC EVENTS IN PROCESSING ORDER — TIMES ARE UTC</caption>
+              <thead><tr><th scope="col">#</th><th scope="col">Time (UTC)</th><th scope="col">Outcome</th><th scope="col">Account</th><th scope="col">Source</th><th scope="col">Reason</th><th scope="col">Synthetic label</th><th scope="col">Cited by</th></tr></thead>
+              <tbody id="event-rows"></tbody>
+            </table>
+          </div>
+          <div class="pager" role="group" aria-label="Table pages">
+            <button type="button" class="button button-outline button-small" id="page-prev">Previous page</button>
+            <span class="pager-status" id="page-status" tabindex="-1"></span>
+            <button type="button" class="button button-outline button-small" id="page-next">Next page</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="lab-section" id="evaluation" aria-labelledby="evaluation-heading">
+        <div class="container">
+          <div class="section-heading">
+            <div><p class="section-index">03 / EVALUATION</p><h2 id="evaluation-heading">Ground truth <em>versus the rules.</em></h2></div>
+            <p class="section-intro">Synthetic scenarios carry labels the detector never sees. Scoring compares what the rules raised with what was planted. These scores describe this synthetic data only; they do not establish real-world detection accuracy.</p>
+          </div>
+          <p class="eval-note" id="eval-unavailable" hidden></p>
+          <dl class="lab-stats eval-stats" role="group" aria-label="Evaluation of the current thresholds">
+            <div><dt>Alerts</dt><dd id="eval-alerts">—<small>raised</small></dd></div>
+            <div><dt>True positives</dt><dd id="eval-tp">—<small>alerts citing a suspicious event</small></dd></div>
+            <div><dt>False positives</dt><dd id="eval-fp">—<small>alerts citing only benign events</small></dd></div>
+            <div><dt>Precision</dt><dd id="eval-precision">—<small>true positives ÷ alerts</small></dd></div>
+            <div><dt>Strict precision</dt><dd id="eval-precision-strict">—<small>alerts triggered by a suspicious event ÷ alerts</small></dd></div>
+            <div><dt>Recall</dt><dd id="eval-recall">—<small>suspicious scenarios with any alert</small></dd></div>
+            <div><dt>Strict recall</dt><dd id="eval-recall-strict">—<small>alert triggered on the scenario's own event</small></dd></div>
+            <div><dt>Missed scenarios</dt><dd id="eval-missed">—<small>false negatives</small></dd></div>
+            <div><dt>Benign flagged</dt><dd id="eval-flagged">—<small>scenarios with a false-positive alert</small></dd></div>
+          </dl>
+          <div class="lab-table-wrap">
+            <table class="lab-table" id="scenario-table">
+              <caption>SYNTHETIC SCENARIOS AND WHAT THE RULES DID WITH THEM</caption>
+              <thead><tr><th scope="col">Scenario</th><th scope="col">Kind</th><th scope="col">Ground truth</th><th scope="col">Events</th><th scope="col">Rules that cited it</th><th scope="col">Alerts</th><th scope="col">Outcome</th></tr></thead>
+              <tbody id="scenario-rows"></tbody>
+            </table>
+          </div>
+          <div class="comparison" id="comparison" hidden>
+            <h3 id="comparison-heading">Comparison: thresholds A versus B</h3>
+            <p class="card-note" id="comparison-note"></p>
+            <div class="lab-table-wrap">
+              <table class="lab-table" id="comparison-table" aria-labelledby="comparison-heading">
+                <caption>THE SAME EVENTS UNDER TWO THRESHOLD SETS</caption>
+                <thead><tr><th scope="col">Measure</th><th scope="col">A (current)</th><th scope="col">B (alternative)</th><th scope="col">Change</th></tr></thead>
+                <tbody id="comparison-rows"></tbody>
+              </table>
+            </div>
+            <div class="comparison-diff" id="comparison-diff"></div>
+          </div>
+          <div class="rules-grid eval-definitions">
+            <div class="rules-block"><span class="case-block-num">HOW THE SCORES ARE DEFINED</span><h3>Precise, and deliberately modest.</h3>
+              <ul>
+                <li><strong>True positive</strong>: an alert whose evidence includes at least one event from a scenario labelled suspicious. <strong>False positive</strong>: an alert whose evidence is entirely benign.</li>
+                <li><strong>Precision</strong> = true-positive alerts ÷ all alerts. Undefined when no alert was raised, and shown as such rather than as 0 or 100%. <strong>Strict precision</strong> counts only alerts whose trigger event was itself planted as suspicious, so an alert raised on a victim's own routine sign-in after an attack counts towards precision but not towards strict precision.</li>
+                <li><strong>Recall</strong> = suspicious scenarios touched by any alert ÷ suspicious scenarios. Undefined when the data contains no suspicious scenario. <strong>Strict recall</strong> additionally requires an alert whose trigger event belongs to the scenario, so a single attack event caught inside an alert raised on a victim's own later login does not count.</li>
+                <li><strong>Missed scenarios</strong> are the false negatives. <strong>Benign flagged</strong> counts benign scenarios cited by a false-positive alert; a benign scenario cited only by a true-positive alert (for example the victim's routine login that completes a brute-force sequence) is not counted against the rules.</li>
+                <li>Imported data is scored only when every event carries a verdict; otherwise the scores are reported as unavailable. Events labelled with a verdict but no scenario form one pseudo-scenario per verdict, so recall over such data can only be 0 or 100%.</li>
+              </ul>
+            </div>
+            <div class="rules-block"><span class="case-block-num">WHAT THE SCORES DO NOT MEAN</span><h3>Synthetic performance only.</h3>
+              <p>The scenarios were written by the same person who wrote the rules, with the rules in mind. High precision or recall here shows that the implementation does what its definitions say on data shaped like these scenarios. It says nothing about detection rates against real adversaries, real traffic volumes, real shared infrastructure or real user behaviour, none of which this lab has seen. Treat the numbers as a demonstration of measurement, not as a measurement of security.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="lab-section lab-section-alt" id="import" aria-labelledby="import-heading">
+        <div class="container">
+          <div class="section-heading">
+            <div><p class="section-index">04 / LOCAL IMPORT</p><h2 id="import-heading">Bring your own <em>synthetic events.</em></h2></div>
+            <p class="section-intro">Optional. Paste JSON or choose a local file to run the rules on your own synthetic events. Processing is entirely local: nothing is uploaded, stored or transmitted. The page requests nothing but its own files, and its content security policy forbids every other connection.</p>
+          </div>
+          <div class="import-layout">
+            <div class="import-form">
+              <p class="project-disclosure import-warning"><span aria-hidden="true">i</span> Do not paste sensitive real-world production logs here or anywhere else in a browser tool. The schema accepts only pseudonymous account strings and reserved documentation IP addresses, so real routable addresses are rejected by design. Limits: 4 MB and 20,000 events. Every field is treated as untrusted text and is rendered as text, never interpreted as markup or code.</p>
+              <div class="field">
+                <label for="import-text">JSON text</label>
+                <textarea id="import-text" rows="8" spellcheck="false" autocomplete="off"></textarea>
+              </div>
+              <div class="field">
+                <label for="import-file">Or choose a local .json file</label>
+                <input type="file" id="import-file" accept=".json,application/json" />
+              </div>
+              <div class="panel-actions">
+                <button type="button" class="button button-primary button-small" id="import-load">Validate and load</button>
+                <button type="button" class="button button-outline button-small" id="import-clear">Clear</button>
+                <button type="button" class="button button-outline button-small" id="import-restore" hidden>Back to synthetic data</button>
+              </div>
+              <div class="import-result" id="import-result" role="status" aria-live="polite"></div>
+            </div>
+            <div class="import-schema">
+              <span class="case-block-num">SCHEMA</span>
+              <h3>Strict by design.</h3>
+              <p>An array of events, or an object with an <code>events</code> array. Unknown fields, malformed timestamps (including impossible dates such as 30 February), unknown outcomes, oversized strings, duplicate ids and non-documentation addresses are all rejected with the record number and the field named.</p>
+<pre class="schema-example"><code>{
+  "events": [
+    {
+      "id": "e-00001",
+      "time": "2026-03-02T08:14:03Z",
+      "outcome": "failure",
+      "account": "u-3f9c",
+      "source": "203.0.113.9",
+      "reason": "bad_password",
+      "scenario": "brute-force-1",
+      "verdict": "suspicious"
+    }
+  ]
+}</code></pre>
+              <ul>
+                <li><code>id</code> optional (all or none); letters, digits, <code>. _ : -</code>, up to 64 characters.</li>
+                <li><code>time</code> ISO 8601 with a zone, or <code>ts</code> as integer milliseconds; years 2000–2099.</li>
+                <li><code>outcome</code> is <code>success</code> or <code>failure</code>; <code>account</code> up to 64 characters of <code>A–Z a–z 0–9 . _ @ -</code>.</li>
+                <li><code>source</code> must be inside 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 or 2001:db8::/32.</li>
+                <li><code>reason</code>, <code>scenario</code> (with a <code>verdict</code> of <code>benign</code> or <code>suspicious</code>) are optional; labels must cover every event or none.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section container" id="methodology" aria-labelledby="methodology-title">
+        <div class="section-heading">
+          <div><p class="section-index">05 / THE METHOD</p><h2 id="methodology-title">Three rules, <em>stated exactly.</em></h2></div>
+          <p class="section-intro">Each rule is a sliding-window state machine over events sorted by time. The definitions below are the ones the code implements and the tests check; the thresholds in the panel are the only knobs.</p>
+        </div>
+        <div class="explain-grid">
+          <article class="explain-card" id="explain-r1">
+            <span class="principle-top">R1 / SOURCE-BASED, VOLUME</span>
+            <h3>Repeated failures from one source</h3>
+            <p>Raise an alert when one source produces at least <strong>T</strong> failed authentication events within any sliding window of <strong>W</strong> seconds. The window is inclusive: an event exactly W seconds before the current one counts.</p>
+            <p>Once raised, the alert stays open and absorbs every further failure from the same source that arrives within W seconds of the previous one, so a long burst is one alert with a growing evidence list rather than hundreds of alerts. A pause longer than W closes the episode; a later burst raises a new alert.</p>
+            <p>What it catches on this data: brute force against one account. What it also catches: a misconfigured client retrying an expired credential. The rule cannot tell them apart, and the page says so on every R1 alert.</p>
+            <dl class="explain-meta"><dt>Subject</dt><dd>Source address</dd><dt>Counts</dt><dd>Failures, any account</dd><dt>Defaults</dt><dd>5 failures within 60 s</dd><dt>Work</dt><dd>O(1) amortised per event</dd></dl>
+          </article>
+          <article class="explain-card" id="explain-r2">
+            <span class="principle-top">R2 / SOURCE-BASED, BREADTH</span>
+            <h3>Password spraying</h3>
+            <p>Raise an alert when failures from one source target at least <strong>A</strong> distinct accounts within any sliding window of <strong>W</strong> seconds (inclusive). Repeated failures against the same account do not add to the count; a per-account counter inside the window keeps the distinct count exact as old events fall out.</p>
+            <p>Episodes work as in R1: the alert absorbs further failures from the source while they keep arriving within W seconds of each other.</p>
+            <p>What it catches on this data: one source trying many accounts, including accounts that do not exist. What it can also catch, with a low threshold or a wide window: a shared office gateway whose many legitimate users occasionally mistype their passwords.</p>
+            <dl class="explain-meta"><dt>Subject</dt><dd>Source address</dd><dt>Counts</dt><dd>Distinct accounts among failures</dd><dt>Defaults</dt><dd>5 accounts within 120 s</dd><dt>Work</dt><dd>O(1) amortised per event</dd></dl>
+          </article>
+          <article class="explain-card" id="explain-r3">
+            <span class="principle-top">R3 / ACCOUNT-BASED, SEQUENCE</span>
+            <h3>Success following repeated failures</h3>
+            <p>Raise an alert when a successful authentication for an account is preceded, earlier in event order and within the previous <strong>W</strong> seconds (inclusive), by at least <strong>F</strong> failures for the same account. In <strong>account scope</strong> the failures may come from any source; in <strong>source scope</strong> only failures from the source of the success count.</p>
+            <p>The first qualifying success raises the alert. Further successes for the same account that arrive within W seconds of the previous success, and the failures in between, are absorbed into it, so one incident is one alert rather than one alert per sign-in; a longer pause closes the episode. A failure and a success with the same timestamp are ordered by their position in the input, which the event table shows.</p>
+            <p>Why the sequence is suspicious rather than proof: a guessed password produces failures then a success, and so does a user who mistypes a password and then remembers it. The rule reports an ambiguity worth checking, with the sources side by side, and explicitly does not claim that the account was compromised.</p>
+            <dl class="explain-meta"><dt>Subject</dt><dd>Account (and the source of the success)</dd><dt>Counts</dt><dd>Preceding failures</dd><dt>Defaults</dt><dd>3 failures within 600 s, account scope</dd><dt>Work</dt><dd>O(1) amortised per event</dd></dl>
+          </article>
+        </div>
+
+        <div class="rules-grid">
+          <div class="rules-block"><span class="case-block-num">EVENT PROCESSING</span><h3>Deterministic from end to end.</h3>
+            <ul>
+              <li><strong>Ordering</strong>: events are sorted by timestamp, then by their position in the input. Equal timestamps therefore have a defined order, and the same input always yields the same alerts, whether it arrives sorted or shuffled.</li>
+              <li><strong>Windows</strong> are inclusive, <code>[t − W, t]</code>, evaluated at every event with amortised O(1) work: each event enters a per-source or per-account queue once and leaves it once.</li>
+              <li><strong>Duplicates</strong>: identical events with different ids are two events; duplicate ids are rejected before anything runs.</li>
+              <li><strong>Alert identity</strong>: alerts are numbered in trigger order (then rule order). Comparison mode matches alerts across threshold sets by incident: the same rule, the same subject and overlapping time spans, so three short episodes under a narrow window can match one long episode under a wide one.</li>
+              <li><strong>Cost</strong>: O(n log n) to sort plus O(n) to detect, with every event cited by at most two episodes of a rule, so the alerts hold O(n) evidence even on adversarial input. The largest preset (about fifteen thousand events) is detected in tens of milliseconds on a laptop; the table is paginated, the timeline is binned, at most 3,000 alert spans are drawn and the alert list shows 200 alerts per rule at a time.</li>
+            </ul>
+          </div>
+          <div class="rules-block"><span class="case-block-num">SYNTHETIC SCENARIOS</span><h3>Labelled before the rules run.</h3>
+            <p>Each preset plants scenarios on top of routine sign-ins and labels every event with its scenario and a verdict, benign or suspicious. The labels are ground truth for scoring only; the detector reads timestamps, outcomes, accounts and sources, nothing else, and a unit test verifies that stripping or inverting the labels changes no alert.</p>
+            <ul id="scenario-catalogue" class="catalogue"></ul>
+          </div>
+          <div class="rules-block"><span class="case-block-num">SAFE DATA HANDLING</span><h3>Local, synthetic, text-only.</h3>
+            <ul>
+              <li>Runs entirely in your browser; there is no backend, no telemetry, no analytics, no tracking and no external log collection. The content security policy allows no network connections and no inline code.</li>
+              <li>Accounts are pseudonymous strings generated from the seed. Sources come only from the reserved documentation ranges 192.0.2.0/24, 198.51.100.0/24 and 203.0.113.0/24 (and 2001:db8::/32 on import), which are never routed on the internet.</li>
+              <li>Imported JSON is parsed as data, validated against a strict schema with bounded sizes, and rendered with text nodes only. It is never evaluated, never stored and never sent anywhere; reloading the page discards it.</li>
+            </ul>
+          </div>
+          <div class="rules-block"><span class="case-block-num">LIMITATIONS</span><h3>What this lab does not claim.</h3>
+            <p>It is not a security information and event management system: it has no collectors, parsers, retention, correlation across log sources, enrichment, case management or alert routing. The three rules are deliberately simple and are not a detection catalogue. The synthetic scenarios are hand-written illustrations, not samples of real attacks, so precision and recall on them do not predict performance anywhere else. Nothing here has been validated against real-world attacks, and the page never says otherwise.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="case-study-section" id="engineering" aria-labelledby="engineering-title">
+        <div class="container">
+          <div class="section-heading">
+            <div><p class="section-index">06 / HOW IT IS BUILT</p><h2 id="engineering-title">Engine apart <em>from rendering.</em></h2></div>
+            <p class="section-intro">The same constraints as the rest of this portfolio: plain HTML, CSS and JavaScript, a strict content security policy, no dependencies, no third-party code and no network access from the page.</p>
+          </div>
+          <div class="rules-grid">
+            <div class="rules-block"><span class="case-block-num">ARCHITECTURE</span><h3>A pure module and a thin UI.</h3><p><strong>detection.js</strong> is a pure ES module with no DOM access: the seeded generator, the strict event schema, sorting with deterministic tie-breaking, the three streaming rules, the evaluation and the explanations. <strong>app.js</strong> owns the DOM: it runs the engine on the whole dataset, keeps a cursor into the sorted events for playback, and renders the timeline (SVG), the alerts, the investigation view, the paginated table and the scores from the engine's output. Thresholds, seeds and presets are state; every change re-runs the engine and re-renders from scratch, so the screen can never disagree with the data.</p></div>
+            <div class="rules-block"><span class="case-block-num">ACCESSIBILITY</span><h3>Usable without a mouse or colour.</h3><p>Native controls with visible labels and focus rings, alerts as real buttons, an investigation view that receives focus when opened from the keyboard, live regions for status and table changes, tables with captions and column headers, a text summary of the timeline for screen readers, rule marks that carry digits as well as colour, and no motion unless a playback button is pressed.</p></div>
+            <div class="rules-block"><span class="case-block-num">VERIFICATION</span><h3>Tested against definitions, not impressions.</h3><p>Node's built-in test runner checks the engine against hand-computed fixtures (inclusive window edges, threshold edges, identical timestamps, out-of-order input, episodes, scopes), against independent O(n²) reference implementations of each rule on random traffic, and against the synthetic ground truth across many seeds. Playwright browser tests exercise the page at desktop, tablet, mobile and narrow widths: playback, filters, thresholds, comparison, import validation, keyboard use, themes, reduced motion, console errors and overflow.</p></div>
+            <div class="rules-block"><span class="case-block-num">REPRODUCE</span><h3>Run it yourself.</h3><p>Clone the repository, start any static file server at its root, open <strong>/lab/security-events/</strong>, and run <strong>npm test</strong> for the static checks and unit tests. <strong>lab/security-events/README.md</strong> documents the event model, the rule definitions, the scoring, the schema and the test matrix.</p></div>
+          </div>
+          <div class="lab-footer-note">
+            <a class="button button-outline" href="https://github.com/arthur-fay/arthur-fay.github.io" target="_blank" rel="noopener noreferrer">Inspect the source repository <span aria-hidden="true">↗</span></a>
+            <p>Independent engineering demonstration with synthetic data only. It is unrelated to the ATLAS research project also featured in this portfolio, uses no dataset, and makes no claim of real-world detection validation.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer"><div class="container footer-inner"><a href="/" class="footer-brand" aria-label="Back to the portfolio">AF<span> / ARTHUR FAY</span></a><span>© 2026 Arthur Fay. Portfolio content.</span><a href="https://github.com/arthur-fay" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div><div class="container footer-note">Independent portfolio. Defensive security simulation on synthetic events for demonstration and teaching; no real systems, no real logs, no claim of real-world detection accuracy.</div></footer>
+  </div>
+</body>
+</html>
