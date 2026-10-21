@@ -106,7 +106,7 @@ describe('portfolio: layout integrity at every viewport and in both themes', () 
     }
   }
 
-  for (const url of ['/lab/pathfinding/', '/lab/security-events/', '/does-not-exist']) {
+  for (const url of ['/lab/ecommerce/', '/lab/pathfinding/', '/lab/security-events/', '/does-not-exist']) {
     for (const [name, viewport] of [['narrow', VIEWPORTS.narrow], ['mobile', VIEWPORTS.mobile]]) {
       it(`${url} at ${name} keeps every control inside the viewport with the shared stylesheet`, async () => {
         const { page, close } = await open(url, { viewport });

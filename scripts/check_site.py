@@ -1,7 +1,8 @@
 """Offline, dependency-free smoke checks for Arthur Fay's GitHub Pages portfolio.
 
 Checks every published page (the portfolio, the Interactive Robotics &
-Pathfinding Lab and the Security Event Detection & Investigation Lab):
+Pathfinding Lab, the Security Event Detection & Investigation Lab and the
+E-Commerce Executive Analytics Lab):
 document basics, internal anchors, outbound-link policy, self-hosted assets,
 content-security-policy hygiene (no inline styles or scripts), required
 disclosures, and the absence of network/tracking code in the JavaScript.
@@ -19,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SITE = "https://arthur-fay.github.io"
 LAB_DIR = "lab/pathfinding"
 SEC_DIR = "lab/security-events"
+ECO_DIR = "lab/ecommerce"
 REQUIRED = {
     "index.html", "404.html", "404.css", "styles.css", "script.js",
     "favicon.svg", "robots.txt", "sitemap.xml", ".nojekyll", "package.json",
@@ -26,6 +28,8 @@ REQUIRED = {
     f"{LAB_DIR}/pathfinding.js", f"{LAB_DIR}/README.md",
     f"{SEC_DIR}/index.html", f"{SEC_DIR}/lab.css", f"{SEC_DIR}/app.js",
     f"{SEC_DIR}/detection.js", f"{SEC_DIR}/README.md",
+    f"{ECO_DIR}/index.html", f"{ECO_DIR}/lab.css", f"{ECO_DIR}/app.js",
+    f"{ECO_DIR}/model.js", f"{ECO_DIR}/README.md",
 }
 # Wording the owner removed on purpose: fields the four projects do not evidence, and
 # negative "no credentials" disclaimers. Keep the homepage positive and evidence-based.
@@ -203,6 +207,8 @@ def main() -> None:
     assert {"all", "interactive", "security"} <= set(index.filters), "index.html: project filters incomplete"
     assert f"/{LAB_DIR}/" in index.internal_pages, "index.html: Project 03 must link to the lab page"
     assert f"/{SEC_DIR}/" in index.internal_pages, "index.html: Project 04 must link to the security lab page"
+    assert f"/{ECO_DIR}/" in index.internal_pages, "index.html: Project 02 must link to the analytics lab page"
+    assert "open the interactive analytics lab" in folded_index, "index.html: Project 02 must carry a prominent link to the analytics lab"
     index_html = (ROOT / "index.html").read_text(encoding="utf-8")
     for evidence_link in (
         "demand-forecasting-model/blob/main/docs/BACKTESTING.md",
@@ -211,6 +217,8 @@ def main() -> None:
         "arthur-fay.github.io/blob/main/lab/security-events/detection.js",
         "arthur-fay.github.io/blob/main/lab/pathfinding/README.md",
         "arthur-fay.github.io/blob/main/lab/security-events/README.md",
+        "arthur-fay.github.io/blob/main/lab/ecommerce/model.js",
+        "arthur-fay.github.io/blob/main/lab/ecommerce/README.md",
     ):
         assert evidence_link in index_html, f"index.html: missing verified project evidence link {evidence_link}"
 
@@ -253,9 +261,38 @@ def main() -> None:
     assert "status" in security.roles and security.live_regions >= 2, "security lab page needs live status regions"
     assert "<form" not in (ROOT / SEC_DIR / "index.html").read_text(encoding="utf-8").casefold(), "the security lab must not submit forms"
 
-    for stylesheet in ("styles.css", "404.css", f"{LAB_DIR}/lab.css", f"{SEC_DIR}/lab.css"):
+    analytics = check_page(
+        f"{ECO_DIR}/index.html",
+        {"main", "dashboard", "simulator", "model", "methodology", "engineering", "category-chart", "top-ten-chart",
+         "status-chart", "outcome-chart", "scenario-chart", "scenario-outcomes", "volume-range", "volume-value",
+         "basket-range", "basket-value", "delivery-range", "delivery-value", "ontime-range", "ontime-value",
+         "reset-scenario", "sim-status", "out-revenue", "out-revenue-change", "out-orders", "out-aov", "out-delivery",
+         "out-ontime", "out-ontime-all", "model-diagram", "model-lines", "table-detail", "table-detail-body", "wiring-table"},
+        (
+            "rounded summaries of the public project README",
+            "not a row-level dataset",
+            "no transaction, monthly value or customer record is reconstructed",
+            "hypothetical projection",
+            "never a reported result",
+            "not a forecast",
+            "COUNTROWS(fact_orders)",
+            "https://github.com/arthur-fay/customer-revenue-analytics",
+            "KPI_Measures",
+        ),
+        f"{SITE}/{ECO_DIR}/",
+    )
+    assert f"/{ECO_DIR}/app.js" in analytics.module_scripts, "analytics lab page must load app.js as an ES module"
+    assert ("link", f"/{ECO_DIR}/lab.css") in analytics.assets, "analytics lab page must load its stylesheet"
+    assert "status" in analytics.roles and analytics.live_regions >= 1, "analytics lab page needs a live status region"
+    eco_html = (ROOT / ECO_DIR / "index.html").read_text(encoding="utf-8")
+    assert "<form" not in eco_html.casefold(), "the analytics lab must not submit forms"
+    assert eco_html.count('data-metric="') == 6, "the analytics lab must present exactly six published KPI tiles"
+    for display in ("99K", "R$15.84M", "96K", "R$159.33", "97.02%", "91.88%"):
+        assert f'">{display}<small>' in eco_html, f"analytics lab: published KPI {display} missing from its tile"
+
+    for stylesheet in ("styles.css", "404.css", f"{LAB_DIR}/lab.css", f"{SEC_DIR}/lab.css", f"{ECO_DIR}/lab.css"):
         check_css(stylesheet)
-    for script in ("script.js", f"{LAB_DIR}/app.js", f"{LAB_DIR}/pathfinding.js", f"{SEC_DIR}/app.js", f"{SEC_DIR}/detection.js"):
+    for script in ("script.js", f"{LAB_DIR}/app.js", f"{LAB_DIR}/pathfinding.js", f"{SEC_DIR}/app.js", f"{SEC_DIR}/detection.js", f"{ECO_DIR}/app.js", f"{ECO_DIR}/model.js"):
         check_javascript(script)
     app = (ROOT / LAB_DIR / "app.js").read_text(encoding="utf-8")
     assert "from './pathfinding.js'" in app, "app.js must import the pure algorithm module"
@@ -268,13 +305,21 @@ def main() -> None:
         assert token not in sec_app and token not in sec_pure, f"the security lab must not persist or transmit event data: {token}"
     assert "document." not in sec_pure and "window." not in sec_pure, "detection.js must stay free of DOM access"
     assert "203.0.113." in sec_pure and "198.51.100." in sec_pure and "192.0.2." in sec_pure, "the engine must generate only RFC 5737 documentation addresses"
+    eco_app = (ROOT / ECO_DIR / "app.js").read_text(encoding="utf-8")
+    assert "from './model.js'" in eco_app, "analytics app.js must import the pure engine module"
+    eco_pure = (ROOT / ECO_DIR / "model.js").read_text(encoding="utf-8")
+    assert "document." not in eco_pure and "window." not in eco_pure, "model.js must stay free of DOM access"
+    for token in ("localStorage", "sessionStorage", "indexedDB", "navigator.sendBeacon", "import("):
+        assert token not in eco_app and token not in eco_pure, f"the analytics lab must not persist or transmit anything: {token}"
+    for figure in ("15_840_000", "159.33", "97.02", "91.88", "1_440_000", "1_310_000"):
+        assert figure in eco_pure, f"model.js must carry the published figure {figure}"
 
     package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
     assert package.get("type") == "module", "package.json must declare ES modules for the Node tests"
     assert not package.get("dependencies") and not package.get("devDependencies"), "the site must stay dependency-free"
 
     sitemap = (ROOT / "sitemap.xml").read_text(encoding="utf-8")
-    assert f"<loc>{SITE}/</loc>" in sitemap and f"<loc>{SITE}/{LAB_DIR}/</loc>" in sitemap and f"<loc>{SITE}/{SEC_DIR}/</loc>" in sitemap, "sitemap must list all three pages"
+    assert f"<loc>{SITE}/</loc>" in sitemap and f"<loc>{SITE}/{LAB_DIR}/</loc>" in sitemap and f"<loc>{SITE}/{SEC_DIR}/</loc>" in sitemap and f"<loc>{SITE}/{ECO_DIR}/</loc>" in sitemap, "sitemap must list all four pages"
     assert f"{SITE}/sitemap.xml" in (ROOT / "robots.txt").read_text(encoding="utf-8")
     # The 404 page is served directly by GitHub Pages, so audit it separately:
     # no canonical is appropriate for an error response and no JS is required.
@@ -292,7 +337,7 @@ def main() -> None:
     print(
         "Portfolio static verification passed "
         f"(index: {len(index.links)} links, {len(index.ids)} IDs; pathfinding lab: {len(lab.links)} links, {len(lab.ids)} IDs; "
-        f"security lab: {len(security.links)} links, {len(security.ids)} IDs)."
+        f"security lab: {len(security.links)} links, {len(security.ids)} IDs; analytics lab: {len(analytics.links)} links, {len(analytics.ids)} IDs)."
     )
 
 
