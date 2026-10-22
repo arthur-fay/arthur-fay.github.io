@@ -533,6 +533,9 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
   .hero-inner{grid-template-columns:1fr;gap:44px;min-height:0;padding-top:56px}
   .record{grid-template-columns:1fr;gap:20px}
   .record-entry{grid-template-columns:1fr;gap:10px;padding:22px 22px 22px 0}
+  /* On narrow layouts the body stacks below .record-when; keep both clear of
+     the 16px decorative hatch so titles, bullets and tags never touch it. */
+  .record-body{padding-left:30px}
   .record-when{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:6px 18px}
   .record-dates::after{display:none}
   .hero-figure{max-width:680px}

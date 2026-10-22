@@ -361,15 +361,37 @@ describe('portfolio: experience, education, contact and privacy', () => {
       assert.deepEqual(await page.$$eval('#experience .record-entry-independent a', (as) => as.map((a) => a.getAttribute('href'))), ['#plate-atlas', '#plate-commerce', '#plate-pathfinding', '#plate-security']);
       assert.equal(await page.locator('#experience .record-entry:not(.record-entry-independent) a').count(), 0);
       const education = page.locator('#education');
-      assert.deepEqual(await education.locator('.edu-status').allTextContents(), ['In progress · expected 2027', 'Completed · August 2024']);
-      assert.deepEqual(await education.locator('h4').allTextContents(), ['B.S. Computer Science', 'A.S. Computer Science']);
+      assert.deepEqual(await education.locator('.edu-status').allTextContents(), ['In progress']);
+      assert.deepEqual(await education.locator('h4').allTextContents(), ['B.S. Computer Science']);
       const bachelor = (await education.locator('.edu-entry').first().innerText()).toLowerCase();
-      assert.ok(bachelor.includes('in progress') && bachelor.includes('2027') && !bachelor.includes('completed'), 'the bachelor\'s degree is never presented as completed');
+      assert.ok(bachelor.includes('in progress') && !bachelor.includes('completed'), 'the bachelor\'s degree is not presented as completed');
       const heroEducation = (await page.locator('.hero-titleblock > div').nth(2).innerText()).toLowerCase();
-      assert.ok(heroEducation.includes('in progress') && heroEducation.includes('expected 2027'), 'the hero title block agrees with the record');
+      assert.ok(heroEducation.includes('in progress') && heroEducation.includes('capella'), 'the hero title block agrees with the record');
+      assert.ok(!heroEducation.includes('2027') && !heroEducation.includes('bmcc'), 'outdated résumé details omitted');
       assert.deepEqual(problems, []);
     } finally {
       await close();
+    }
+  });
+
+  it('keeps experience-card body content clear of the hatch on phone and tablet widths', async () => {
+    for (const width of [320, 375, 768]) {
+      const { page, problems, close } = await open('/', { viewport: { width, height: 850 } });
+      try {
+        const positions = await page.locator('.record-entry').evaluateAll((entries) =>
+          entries.map((entry) => {
+            const stripe = entry.getBoundingClientRect().left + 16;
+            const elements = [entry.querySelector('.record-body h3'), ...entry.querySelectorAll('.record-points li, .record-tech li')];
+            return { stripe, minLeft: Math.min(...elements.map((node) => node.getBoundingClientRect().left)) };
+          })
+        );
+        for (const { stripe, minLeft } of positions) {
+          assert.ok(minLeft >= stripe + 8, `content at ${width}px clears hatch by at least 8px (${minLeft} vs ${stripe})`);
+        }
+        assert.deepEqual(problems, []);
+      } finally {
+        await close();
+      }
     }
   });
 

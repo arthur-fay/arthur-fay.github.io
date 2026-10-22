@@ -71,7 +71,7 @@
           <div class="hero-copy">
             <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Arthur Fay <span class="eyebrow-sep" aria-hidden="true">—</span> The Architect Lab <span class="hero-serial">/ Sheet 00 · 2026</span></p>
             <h1 id="hero-title"><span class="outline">Systems</span> that<br/>show their <em>work<span class="period">.</span></em></h1>
-            <p class="hero-description">I'm Arthur Fay, a <strong>backend software engineer</strong> in New York. I build REST APIs and PostgreSQL-backed services in Python, write the SQL and the automated tests behind them, and publish my independent work with its <strong>source code, evidence and limits</strong>: forecasting research with the uncertainty left in, an executive analytics model explored in its own lab, and engineering labs that run in your browser.</p>
+            <p class="hero-description">I'm Arthur Fay, a <strong>backend software engineer</strong> in New York. I build Python REST APIs and PostgreSQL-backed services with automated tests and CI/CD, drawing on more than five years of regulated data operations. My independent work includes a contract-tested FastAPI research platform, a React/TypeScript dashboard, executive Power BI analytics and three interactive browser labs—all presented with <strong>source code, evidence and limits</strong>.</p>
             <div class="hero-buttons">
               <a class="button button-primary" href="#work">View projects <span aria-hidden="true">↓</span></a>
               <a class="button button-secondary" href="#experience">Experience &amp; education <span aria-hidden="true">↓</span></a>
@@ -91,7 +91,7 @@
               <dl class="hero-titleblock">
                 <div><dt>Role</dt><dd><a href="#experience">Backend Software Engineer I</a><small>Blue Sky Trading · New York, NY · since March 2026</small></dd></div>
                 <div><dt>Stack</dt><dd>Python · FastAPI · PostgreSQL · SQL<small>pytest · GitHub Actions · React &amp; TypeScript · Power BI</small></dd></div>
-                <div><dt>Education</dt><dd><a href="#education">B.S. Computer Science, in progress</a><small>Capella University · expected 2027 · A.S. Computer Science, BMCC (CUNY), 2024</small></dd></div>
+                <div><dt>Education</dt><dd><a href="#education">B.S. Computer Science, in progress</a><small>Capella University · degree in progress</small></dd></div>
                 <div><dt>Verify</dt><dd><a href="https://github.com/arthur-fay" target="_blank" rel="noopener noreferrer">github.com/arthur-fay <span aria-hidden="true">↗</span></a><small>Source code, tests and continuous integration for every project</small></dd></div>
               </dl>
             </div>
@@ -405,7 +405,7 @@
             <article class="record-entry" aria-labelledby="record-pharmacy">
               <div class="record-when"><span class="record-dates">Mar 2020 — Dec 2025</span><span class="record-kind">Employment</span></div>
               <div class="record-body">
-                <h3 id="record-pharmacy">Pharmacy Technician · Inventory Analysis &amp; Data Processing <small>21st Ave Pharmacy &amp; Medical Supply Inc. · New York, NY</small></h3>
+                <h3 id="record-pharmacy">Pharmacy Technician · Inventory Analysis &amp; Data Processing <small>21st Ave Pharmacy &amp; Medical Supply · New York, NY</small></h3>
                 <ul class="record-points">
                   <li>Processed and verified prescription, insurance and order data under <strong>HIPAA and accuracy-sensitive procedures</strong>, keeping a clean, audit-ready transaction record.</li>
                   <li>Designed Excel and Google Sheets tracking logic to flag shortages, delayed orders and unresolved exceptions early, prioritising vendor and pharmacist follow-up by severity.</li>
@@ -418,9 +418,9 @@
               <div class="record-body">
                 <h3 id="record-independent">Software &amp; analytics projects <small>Built outside employment · published on GitHub with tests and continuous integration</small></h3>
                 <ul class="record-points">
-                  <li><a href="#plate-atlas">ATLAS</a>: NYC 311 demand-forecasting research with a contract-tested FastAPI service, a typed React dashboard and a tested deployment package.</li>
-                  <li><a href="#plate-commerce">E-Commerce Executive Analytics</a>: a SQL, Python and Power BI dashboard project, explored in an interactive lab on this site.</li>
-                  <li>This portfolio, the <a href="#plate-pathfinding">Pathfinding Lab</a> and the <a href="#plate-security">Security Lab</a>: dependency-free pages whose continuous integration runs more than 300 unit and browser tests on every pull request.</li>
+                  <li><a href="#plate-atlas">ATLAS</a>: reproducible NYC 311 demand-forecasting research over 1,277 days, with seven models and 822 rolling backtests, a 14-operation FastAPI contract, a React 19/TypeScript dashboard and a container-tested deployment package. Measured model improvements are not robustly established; interval calibration failed.</li>
+                  <li><a href="#plate-commerce">E-Commerce Executive Analytics</a>: SQL/Python transformation and a Power BI dimensional model for 99K reported orders, with an interactive web lab for documented DAX, hypothetical what-if analysis and model exploration.</li>
+                  <li>This portfolio, the <a href="#plate-pathfinding">Pathfinding Lab</a> and the <a href="#plate-security">Security Lab</a>: dependency-free, accessibility-tested pages with strict content security, reduced-motion support and more than 300 automated unit and browser checks across the portfolio CI suite.</li>
                 </ul>
                 <ul class="record-tech" aria-label="Technologies"><li>Python</li><li>FastAPI</li><li>pytest</li><li>React · TypeScript</li><li>JavaScript</li><li>SQL · DAX</li><li>GitHub Actions</li></ul>
               </div>
@@ -431,14 +431,9 @@
               <h3 id="education-title">Education</h3>
               <ol class="edu-list">
                 <li class="edu-entry">
-                  <span class="edu-status edu-status-progress">In progress · expected 2027</span>
+                  <span class="edu-status edu-status-progress">In progress</span>
                   <h4>B.S. Computer Science</h4>
-                  <p><strong>Capella University</strong> · coursework in progress toward the bachelor's degree</p>
-                </li>
-                <li class="edu-entry">
-                  <span class="edu-status edu-status-done">Completed · August 2024</span>
-                  <h4>A.S. Computer Science</h4>
-                  <p><strong>Borough of Manhattan Community College</strong>, City University of New York</p>
+                  <p><strong>Capella University</strong> · B.S. Computer Science program</p>
                 </li>
               </ol>
             </section>
@@ -449,12 +444,12 @@
             <section class="record-card" aria-labelledby="stack-title">
               <h3 id="stack-title">Core stack</h3>
               <dl class="stack-groups">
-                <div class="stack-group"><dt>Backend</dt><dd><span>Python</span><span>FastAPI</span><span>Pydantic</span><span>REST API design</span><span>OpenAPI 3.1</span></dd></div>
+                <div class="stack-group"><dt>Backend</dt><dd><span>Python</span><span>FastAPI</span><span>Uvicorn</span><span>Pydantic</span><span>REST API design</span><span>OpenAPI 3.1</span><span>Contract testing</span></dd></div>
                 <div class="stack-group"><dt>Data</dt><dd><span>PostgreSQL</span><span>SQLite</span><span>SQL · CTEs · window functions</span><span>pandas</span><span>NumPy</span><span>SciPy</span></dd></div>
-                <div class="stack-group"><dt>Quality &amp; delivery</dt><dd><span>pytest</span><span>Hypothesis</span><span>mypy (strict)</span><span>Ruff</span><span>Playwright</span><span>GitHub Actions</span><span>Linux · systemd · nginx</span></dd></div>
-                <div class="stack-group"><dt>Analytics &amp; frontend</dt><dd><span>Power BI · DAX</span><span>Power Query</span><span>Excel</span><span>React</span><span>TypeScript</span><span>Vite</span><span>D3</span></dd></div>
+                <div class="stack-group"><dt>Quality &amp; delivery</dt><dd><span>pytest</span><span>Hypothesis</span><span>mypy (strict)</span><span>Ruff</span><span>Vitest</span><span>Playwright</span><span>axe-core</span><span>GitHub Actions</span><span>Docker</span><span>Linux · systemd · nginx</span></dd></div>
+                <div class="stack-group"><dt>Analytics &amp; frontend</dt><dd><span>Power BI · DAX</span><span>Power Query</span><span>Excel</span><span>Google Sheets</span><span>React 19</span><span>TypeScript</span><span>Vite</span><span>Zod</span><span>D3</span></dd></div>
               </dl>
-              <p class="record-note">Backend and data tools are in daily professional use or evidenced in the projects above; the full list is on the résumé, available on request.</p>
+              <p class="record-note">Selected technologies from my latest résumé and public projects. Professional use and independently evidenced implementations are distinct; details are available on request.</p>
             </section>
           </aside>
         </div>
@@ -491,7 +486,7 @@
             <p class="about-note">Every claim on this page points to public work or to the record above: four projects with their source code, three labs running live on this site, a test suite that re-runs the labs and checks their plate drawings against the results, and an employment and education record kept at résumé level.</p>
           </div>
           <div class="about-copy" data-reveal="late">
-            <p>I'm <strong>Arthur Fay</strong>, a backend software engineer in New York. At work I build REST APIs and PostgreSQL schemas for operational applications and write the SQL and automated tests behind them. Independently, I design and build software, data and research systems end to end: forecasting research, analytics models and executive dashboards, and interactive engineering labs with their own test suites. I am completing a B.S. in Computer Science at Capella University (expected 2027) after an A.S. in Computer Science from BMCC, CUNY (2024), and I am most interested in the part between an idea and a dependable, inspectable implementation.</p>
+            <p>I'm <strong>Arthur Fay</strong>, a backend software engineer in New York. At work I build REST APIs and PostgreSQL schemas for operational applications and write the SQL and automated tests behind them. Independently, I design and build software, data and research systems end to end: forecasting research, analytics models and executive dashboards, and interactive engineering labs with their own test suites. I am pursuing a B.S. in Computer Science at Capella University, and I am most interested in the part between an idea and a dependable, inspectable implementation.</p>
             <p><strong>The Architect Lab</strong> is where the independent work is drawn up. Each project is released with its source code, the evidence behind it and a plain statement of what it does not claim: ATLAS keeps its failed calibration in the record, and the three labs run entirely in your browser so every number can be checked on the spot.</p>
             <ul class="about-fields" aria-label="Fields of work">
               <li><span class="field-index" aria-hidden="true">01</span>Backend services &amp; REST APIs</li>
