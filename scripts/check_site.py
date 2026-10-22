@@ -198,8 +198,8 @@ def main() -> None:
         {"main", "work", "experience", "education", "about", "approach", "contact", "atlas-detail", "pathfinding-title", "security-title"},
         (
             "forecasting gains are not established", "failed calibration", "hypothetical",
-            # The record: the bachelor's degree stays marked as in progress, and employment is kept apart from independent work.
-            "In progress · expected 2027", "Completed · August 2024", "Independent work",
+            # The latest résumé lists only Capella; retain the previously stated in-progress status, not an unsupported graduation date.
+            "In progress", "Capella University", "Independent work",
             "No NYC-derived charts or datasets are hosted on this portfolio.",
             "Grid-based algorithm simulation, not a validated real-world robotics navigation system",
             "https://github.com/arthur-fay/demand-forecasting-model",
@@ -219,6 +219,8 @@ def main() -> None:
         assert f'href="#{plate}"' in hero_index.group(1), f"index.html: the hero's plate index must link directly to #{plate}"
     assert 'class="button button-primary" href="#work"' in folded_index, "index.html: the hero's primary call to action must lead to the projects"
     assert 'href="#experience"' in folded_index and 'href="#education"' in folded_index, "index.html: the hero must lead to the experience and education record"
+    for outdated in ("expected 2027", "BMCC", "Borough of Manhattan Community College", "A.S. Computer Science"):
+        assert outdated not in folded_index, f"index.html: latest résumé omits {outdated!r}; do not present it as current"
     for nav in re.findall(r'<nav class="(?:desktop|mobile)-nav"[^>]*>(.*?)</nav>', folded_index, re.S):
         assert 'href="#experience"' in nav, "index.html: both navigations must list the experience section"
     # Every ATLAS performance figure on the page sits next to its statistical qualification.
