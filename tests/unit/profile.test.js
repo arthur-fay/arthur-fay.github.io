@@ -43,25 +43,23 @@ describe('the professional record', () => {
   it('marks the bachelor\'s degree as in progress wherever a degree is mentioned', () => {
     const education = block('education');
     const entries = [...education.matchAll(/<li class="edu-entry">([\s\S]*?)<\/li>/g)].map((m) => text(m[1]));
-    assert.equal(entries.length, 2);
-    assert.match(entries[0], /In progress · expected 2027/);
+    assert.equal(entries.length, 1, 'latest résumé lists Capella only');
+    assert.match(entries[0], /In progress/);
     assert.match(entries[0], /B\.S\. Computer Science/);
     assert.match(entries[0], /Capella University/);
-    assert.doesNotMatch(entries[0], /Completed|graduated|earned/i);
-    assert.match(entries[1], /Completed · August 2024/);
-    assert.match(entries[1], /A\.S\. Computer Science/);
-    assert.match(entries[1], /Borough of Manhattan Community College/);
+    assert.doesNotMatch(entries[0], /Completed|graduated|earned|expected 2027/i);
     const hero = text(index.match(/<dl class="hero-titleblock">[\s\S]*?<\/dl>/)[0]);
     assert.match(hero, /B\.S\. Computer Science, in progress/);
-    assert.match(hero, /expected 2027/);
+    assert.doesNotMatch(hero, /expected 2027|BMCC|A\.S\. Computer Science/i, 'outdated education details omitted from latest résumé');
     const about = text(block('about'));
-    assert.match(about, /completing a B\.S\. in Computer Science at Capella University \(expected 2027\)/);
+    assert.match(about, /pursuing a B\.S\. in Computer Science at Capella University/);
+    assert.doesNotMatch(about, /expected 2027|BMCC|A\.S\. in Computer Science/i);
   });
 
   it('keeps the hero title block consistent with the record', () => {
     const hero = text(index.match(/<dl class="hero-titleblock">[\s\S]*?<\/dl>/)[0]);
     const record = text(block('experience'));
-    for (const fact of ['Backend Software Engineer I', 'Blue Sky Trading', 'New York, NY', 'Capella University', 'expected 2027']) {
+    for (const fact of ['Backend Software Engineer I', 'Blue Sky Trading', 'New York, NY', 'Capella University']) {
       assert.ok(hero.includes(fact) && record.includes(fact), `${fact} appears in the hero and the record`);
     }
     assert.match(hero, /since March 2026/);
