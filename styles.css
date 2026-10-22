@@ -407,6 +407,8 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
 .stack-group dt{font-size:10.5px;font-weight:700;color:var(--fine);margin:0 0 8px}
 .stack-group dd{margin:0;display:flex;flex-wrap:wrap;gap:6px}
 .stack-group dd span{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line2);padding:5px 8px;line-height:1.3}
+/* Practices are a sentence, not chips: the résumé states them as a line. */
+.stack-group-text dd{display:block;font-size:13px;line-height:1.6;color:var(--muted)}
 .record-note{font-size:12.5px;line-height:1.65;color:var(--fine);margin:16px 0 0}
 
 /* --------------------------------------------------------------------------
@@ -594,7 +596,8 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
   .case-footer{flex-direction:column;align-items:flex-start;gap:18px}
   .about-fields{grid-template-columns:1fr}
   .record-entry{padding:20px 18px 20px 0}
-  .record-when{padding-left:26px}
+  /* Dates and body share one left edge on phones, both 9px clear of the 16px hatch and its border. */
+  .record-when,.record-body{padding-left:26px}
   .record-body h3{font-size:22px}
   .record-card{padding:20px 18px 22px}
   .contact-top{flex-direction:column;gap:6px}
@@ -643,6 +646,8 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
 }
 @media (max-width:360px){
   .hero h1{font-size:40px}
+  /* "In progress · expected Jan 2027" stays on one line inside the education card at 320px. */
+  .edu-status{font-size:10px;letter-spacing:.07em}
   .stat-number{font-size:32px}
   .stat{gap:12px}
 }
