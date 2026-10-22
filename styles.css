@@ -31,7 +31,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visi
 .skip-link:focus{transform:none}
 .reading-progress{position:fixed;top:0;left:0;z-index:120;height:2px;width:0;background:var(--accent);pointer-events:none;transition:width .1s linear}
 .site-shell{overflow:clip;position:relative}
-.mono,.eyebrow,.section-index,.stat-description,.plate-head,.cut-tab-num,.cut-tab-kind,.stratum-index,.stratum-tech li,.tag-list span,.filter-button,.figure-row,.hero-fields,.case-block-num,.principle-top,.footer-note,.footer-block dt,.contact-top span,.project-num,.project-label,.case-eyebrow,.plate-facts dt{font-family:var(--font-mono);letter-spacing:.12em;text-transform:uppercase}
+.mono,.eyebrow,.section-index,.stat-description,.plate-head,.cut-tab-num,.cut-tab-kind,.stratum-index,.stratum-tech li,.tag-list span,.filter-button,.figure-row,.hero-titleblock dt,.record-dates,.record-kind,.record-tech li,.record-card h3,.edu-status,.stack-group dt,.contact-roles li,.case-block-num,.principle-top,.footer-note,.footer-block dt,.contact-top span,.project-num,.project-label,.case-eyebrow,.plate-facts dt{font-family:var(--font-mono);letter-spacing:.12em;text-transform:uppercase}
 em.ink,.hero h1 em,.section-heading h2 em,.case-study-main h2 em,.about-heading h2 em,.contact-card h2 em,.lab-hero h1 em{font-style:italic;font-weight:400;color:var(--accent)}
 .period{font-style:normal;color:var(--text)}
 .contact-card h2 .period{color:inherit}
@@ -120,7 +120,7 @@ html[data-theme="light"] .theme-icon-sun{display:none}
 .hero-description strong{color:var(--text);font-weight:500}
 .hero-buttons{display:flex;flex-wrap:wrap;gap:12px}
 .hero .hero-buttons{align-items:center;gap:12px 22px}
-.hero-github{margin-left:4px}
+.hero-link{margin-left:4px}
 .hero-index-row{margin:40px 0 0;padding-top:18px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:flex-start;gap:2px 20px;font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
 .hero-index-label{color:var(--accent);font-weight:700;padding:7px 0}
 .hero-index{list-style:none;margin:0;padding:0;min-width:0;display:flex;flex-wrap:wrap;gap:2px 20px}
@@ -130,8 +130,17 @@ html[data-theme="light"] .theme-icon-sun{display:none}
 .hero-index a:hover,.hero-index a:focus-visible{color:var(--accent)}
 .hero-index a:hover::after,.hero-index a:focus-visible::after{transform:scaleX(1)}
 .hero-index-num{color:var(--accent)}
-.hero-fields{margin:10px 0 0;display:flex;flex-wrap:wrap;gap:8px 22px;font-size:11px;color:var(--fine);font-weight:600}
-.hero-fields span:first-child{color:var(--accent)}
+/* Title block: the drawing-sheet convention for the facts a reader needs first (role, stack, education, where to verify). */
+.hero-titleblock-wrap{margin:30px 0 0}
+.hero-titleblock{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;margin:0;background:var(--line);border:1px solid var(--line)}
+.hero-titleblock>div{position:relative;min-width:0;padding:14px 16px 15px;background:color-mix(in srgb,var(--surface) 92%,transparent)}
+.hero-titleblock>div::before{content:"";position:absolute;left:0;top:0;width:22px;height:2px;background:var(--accent)}
+.hero-titleblock dt{font-size:10.5px;font-weight:700;color:var(--fine);margin:0 0 7px}
+.hero-titleblock dd{margin:0;font-family:var(--font-display);font-size:19px;letter-spacing:-.015em;line-height:1.25;color:var(--text);overflow-wrap:anywhere}
+.hero-titleblock dd a{color:inherit;text-decoration:underline;text-decoration-color:var(--line2);text-underline-offset:4px;transition:text-decoration-color var(--fast)}
+.hero-titleblock dd a:hover,.hero-titleblock dd a:focus-visible{text-decoration-color:var(--accent)}
+.hero-titleblock dd a span{color:var(--accent);font-family:var(--font-body);font-size:16px}
+.hero-titleblock dd small{display:block;font-family:var(--font-body);font-size:12.5px;line-height:1.55;letter-spacing:0;color:var(--muted);margin-top:6px}
 .hero-figure{margin:0;position:relative;background:color-mix(in srgb,var(--surface) 90%,transparent);padding:18px 20px 20px;box-shadow:var(--shadow)}
 .figure-row{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:11px;font-weight:700;color:var(--fine)}
 .figure-row b{color:var(--accent);font-weight:700}
@@ -348,6 +357,59 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
 .case-footer p{font-size:13px;line-height:1.65;color:var(--fine);max-width:40ch;margin:0}
 
 /* --------------------------------------------------------------------------
+   Experience & education: the record, drawn as a schedule (employment entries
+   with a hatched margin like the strata; education, languages and the stack
+   as cards). Hatched status chip = in progress; solid = completed.
+   -------------------------------------------------------------------------- */
+.record{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:28px;align-items:start}
+.record-main{border:1px solid var(--line);background:var(--surface)}
+.record-entry{position:relative;display:grid;grid-template-columns:200px minmax(0,1fr);gap:8px 28px;padding:26px 28px 26px 0;border-top:1px solid var(--line);transition:background var(--fast)}
+.record-entry:first-child{border-top:0}
+.record-entry::before{content:"";position:absolute;left:0;top:0;bottom:0;width:16px;background-image:repeating-linear-gradient(-45deg,transparent 0 5px,var(--hatch) 5px 6px);border-right:1px solid var(--line)}
+.record-entry:hover,.record-entry:focus-within{background:color-mix(in srgb,var(--surface2) 70%,transparent)}
+.record-entry:hover::before,.record-entry:focus-within::before{background-image:repeating-linear-gradient(-45deg,transparent 0 5px,var(--accent) 5px 6px);opacity:.9}
+.record-entry-independent::before{background-image:repeating-linear-gradient(-45deg,transparent 0 5px,color-mix(in srgb,var(--cyan) 55%,var(--hatch)) 5px 6px)}
+.record-when{padding-left:30px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.record-dates{font-size:11px;font-weight:700;color:var(--text);line-height:1.6}
+.record-dates::after{content:"";display:block;width:22px;height:1px;background:var(--line2);margin-top:8px}
+.record-kind{font-size:10.5px;font-weight:700;color:var(--accent)}
+.record-kind-independent{color:var(--cyan)}
+.record-body{min-width:0}
+.record-body h3{font-family:var(--font-display);font-weight:400;font-size:clamp(22px,2vw,27px);letter-spacing:-.02em;line-height:1.15;margin:0;text-wrap:balance}
+.record-body h3 small{display:block;font-family:var(--font-body);font-size:14px;letter-spacing:0;line-height:1.5;color:var(--muted);margin-top:8px;text-wrap:initial}
+.record-points{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
+.record-points li{position:relative;padding-left:18px;font-size:14.5px;line-height:1.65;color:var(--muted)}
+.record-points li::before{content:"";position:absolute;left:0;top:.75em;width:8px;height:1px;background:var(--accent)}
+.record-points strong{color:var(--text);font-weight:600}
+.record-points a{color:var(--text);font-weight:600;text-decoration:underline;text-decoration-color:var(--line2);text-underline-offset:3px;transition:text-decoration-color var(--fast)}
+.record-points a:hover,.record-points a:focus-visible{text-decoration-color:var(--accent)}
+.record-tech{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.record-tech li{font-size:11px;color:var(--muted);border:1px solid var(--line2);padding:5px 8px;line-height:1.3;white-space:nowrap}
+.record-aside{display:grid;gap:20px;align-content:start}
+.record-card{border:1px solid var(--line);background:var(--surface);padding:22px 24px 24px}
+.record-card h3{display:flex;align-items:center;gap:14px;font-size:11px;font-weight:700;color:var(--accent);margin:0 0 18px}
+.record-card h3::after{content:"";flex:1;height:1px;background:var(--line)}
+.edu-list{list-style:none;margin:0;padding:0;display:grid;gap:18px}
+.edu-entry{padding-top:18px;border-top:1px solid var(--line)}
+.edu-entry:first-child{padding-top:0;border-top:0}
+.edu-status{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;font-weight:700;line-height:1.2;padding:5px 9px;border:1px solid var(--line2);color:var(--text);margin-bottom:12px}
+.edu-status::before{content:"";width:8px;height:8px;border:1px solid currentColor;flex-shrink:0}
+.edu-status-progress{border-color:var(--cyan);color:var(--cyan)}
+.edu-status-progress::before{background:repeating-linear-gradient(45deg,currentColor 0 2px,transparent 2px 4px)}
+.edu-status-done{border-color:var(--accent);color:var(--accent)}
+.edu-status-done::before{background:currentColor}
+.edu-entry h4{font-family:var(--font-display);font-weight:400;font-size:22px;letter-spacing:-.02em;line-height:1.15;margin:0}
+.edu-entry p{margin:6px 0 0;font-size:14px;line-height:1.55;color:var(--muted)}
+.edu-entry p strong{color:var(--text);font-weight:600}
+.record-languages{margin:0;font-size:15px;line-height:1.6;color:var(--text)}
+.stack-groups{display:grid;gap:14px;margin:0}
+.stack-group{min-width:0}
+.stack-group dt{font-size:10.5px;font-weight:700;color:var(--fine);margin:0 0 8px}
+.stack-group dd{margin:0;display:flex;flex-wrap:wrap;gap:6px}
+.stack-group dd span{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line2);padding:5px 8px;line-height:1.3}
+.record-note{font-size:12.5px;line-height:1.65;color:var(--fine);margin:16px 0 0}
+
+/* --------------------------------------------------------------------------
    Method (specification sheet)
    -------------------------------------------------------------------------- */
 .principles-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
@@ -375,8 +437,8 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
 .about-fields{list-style:none;margin:28px 0 0;padding:22px 0 0;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:10px 24px}
 .about-fields li{display:flex;gap:12px;align-items:baseline;font-size:14.5px;color:var(--text)}
 .about-fields .field-index{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;color:var(--accent);flex-shrink:0}
-.about-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:26px}
-.about-tags span{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line2);padding:7px 10px}
+.about-tags{list-style:none;padding:0;display:flex;gap:8px;flex-wrap:wrap;margin:26px 0 0}
+.about-tags li{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line2);padding:7px 10px}
 .about-aside{display:flex;flex-direction:column;gap:22px}
 .about-heading h2{margin-bottom:18px}
 .about-note{font-size:13px;line-height:1.65;color:var(--fine);border-left:2px solid var(--line2);padding-left:14px;margin:0;max-width:42ch}
@@ -396,6 +458,13 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
 .contact-card .button-primary{background:var(--on-accent);color:var(--accent);border-color:var(--on-accent)}
 .contact-card .button-primary span{color:inherit}
 .contact-card .button-primary:hover{background:color-mix(in srgb,var(--on-accent) 85%,var(--accent))}
+.contact-roles{list-style:none;margin:0 0 26px;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.contact-roles li{font-size:11px;font-weight:700;color:inherit;border:1px solid color-mix(in srgb,var(--on-accent) 45%,transparent);padding:6px 10px;line-height:1.3}
+.contact-actions{display:flex;flex-wrap:wrap;gap:12px}
+.contact-card .button-outline{border-color:color-mix(in srgb,var(--on-accent) 55%,transparent);color:inherit}
+.contact-card .button-outline span{color:inherit}
+.contact-card .button-outline:hover{border-color:var(--on-accent)}
+.contact-card .button:focus-visible{outline-color:var(--on-accent)}
 .channel-list{list-style:none;margin:0;padding:0;border-top:1px solid color-mix(in srgb,var(--on-accent) 30%,transparent)}
 .channel-list li{border-bottom:1px solid color-mix(in srgb,var(--on-accent) 30%,transparent)}
 .channel-list a{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;align-items:center;padding:16px 0;color:inherit;transition:padding-left var(--fast) var(--ease)}
@@ -441,14 +510,31 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
    Responsive
    -------------------------------------------------------------------------- */
 @media (max-width:1180px){
+  /* Six primary links plus the wordmark and the actions: the header GitHub button yields first (GitHub stays in the hero, the contact block and the footer), so the full navigation fits wider system fonts (DejaVu Sans is about 15% wider than Inter) from 1001px up. */
+  .header-github{display:none}
   .desktop-nav{gap:22px}
+  .record{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr)}
+  .record-entry{grid-template-columns:176px minmax(0,1fr);gap:8px 22px}
   .hero-inner{grid-template-columns:minmax(0,1fr) minmax(0,.9fr)}
   .cut{grid-template-columns:250px minmax(0,1fr)}
   .stratum{grid-template-columns:64px minmax(0,1fr) minmax(0,180px)}
   .footer-blocks{grid-template-columns:1.2fr 1fr 1fr 1fr}
 }
+@media (max-width:1000px){
+  .desktop-nav,.header-github{display:none}
+  .menu-toggle{display:flex}
+  .mobile-nav:not([hidden]){display:flex;flex-direction:column;position:absolute;top:var(--header-h);left:0;right:0;max-height:calc(100svh - var(--header-h));overflow-y:auto;background:var(--bg);border-bottom:1px solid var(--line);padding:10px var(--gutter) 28px;box-shadow:var(--shadow);animation:menu-in .3s var(--ease)}
+  .mobile-nav a{display:flex;align-items:baseline;gap:14px;padding:16px 0;border-bottom:1px solid var(--line);font-family:var(--font-display);font-size:26px;letter-spacing:-.02em;color:var(--text)}
+  .mobile-nav a .nav-index{font-size:11px;letter-spacing:.12em;color:var(--accent)}
+  .mobile-nav a:last-child{border-bottom:0}
+  @keyframes menu-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+}
 @media (max-width:980px){
   .hero-inner{grid-template-columns:1fr;gap:44px;min-height:0;padding-top:56px}
+  .record{grid-template-columns:1fr;gap:20px}
+  .record-entry{grid-template-columns:1fr;gap:10px;padding:22px 22px 22px 0}
+  .record-when{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:6px 18px}
+  .record-dates::after{display:none}
   .hero-figure{max-width:680px}
   .hero::before{-webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 60%,#000 10%,transparent 75%);mask-image:radial-gradient(ellipse 80% 60% at 50% 60%,#000 10%,transparent 75%)}
   .section-heading{grid-template-columns:1fr;gap:18px;align-items:start}
@@ -476,13 +562,6 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
 }
 @media (max-width:780px){
   html{scroll-padding-top:calc(var(--header-h) + 8px)}
-  .desktop-nav,.header-github{display:none}
-  .menu-toggle{display:flex}
-  .mobile-nav:not([hidden]){display:flex;flex-direction:column;position:absolute;top:var(--header-h);left:0;right:0;max-height:calc(100svh - var(--header-h));overflow-y:auto;background:var(--bg);border-bottom:1px solid var(--line);padding:10px var(--gutter) 28px;box-shadow:var(--shadow);animation:menu-in .3s var(--ease)}
-  .mobile-nav a{display:flex;align-items:baseline;gap:14px;padding:16px 0;border-bottom:1px solid var(--line);font-family:var(--font-display);font-size:26px;letter-spacing:-.02em;color:var(--text)}
-  .mobile-nav a .nav-index{font-size:11px;letter-spacing:.12em;color:var(--accent)}
-  .mobile-nav a:last-child{border-bottom:0}
-  @keyframes menu-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
   .hero-inner{padding-top:44px;padding-bottom:48px;gap:36px}
   .hero h1{font-size:clamp(46px,11.5vw,76px)}
   .hero-description{font-size:17px}
@@ -511,6 +590,10 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
   .case-columns{grid-template-columns:1fr;gap:24px}
   .case-footer{flex-direction:column;align-items:flex-start;gap:18px}
   .about-fields{grid-template-columns:1fr}
+  .record-entry{padding:20px 18px 20px 0}
+  .record-when{padding-left:26px}
+  .record-body h3{font-size:22px}
+  .record-card{padding:20px 18px 22px}
   .contact-top{flex-direction:column;gap:6px}
   .footer-blocks{grid-template-columns:1fr}
   .footer-block{padding:20px 0}
@@ -530,7 +613,9 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
   .hero-buttons{flex-direction:column}
   .hero .hero-buttons{gap:12px}
   .hero-buttons .button{width:100%}
-  .hero-github{margin:4px 0 0;justify-content:center}
+  .hero-link{margin:4px 0 0;justify-content:center}
+  .hero-titleblock{grid-template-columns:1fr}
+  .hero-titleblock dd{font-size:18px}
   .eyebrow{font-size:10.5px;gap:8px 10px}
   .iso-legend{grid-template-columns:1fr 1fr}
   .figure-dim{display:none}
@@ -549,6 +634,8 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
   .project-links{flex-direction:column;align-items:flex-start;gap:14px}
   .case-study-big{font-size:68px}
   .contact-card .button{width:100%}
+  .record-body h3{font-size:21px}
+  .edu-entry h4{font-size:20px}
   .channel-name{font-size:18px}
 }
 @media (max-width:360px){

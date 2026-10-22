@@ -1,12 +1,12 @@
 # Arthur Fay — The Architect Lab
 
-A responsive, accessible, dependency-free engineering portfolio served at **https://arthur-fay.github.io/** using GitHub Pages. The homepage is designed as a drafted monograph: numbered project plates with figures and captions, an interactive section cut through each system's architecture, an animated isometric system drawing in the hero, and title-block contact and footer blocks. See [docs/REDESIGN_2026-10.md](docs/REDESIGN_2026-10.md) for the audit, the creative direction, the measurements and the remaining limitations.
+A responsive, accessible, dependency-free engineering portfolio served at **https://arthur-fay.github.io/** using GitHub Pages. It presents Arthur Fay, a backend software engineer (Python, FastAPI, PostgreSQL, SQL), through four public projects, an employment and education record, and a contact title block. The homepage is designed as a drafted monograph: numbered project plates with figures and captions, an interactive section cut through each system's architecture, an animated isometric system drawing in the hero, a title block of profile facts, a schedule-style record of experience and education, and title-block contact and footer blocks. See [docs/REDESIGN_2026-10.md](docs/REDESIGN_2026-10.md) for the redesign's audit, creative direction and measurements, and [docs/PROFILE_ALIGNMENT_2026-10.md](docs/PROFILE_ALIGNMENT_2026-10.md) for the professional-profile update, the résumé audit against the repositories, and the privacy decisions.
 
 **Status:** The portfolio is served from `main` by GitHub Pages. New work is prepared on review branches and pull requests; the owner controls whether and when to merge, and merging into `main` publishes the change.
 
 ## Featured work
 
-**01 · ATLAS — Decision Intelligence & Optimization Engine** ([source](https://github.com/arthur-fay/demand-forecasting-model)). Research software for historical NYC 311 demand forecasting, scientific evaluation, uncertainty analysis, and HYPOTHETICAL mathematical optimization. The site does **not** host ATLAS's static dashboard, datasets, projections, or NYC-derived charts. Its forecasting advantage is not robustly established and its prediction intervals have FAILED_CALIBRATION. The MIT license for original ATLAS source code is separate from NYC Open Data terms.
+**01 · ATLAS — Decision Intelligence & Forecasting Research** ([source](https://github.com/arthur-fay/demand-forecasting-model)). Reproducible research software for NYC 311 demand forecasting, scientific evaluation, uncertainty analysis and HYPOTHETICAL mathematical optimization: a hash-verified snapshot of daily counts (2023-01-01 to 2026-06-30), seven models backtested at 822 rolling origins under a pre-registered protocol, a FastAPI service with 14 versioned endpoints and a committed OpenAPI 3.1 contract, a React 19 and TypeScript dashboard typed from that contract, and a systemd/nginx deployment package tested in a disposable container (not deployed). The homepage states the selected model's error reduction (28 % below seasonal naive, 11 % below the best simple baseline) only together with its qualification: the lead is not statistically established (Holm-adjusted p 0.054 against the baseline) and the prediction intervals have FAILED_CALIBRATION. The site does **not** host ATLAS's static dashboard, datasets, projections, or NYC-derived charts. The MIT license for original ATLAS source code is separate from NYC Open Data terms.
 
 **02 · E-Commerce Executive Analytics Dashboard** ([source](https://github.com/arthur-fay/customer-revenue-analytics), [interactive lab](https://arthur-fay.github.io/lab/ecommerce/), [lab documentation](lab/ecommerce/README.md)). Real public SQL, Python/Colab, Power BI and DAX analytics project. The site's **E-Commerce Executive Analytics Lab** republishes the README's six rounded KPIs with the five DAX definitions it publishes, compares the two documented leading categories, runs a what-if simulator whose every output is labelled hypothetical, and walks through the documented dimensional model and the report wiring read from the published Power BI file. Every figure carries its provenance (published, exported, derived or hypothetical); no transaction, monthly value or customer record is reconstructed. Actual project files and screenshots remain in the source repository. The analytics engine is a pure module covered by unit tests; the page is covered by Playwright browser tests.
 
@@ -14,7 +14,11 @@ A responsive, accessible, dependency-free engineering portfolio served at **http
 
 **04 · Security Event Detection & Investigation Lab** ([live page](https://arthur-fay.github.io/lab/security-events/), [documentation](lab/security-events/README.md)). A defensive, dependency-free, browser-only security monitoring simulator on **synthetic events only**: a seeded generator plants labelled scenarios (brute force, password spray, distributed failures, forgetful users, shared gateways, misconfigured clients) on top of routine sign-ins; three explainable sliding-window rules with configurable thresholds raise alerts; the timeline replays with play/pause/step/reset; every alert opens an investigation view; precision and recall are scored against the synthetic ground truth, and two threshold sets can be compared. Pseudonymous accounts, reserved documentation IP ranges, no real systems, no telemetry, strict schema for optional local JSON import. It is not a production SIEM and scores on synthetic scenarios do not establish real-world detection accuracy. The engine is a pure module covered by unit tests (including independent reference implementations of the rules); the page is covered by Playwright browser tests.
 
-No professional employment history, degrees, LinkedIn URL, email address, or awards are asserted or fabricated. Add them after verifying details and obtaining consent to publish contact information.
+## Professional profile
+
+The homepage carries the owner's professional record at résumé level, as provided by the owner in October 2026 and recorded in [docs/PROFILE_ALIGNMENT_2026-10.md](docs/PROFILE_ALIGNMENT_2026-10.md): Backend Software Engineer I at Blue Sky Trading (New York, NY, since March 2026); Pharmacy Technician — Inventory Analysis & Data Processing at 21st Ave Pharmacy & Medical Supply Inc. (March 2020 to December 2025); a B.S. in Computer Science at Capella University **in progress, expected 2027**; an A.S. in Computer Science from Borough of Manhattan Community College, CUNY (August 2024); languages. Employment entries describe responsibilities only: no internal systems, databases, records, figures or proprietary material. Independent projects are listed apart from employment. Nothing beyond that record (awards, certifications, references) is asserted.
+
+**Contact details.** GitHub is the only contact channel committed to this repository. The owner's e-mail address, phone number, LinkedIn URL and résumé file are deliberately **not** committed: public branches are visible before merging, and `scripts/check_site.py` fails if a phone number, an e-mail address or a `mailto:`/`tel:` link appears on any page. To publish an e-mail or LinkedIn link after the owner's explicit decision: add the link to the contact title block in `index.html`, allow its host in the outbound-link policy of `scripts/check_site.py` (only `github.com` is allowed today) and relax the contact guard there in the same commit, then record the decision in the pull request.
 
 ## Architecture
 
@@ -39,6 +43,8 @@ python -m http.server 8000
 ```
 
 Then visit `http://localhost:8000` (portfolio), `http://localhost:8000/lab/ecommerce/` (analytics lab), `http://localhost:8000/lab/pathfinding/` (pathfinding lab) and `http://localhost:8000/lab/security-events/` (security lab). Avoid opening `file://` URLs: absolute asset paths and ES modules need an HTTP origin, as on GitHub Pages.
+
+The shared header shows its full navigation from 1001 px up and the menu button below that (six primary links on the homepage no longer fit beside the wordmark and the actions on narrower screens); the header's GitHub button appears from 1181 px up so the navigation also fits wider system fonts.
 
 ## Checks and tests
 
@@ -72,13 +78,13 @@ The homepage links directly to the underlying material in addition to each proje
 | Pathfinding Lab | [Interactive lab](https://arthur-fay.github.io/lab/pathfinding/), [algorithm implementation](lab/pathfinding/pathfinding.js), [methods and tests](lab/pathfinding/README.md) | Grid-based demonstration, not validated physical robot navigation. |
 | Security Events Lab | [Interactive lab](https://arthur-fay.github.io/lab/security-events/), [detection engine](lab/security-events/detection.js), [methods and tests](lab/security-events/README.md) | Synthetic-only educational demonstration, not a production SIEM or real-world accuracy study. |
 
-See [the October 2026 recruiter-readiness audit](docs/PORTFOLIO_AUDIT_2026-10.md) for the reviewed scope, changes, unresolved gaps and validation plan. No employment history, degree, skills rating, personal contact method or performance figure is implied without supporting evidence.
+See [the October 2026 recruiter-readiness audit](docs/PORTFOLIO_AUDIT_2026-10.md) for the reviewed scope, changes, unresolved gaps and validation plan, and [the profile alignment record](docs/PROFILE_ALIGNMENT_2026-10.md) for the résumé audit. Employment and education are stated as the owner provided them; no skills rating, personal contact method or performance figure is implied without supporting evidence.
 
 ## Edits to make next
 
-- Provide a real LinkedIn URL to add a verified link.
-- Choose whether to publish a professional email address or a safe contact form managed by a service you explicitly authorize.
-- Supply an optional portrait, resume, and actual project screenshots (ensure rights to use them).
+- Decide whether to publish the LinkedIn URL and a professional e-mail address (see "Contact details" above); both are left out until then.
+- Supply an optional portrait or a downloadable résumé only after deciding what personal information the public repository may hold.
+- Update the record when a role, a degree or its expected date changes; the bachelor's degree is shown as in progress until it is conferred.
 - Add future projects only after they have real source links and verifiable descriptions.
 - Consider custom domain only if useful; it's optional and may cost money.
 
