@@ -303,6 +303,84 @@ describe('portfolio: motion, hero drawing and reveals', () => {
   }
 });
 
+describe('portfolio: project scanning and evidence-first actions', () => {
+  const targets = {
+    atlas: 'https://github.com/arthur-fay/demand-forecasting-model/blob/main/docs/API.md',
+    commerce: '/lab/ecommerce/',
+    pathfinding: '/lab/pathfinding/',
+    security: '/lab/security-events/',
+  };
+
+  for (const width of [1280, 1440, 1920]) {
+    it(`at ${width}px, every plate has an early verified action and readable specification rows`, async () => {
+      const { page, problems, close } = await open('/', { viewport: { width, height: 900 } });
+      try {
+        for (const [id, href] of Object.entries(targets)) {
+          const plate = page.locator(`#plate-${id}`);
+          assert.equal(await plate.locator('.project-entry-link').getAttribute('href'), href);
+          assert.equal(await plate.locator('.project-entry').count(), 1);
+          const geometry = await plate.evaluate((root) => {
+            const rect = (selector) => root.querySelector(selector).getBoundingClientRect();
+            const disclosure = rect('.project-disclosure');
+            const action = rect('.project-entry');
+            const facts = rect('.plate-facts');
+            const body = rect('.project-body');
+            const rows = [...root.querySelectorAll('.plate-facts > div')].map((element) => {
+              const box = element.getBoundingClientRect();
+              const label = element.querySelector('dt').getBoundingClientRect();
+              const detail = element.querySelector('dd').getBoundingClientRect();
+              return { top: box.top, labelRight: label.right, detailLeft: detail.left, detailRight: detail.right };
+            });
+            return { disclosureBottom: disclosure.bottom, actionTop: action.top, actionBottom: action.bottom, factsTop: facts.top,
+              actionLeft: action.left, actionRight: action.right, bodyLeft: body.left, bodyRight: body.right,
+              columnCount: getComputedStyle(root.querySelector('.plate-facts')).gridTemplateColumns.trim().split(/\\s+/).length,
+              rows };
+          });
+          assert.ok(geometry.disclosureBottom <= geometry.actionTop + 1, `${id}: evidence action comes after the disclosure`);
+          assert.ok(geometry.actionBottom <= geometry.factsTop + 1, `${id}: evidence action comes before the long specification`);
+          assert.ok(geometry.actionLeft >= geometry.bodyLeft - 1 && geometry.actionRight <= geometry.bodyRight + 1, `${id}: action fits its card`);
+          assert.equal(geometry.columnCount, 1, `${id}: desktop facts use one readable column of rows`);
+          assert.equal(geometry.rows.length, 4);
+          for (let i = 0; i < geometry.rows.length; i += 1) {
+            const row = geometry.rows[i];
+            assert.ok(row.detailLeft >= row.labelRight + 8, `${id}: label and detail have a clear gutter`);
+            assert.ok(row.detailRight <= geometry.bodyRight + 1, `${id}: detail stays inside the card`);
+            if (i) assert.ok(row.top > geometry.rows[i - 1].top, `${id}: rows read sequentially`);
+          }
+        }
+        assert.match(await page.locator('#plate-atlas .project-entry').innerText(), /No public live ATLAS deployment/);
+        assert.deepEqual(problems, []);
+      } finally {
+        await close();
+      }
+    });
+  }
+
+  for (const width of [320, 375, 768]) {
+    it(`at ${width}px, the same project actions remain readable without overflow`, async () => {
+      const { page, problems, close } = await open('/', { viewport: { width, height: 850 } });
+      try {
+        for (const [id, href] of Object.entries(targets)) {
+          const plate = page.locator(`#plate-${id}`);
+          assert.equal(await plate.locator('.project-entry-link').getAttribute('href'), href);
+          const rects = await plate.evaluate((root) => {
+            const outer = root.querySelector('.project-body').getBoundingClientRect();
+            const action = root.querySelector('.project-entry').getBoundingClientRect();
+            const link = root.querySelector('.project-entry-link').getBoundingClientRect();
+            return { left: outer.left, right: outer.right, actionLeft: action.left, actionRight: action.right, linkLeft: link.left, linkRight: link.right };
+          });
+          assert.ok(rects.actionLeft >= rects.left - 1 && rects.actionRight <= rects.right + 1, `${id}: mobile action stays within the card`);
+          assert.ok(rects.linkLeft >= rects.left - 1 && rects.linkRight <= rects.right + 1, `${id}: mobile link stays within the card`);
+        }
+        assert.ok((await overflow(page)) <= 1);
+        assert.deepEqual(problems, []);
+      } finally {
+        await close();
+      }
+    });
+  }
+});
+
 describe('portfolio: recruiter path and evidence-based claims', () => {
   it('leads from the hero straight to the four plates and keeps the section-cut explorer', async () => {
     const { page, close } = await open('/');
