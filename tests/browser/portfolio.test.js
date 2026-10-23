@@ -407,7 +407,7 @@ describe('portfolio: desktop-first hero hierarchy', () => {
         assert.ok(layout.primary.bottom <= 900 && layout.secondary.bottom <= 900, 'recruiter actions are above the desktop fold');
         assert.ok(Math.abs(layout.primary.top - layout.secondary.top) <= 2, 'the two recruiter actions share one clear primary row');
         assert.ok(layout.subtle.top >= layout.primary.bottom, 'quiet exploration links follow primary actions');
-        assert.ok(layout.art.left >= layout.strap.right - 5 || layout.art.left >= 0, 'the technical drawing remains within the desktop composition');
+        assert.ok(layout.art.left >= layout.strap.right - 5, 'the technical drawing remains beside the introductory copy');
         assert.ok(layout.art.right <= layout.viewport + 1, 'the drawing is not clipped');
         assert.ok(layout.headerLinks.length === 6 && layout.headerLinks.every(n => n >= 40), 'six desktop navigation links have comfortably sized focus targets');
         assert.ok((await overflow(page)) <= 1);
