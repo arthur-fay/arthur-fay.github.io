@@ -21,7 +21,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const css = readFileSync(path.join(ROOT, 'styles.css'), 'utf8');
 const section = (start, end) => css.slice(css.indexOf(start), css.indexOf(end, css.indexOf(start)) + end.length);
 
-const FIELDS = ['Backend engineering', 'APIs & databases', 'Data analytics', 'Interactive labs'];
+const FIELDS = ['Backend & REST APIs', 'PostgreSQL', 'React & TypeScript', 'Testing & CI/CD'];
 
 export function renderCardHtml() {
   const tokens = section(':root{', '}');
@@ -55,7 +55,7 @@ ${drawing}
 <div class="grid"></div><div class="frame"></div>
 <div class="mark"><svg viewBox="0 0 42 42" aria-hidden="true"><rect class="box" x=".5" y=".5" width="41" height="41" fill="none" stroke-width="1"/><path d="M10.5 31.5 21 10.5l10.5 21" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path class="pen" d="M15 24.5h20.5M33 21v7" fill="none" stroke-width="2"/></svg><span class="mark-name">Arthur Fay<span class="mark-sub">The Architect Lab</span></span></div>
 <h1><span class="outline">Systems</span> that<br>show their <em>work<span class="period">.</span></em></h1>
-<p class="lead">Backend software engineer. Python, FastAPI, PostgreSQL and SQL; systems published with their source code, their evidence and their limits.</p>
+<p class="lead">Software engineer: Python, TypeScript/React, FastAPI, PostgreSQL, REST APIs, CI/CD. Systems published with their source code, their evidence and their limits.</p>
 <div class="art">${renderHeroSection()}</div>
 <div class="rule"></div>
 <div class="foot"><div><b>Work</b>${FIELDS.map((f) => `<span>${f}</span>`).join('')}</div><div>arthur-fay.github.io</div></div>

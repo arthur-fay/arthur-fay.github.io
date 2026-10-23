@@ -333,16 +333,18 @@ describe('portfolio: recruiter path and evidence-based claims', () => {
     const { page, close } = await open('/');
     try {
       const text = (await page.locator('body').innerText()).toLowerCase();
-      assert.ok(!text.includes('artificial intelligence') && !/\bai\b/.test(text), 'no unsupported artificial-intelligence claim');
+      // The résumé's practice "AI-assisted development gated by human review, tests and CI" is the one permitted mention; no field of work is claimed.
+      assert.ok(!text.includes('artificial intelligence') && !/\bai\b/.test(text.replace(/ai-assisted development/g, '')), 'no unsupported artificial-intelligence claim');
       const about = (await page.locator('#about').innerText()).toLowerCase();
       assert.ok(!/no employment|degrees|certifications|awards/.test(about), 'the about section no longer leads with what is not claimed');
       assert.ok(about.includes('public work') && about.includes('source code'), 'the about note points to the verifiable record');
       assert.deepEqual(await page.$$eval('.hero-titleblock dt', (dts) => dts.map((dt) => dt.textContent.trim())), ['Role', 'Stack', 'Education', 'Verify']);
-      assert.deepEqual(await page.$$eval('.about-fields li', (items) => items.map((li) => li.textContent.replace(/^\d+/, '').trim())), ['Backend services & REST APIs', 'Relational data modelling & SQL', 'Automated testing & CI/CD', 'Forecasting & statistical evaluation', 'Analytics & business intelligence', 'Interactive engineering labs']);
+      assert.deepEqual(await page.$$eval('.about-fields li', (items) => items.map((li) => li.textContent.replace(/^\d+/, '').trim())), ['Backend services & REST APIs', 'Database engineering & SQL', 'Frontend development & accessible interfaces', 'Automated testing & CI/CD', 'Forecasting research & analytics', 'Interactive engineering labs']);
       assert.equal(await page.locator('.hero-index a').count(), 4);
       const hero = (await page.locator('.hero-copy').innerText()).toLowerCase();
-      assert.ok(hero.includes('backend software engineer'), 'the hero names the kind of engineer');
-      for (const term of ['python', 'fastapi', 'postgresql', 'sql']) assert.ok(hero.includes(term), `the hero names ${term}`);
+      assert.ok(hero.includes('software engineer'), 'the hero names the kind of engineer');
+      for (const term of ['python', 'typescript/react', 'fastapi', 'postgresql', 'rest apis', 'ci/cd']) assert.ok(hero.includes(term), `the hero names ${term}`);
+      assert.ok(hero.includes('backend software engineer i'), 'the title block keeps the actual job title');
     } finally {
       await close();
     }
@@ -350,24 +352,26 @@ describe('portfolio: recruiter path and evidence-based claims', () => {
 });
 
 describe('portfolio: experience, education, contact and privacy', () => {
-  it('states the professional record apart from the independent work, with the bachelor\'s degree in progress', async () => {
+  it('states the professional record apart from the independent work, with both job titles and both degrees as on the latest résumé', async () => {
     const { page, problems, close } = await open('/');
     try {
       assert.ok(await page.locator('#experience').isVisible());
       assert.deepEqual(await page.$$eval('#experience .record-kind', (els) => els.map((el) => el.textContent.trim())), ['Employment', 'Employment', 'Independent work']);
       assert.deepEqual(await page.$$eval('#experience .record-dates', (els) => els.map((el) => el.textContent.trim())), ['Mar 2026 — Present', 'Mar 2020 — Dec 2025', 'Jul 2026 — Present']);
-      assert.deepEqual(await page.$$eval('#experience .record-body h3', (hs) => hs.map((h) => h.firstChild.textContent.trim())), ['Backend Software Engineer I', 'Pharmacy Technician · Inventory Analysis & Data Processing', 'Software & analytics projects']);
+      assert.deepEqual(await page.$$eval('#experience .record-body h3', (hs) => hs.map((h) => h.firstChild.textContent.trim())), ['Backend Software Engineer I', 'Data Analyst', 'Software & analytics projects']);
       // The independent-work entry links to the four plates; the employment entries link nowhere (no employer systems are referenced).
       assert.deepEqual(await page.$$eval('#experience .record-entry-independent a', (as) => as.map((a) => a.getAttribute('href'))), ['#plate-atlas', '#plate-commerce', '#plate-pathfinding', '#plate-security']);
       assert.equal(await page.locator('#experience .record-entry:not(.record-entry-independent) a').count(), 0);
       const education = page.locator('#education');
-      assert.deepEqual(await education.locator('.edu-status').allTextContents(), ['In progress']);
-      assert.deepEqual(await education.locator('h4').allTextContents(), ['B.S. Computer Science']);
+      assert.deepEqual(await education.locator('.edu-status').allTextContents(), ['In progress · expected Jan 2027', 'Completed · Aug 2024']);
+      assert.deepEqual(await education.locator('h4').allTextContents(), ['B.S. Computer Science', 'A.S. Computer Science']);
       const bachelor = (await education.locator('.edu-entry').first().innerText()).toLowerCase();
-      assert.ok(bachelor.includes('in progress') && !bachelor.includes('completed'), 'the bachelor\'s degree is not presented as completed');
+      assert.ok(bachelor.includes('in progress') && bachelor.includes('expected january 2027') && !bachelor.includes('completed'), 'the bachelor\'s degree is not presented as completed');
+      const associate = (await education.locator('.edu-entry').nth(1).innerText()).toLowerCase();
+      assert.ok(associate.includes('completed · aug 2024') && associate.includes('borough of manhattan community college'), 'the associate degree is back on the record with its date');
       const heroEducation = (await page.locator('.hero-titleblock > div').nth(2).innerText()).toLowerCase();
-      assert.ok(heroEducation.includes('in progress') && heroEducation.includes('capella'), 'the hero title block agrees with the record');
-      assert.ok(!heroEducation.includes('2027') && !heroEducation.includes('bmcc'), 'outdated résumé details omitted');
+      assert.ok(heroEducation.includes('in progress') && heroEducation.includes('capella') && heroEducation.includes('expected january 2027') && heroEducation.includes('bmcc (cuny), august 2024'), 'the hero title block agrees with the record');
+      assert.ok(!(await page.locator('#experience').innerText()).includes('Pharmacy Technician'), 'the former public title is superseded by Data Analyst');
       assert.deepEqual(problems, []);
     } finally {
       await close();
@@ -392,6 +396,84 @@ describe('portfolio: experience, education, contact and privacy', () => {
       } finally {
         await close();
       }
+    }
+  });
+
+  it('fits both degrees in the hero title block and the education card at phone widths, each status chip on one line', async () => {
+    for (const width of [320, 375]) {
+      const { page, problems, close } = await open('/', { viewport: { width, height: 850 } });
+      try {
+        const chips = await page.locator('#education .edu-status').evaluateAll((els) => els.map((el) => {
+          const r = el.getBoundingClientRect();
+          const card = el.closest('.record-card').getBoundingClientRect();
+          return { text: el.textContent, height: r.height, inside: r.left >= card.left + 8 && r.right <= card.right - 8 };
+        }));
+        assert.deepEqual(chips.map((c) => c.text), ['In progress · expected Jan 2027', 'Completed · Aug 2024']);
+        for (const chip of chips) assert.ok(chip.inside, `${width}px: "${chip.text}" stays inside its card`);
+        assert.ok(Math.abs(chips[0].height - chips[1].height) < 1, `${width}px: both status chips sit on one line (${chips[0].height} vs ${chips[1].height})`);
+        const cell = await page.locator('.hero-titleblock > div').nth(2).evaluate((el) => ({ right: el.getBoundingClientRect().right, fits: el.scrollWidth <= el.clientWidth + 0.5, text: el.innerText }));
+        assert.ok(cell.right <= width + 0.5 && cell.fits, `${width}px: the education cell does not overflow`);
+        assert.ok(/expected January 2027/.test(cell.text) && /August 2024/.test(cell.text), `${width}px: both degrees are read in the title block`);
+        assert.deepEqual(problems, []);
+      } finally {
+        await close();
+      }
+    }
+  });
+
+  it('keeps the dates row and the body of each experience entry on one left edge below the two-column layout', async () => {
+    for (const width of [320, 375, 600, 900]) {
+      const { page, close } = await open('/', { viewport: { width, height: 850 } });
+      try {
+        const edges = await page.locator('.record-entry').evaluateAll((entries) => entries.map((entry) => ({
+          when: entry.querySelector('.record-dates').getBoundingClientRect().left,
+          body: entry.querySelector('.record-body h3').getBoundingClientRect().left,
+        })));
+        for (const { when, body } of edges) assert.ok(Math.abs(when - body) < 0.5, `${width}px: dates at ${when}, body at ${body}`);
+      } finally {
+        await close();
+      }
+    }
+  });
+
+  it('keeps every experience technology tag inside its card at phone widths in both themes', async () => {
+    for (const width of [320, 375]) {
+      for (const colorScheme of ['dark', 'light']) {
+        const { page, problems, close } = await open('/', { viewport: { width, height: 850 }, colorScheme });
+        try {
+          const outside = await page.evaluate(() => {
+            const found = [];
+            for (const tag of document.querySelectorAll('#experience .record-tech li, #experience .stack-group dd span')) {
+              const card = tag.closest('.record-entry, .record-card');
+              const r = tag.getBoundingClientRect();
+              const c = card.getBoundingClientRect();
+              const s = getComputedStyle(card);
+              const left = c.left + parseFloat(s.borderLeftWidth) + parseFloat(s.paddingLeft);
+              const right = c.right - parseFloat(s.borderRightWidth) - parseFloat(s.paddingRight);
+              if (r.left < left - 0.5 || r.right > right + 0.5) found.push(`"${tag.textContent.trim()}" spans ${r.left.toFixed(1)}-${r.right.toFixed(1)} but the card's content box spans ${left.toFixed(1)}-${right.toFixed(1)}`);
+            }
+            return found;
+          });
+          assert.deepEqual(outside, [], `${width}px ${colorScheme}: every technology tag stays inside its card`);
+          assert.ok((await page.locator('#experience .record-tech li').count()) >= 15, 'the record carries its technology tags');
+          assert.deepEqual(problems, []);
+        } finally {
+          await close();
+        }
+      }
+    }
+  });
+
+  it('carries the résumé headline in the document title and the social metadata, with the job title kept for the record', async () => {
+    const { page, close } = await open('/');
+    try {
+      assert.equal(await page.title(), 'Arthur Fay — Software Engineer · The Architect Lab · Python, TypeScript/React, FastAPI & PostgreSQL');
+      assert.equal(await page.locator('meta[property="og:title"]').getAttribute('content'), 'Arthur Fay — Software Engineer · The Architect Lab');
+      assert.match(await page.locator('meta[name="description"]').getAttribute('content'), /^Arthur Fay is a software engineer in New York working in Python, TypeScript\/React, FastAPI, PostgreSQL, REST APIs and CI\/CD\./);
+      assert.deepEqual(await page.$$eval('.hero-titleblock dd', (dds) => dds.slice(0, 3).map((dd) => dd.firstChild.textContent.trim())), ['Backend Software Engineer I', 'Python · TypeScript/React · FastAPI · PostgreSQL', 'B.S. Computer Science, in progress']);
+      assert.deepEqual(await page.$$eval('.stack-group dt', (dts) => dts.map((dt) => dt.textContent)), ['Programming', 'Backend & data', 'Frontend', 'Testing & quality', 'Infrastructure & CI/CD', 'Practices']);
+    } finally {
+      await close();
     }
   });
 
@@ -436,7 +518,7 @@ describe('portfolio: experience, education, contact and privacy', () => {
   it('offers recruiters a clear path: roles of interest, GitHub as the verified channel and the ATLAS API as the first stop', async () => {
     const { page, close } = await open('/');
     try {
-      assert.deepEqual(await page.locator('.contact-roles li').allTextContents(), ['Backend Software Engineer', 'Python Backend Developer', 'API / Database Engineer', 'Software Engineer']);
+      assert.deepEqual(await page.locator('.contact-roles li').allTextContents(), ['Software Engineer', 'Backend Software Engineer', 'Full-Stack Engineer · Python & React', 'API / Database Engineer']);
       assert.equal(await page.locator('.contact-actions a[href="https://github.com/arthur-fay"]').count(), 1);
       assert.equal(await page.locator('.contact-actions a[href$="/docs/API.md"]').count(), 1);
       assert.equal(await page.locator('.channel-list a').count(), 4);
