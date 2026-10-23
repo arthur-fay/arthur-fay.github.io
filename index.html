@@ -258,6 +258,10 @@
                 <h3 id="atlas-title">ATLAS<span class="project-subtitle">Decision Intelligence &amp; Forecasting Research</span></h3>
                 <p class="project-description">A reproducible research platform for NYC 311 demand forecasting, uncertainty evaluation and hypothetical resource-allocation scenarios: a hash-verified data snapshot, seven models backtested under a pre-registered protocol, a <strong>contract-tested FastAPI service</strong>, a typed React dashboard and a tested deployment package, all held to <strong>explicit scientific release gates</strong>.</p>
                 <p class="project-disclosure"><span aria-hidden="true">i</span> Research only: forecasting gains are not established statistically (the lead over the best simple baseline has a Holm-adjusted p of 0.054); prediction intervals failed calibration; optimization assumptions are hypothetical. ATLAS is research on frozen data, not an operating city system.</p>
+                <div class="project-entry" aria-label="Documented source evidence">
+                  <a class="project-entry-link" href="https://github.com/arthur-fay/demand-forecasting-model/blob/main/docs/API.md" target="_blank" rel="noopener noreferrer">Inspect the documented API <span aria-hidden="true">↗</span></a>
+                  <span class="project-entry-context">Research platform · No public live ATLAS deployment</span>
+                </div>
                 <dl class="plate-facts">
                   <div><dt>Problem</dt><dd>Can historical demand be modelled responsibly, with the uncertainty reported rather than hidden?</dd></div>
                   <div><dt>Architecture</dt><dd>A hash-verified snapshot of daily counts feeds leakage-guarded features and seven models; a rolling-origin backtest and a calibration audit evaluate them; a FastAPI service with 14 versioned endpoints, API-key authentication, request limits and a committed OpenAPI 3.1 contract exposes the committed results; a React 19 and TypeScript dashboard is typed from that contract; a Linux deployment package (immutable releases, a hardened systemd unit with watchdog and sandboxing, an nginx TLS proxy, automatic rollback) is tested end to end in a disposable Ubuntu container, not deployed.</dd></div>
@@ -302,6 +306,10 @@
                 <h3 id="commerce-title">E-Commerce<span class="project-subtitle">Executive Analytics Dashboard</span></h3>
                 <p class="project-description">An end-to-end analytics project that turns e-commerce transactional data into an interactive executive dashboard covering revenue, customers, order performance, delivery reliability and product categories, built with <strong>SQL, Google Colab, a dimensional data model, DAX and Power BI</strong>. Its published KPIs, DAX measures and data model are explored in an <strong>interactive analytics lab</strong> on this site, with a what-if simulator for hypothetical scenarios.</p>
                 <p class="project-disclosure"><span aria-hidden="true">i</span> The lab republishes the README's rounded summary figures with their provenance and adds clearly labelled hypothetical scenarios; no transaction, monthly value or customer record is reconstructed, and no projection is presented as performance.</p>
+                <div class="project-entry" aria-label="Open interactive project">
+                  <a class="project-entry-link" href="/lab/ecommerce/">Explore the analytics lab <span aria-hidden="true">→</span></a>
+                  <span class="project-entry-context">Interactive · Reported and hypothetical figures separated</span>
+                </div>
                 <dl class="plate-facts">
                   <div><dt>Problem</dt><dd>Give business leaders one clear view of overall e-commerce performance: orders, revenue, customers, average order value, delivery reliability and product-category revenue.</dd></div>
                   <div><dt>Architecture</dt><dd>SQL and Google Colab notebooks transform the transactional data; a dimensional model with fact tables (orders, order items, cohort retention) and dimensions (date, customer, product, seller, payment method, order status) feeds a KPI_Measures table of DAX measures and the Power BI report.</dd></div>
@@ -326,6 +334,10 @@
                 <h3 id="pathfinding-title">Pathfinding Lab<span class="project-subtitle">Interactive Robotics &amp; Pathfinding Lab</span></h3>
                 <p class="project-description">A working, dependency-free laboratory for grid search: draw walls and weighted terrain, drag the start and target, then run <strong>breadth-first search, Dijkstra's algorithm or A*</strong> with animated exploration, pause and step controls, deterministic maze generation and results measured from each run.</p>
                 <p class="project-disclosure"><span aria-hidden="true">i</span> Grid-based algorithm simulation, not a validated real-world robotics navigation system. The preview above is drawn from a real A* run on a seeded 16 × 9 field and is regenerated by the test-suite.</p>
+                <div class="project-entry" aria-label="Open interactive project">
+                  <a class="project-entry-link" href="/lab/pathfinding/">Run the pathfinding lab <span aria-hidden="true">→</span></a>
+                  <span class="project-entry-context">Interactive · Browser-based grid simulation</span>
+                </div>
                 <dl class="plate-facts">
                   <div><dt>Problem</dt><dd>Make three classic graph searches inspectable: watch what each one explores, measure the result, and reproduce any layout from a seed.</dd></div>
                   <div><dt>Architecture</dt><dd>A pure ES module holds the grid model, heuristics, binary heap and the searches written as generators; the UI module replays each trace with requestAnimationFrame inside a keyboard-navigable ARIA grid.</dd></div>
@@ -350,6 +362,10 @@
                 <h3 id="security-title">Security Lab<span class="project-subtitle">Security Event Detection &amp; Investigation Lab</span></h3>
                 <p class="project-description">A defensive, browser-only laboratory for security monitoring: generate a day of clearly labelled synthetic sign-in events, replay the timeline, watch <strong>three explainable detection rules</strong> fire under configurable thresholds, open the investigation view behind every alert, and score the rules against the planted scenarios with precision and recall.</p>
                 <p class="project-disclosure"><span aria-hidden="true">i</span> Synthetic events only, computed locally: pseudonymous accounts, reserved documentation IP ranges, no real systems, no telemetry. Not a production SIEM, and scores on synthetic scenarios do not establish real-world detection accuracy. The preview is a real run on a seeded “card” dataset (seed 13) and is regenerated by the test-suite.</p>
+                <div class="project-entry" aria-label="Open interactive project">
+                  <a class="project-entry-link" href="/lab/security-events/">Explore the security investigation lab <span aria-hidden="true">→</span></a>
+                  <span class="project-entry-context">Interactive · Synthetic events only</span>
+                </div>
                 <dl class="plate-facts">
                   <div><dt>Problem</dt><dd>Show how detection rules behave, and how thresholds trade precision for recall, without touching a single real log line.</dd></div>
                   <div><dt>Architecture</dt><dd>A pure engine module generates seeded scenarios, enforces a strict schema, runs three sliding-window rules and scores them; the UI renders the SVG timeline, the alerts, the investigation view, the table and the comparison.</dd></div>
