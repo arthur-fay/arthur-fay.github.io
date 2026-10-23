@@ -420,7 +420,9 @@ describe('portfolio: desktop-first hero hierarchy', () => {
     it(`at ${width}px the role strap, actions and technical drawing remain readable`, async () => {
       const { page, problems, close } = await open('/', { viewport: { width, height: 900 } });
       try {
-        assert.match(await page.locator('.hero-roleline').innerText(), /Software Engineer/);
+        const strap = await page.locator('.hero-roleline').innerText();
+        assert.match(strap, /software engineer/i, 'the role label remains visible even with uppercase styling');
+        assert.doesNotMatch(strap, /^\/$/m, 'the decorative divider does not occupy its own line');
         assert.equal(await page.locator('.hero-buttons a[href="#work"]').count(), 1);
         assert.equal(await page.locator('.hero-buttons a[href="#experience"]').count(), 1);
         assert.ok((await overflow(page)) <= 1);
