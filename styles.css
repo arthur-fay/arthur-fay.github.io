@@ -725,3 +725,30 @@ html[data-theme="light"] .sec-art-r2{stroke:#8d3d99}
 .sec-art-cursor{fill:none;stroke:var(--text);stroke-width:.7;stroke-dasharray:1.5 1.5}
 .contact-card .section-index{color:inherit}
 .contact-card .section-index::before{background:currentColor}
+
+
+/* --------------------------------------------------------------------------
+   Desktop refinement 03 — Professional record and technical index
+   Full-size text columns for job evidence; de-emphasize the skill-chip border
+   grid without changing its terms or smaller-screen layout.
+   -------------------------------------------------------------------------- */
+@media (min-width:1181px){
+  .record{grid-template-columns:minmax(0,1.28fr) minmax(0,.72fr);gap:24px}
+  .record-entry{grid-template-columns:148px minmax(0,1fr);gap:8px 24px;padding:30px 28px 30px 0}
+  .record-body h3{font-size:clamp(23px,1.9vw,28px)}
+  .record-body h3 small{line-height:1.55}
+  .record-points{gap:10px}
+  .record-points li{line-height:1.7}
+  .record-when{gap:12px}
+  .record-aside{gap:16px}
+  .record-card{padding:24px 26px 26px}
+  .stack-groups{gap:17px}
+  .stack-group{border-top:1px solid var(--line);padding-top:13px}
+  .stack-group:first-child{padding-top:0;border-top:0}
+  .stack-group dt{margin-bottom:10px}
+  .stack-group dd{gap:7px 13px}
+  .stack-group dd span{display:inline-flex;align-items:baseline;border:0;padding:0;color:var(--text);font-size:11px;line-height:1.6;letter-spacing:.04em}
+  .stack-group dd span::before{content:"·";color:var(--accent);font-size:13px;line-height:1;margin-right:7px}
+  .stack-group-text dd{display:block}
+  .record-note{border-top:1px solid var(--line);padding-top:14px;margin-top:20px}
+}

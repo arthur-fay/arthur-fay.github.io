@@ -150,7 +150,7 @@ describe('the professional record', () => {
     assert.doesNotMatch(employment, /<a /, 'employment entries link to nothing');
     assert.doesNotMatch(text(employment), /\b\d[\d,]*\+?\s+(daily|transactions|incidents|products)/i, 'no operational volumes from employers');
     assert.doesNotMatch(employment, /endpoint\b|\/api\/|schema name|patient name|customer record/i, 'no internal API, schema or record detail');
-    assert.match(text(record), /The four plates above are independent work, built outside these roles/);
+    assert.match(text(record), /Employment and independent projects are clearly separated/);
   });
 
   it('numbers the sheets in the order of the navigation and the footer index', () => {
