@@ -732,7 +732,7 @@ html[data-theme="light"] .sec-art-r2{stroke:#8d3d99}
    Full-size text columns for job evidence; de-emphasize the skill-chip border
    grid without changing its terms or smaller-screen layout.
    -------------------------------------------------------------------------- */
-@media (min-width:981px){
+@media (min-width:1181px){
   .record{grid-template-columns:minmax(0,1.28fr) minmax(0,.72fr);gap:24px}
   .record-entry{grid-template-columns:148px minmax(0,1fr);gap:8px 24px;padding:30px 28px 30px 0}
   .record-body h3{font-size:clamp(23px,1.9vw,28px)}
