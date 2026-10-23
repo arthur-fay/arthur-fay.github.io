@@ -643,6 +643,8 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
   .record-body h3{font-size:21px}
   .edu-entry h4{font-size:20px}
   .channel-name{font-size:18px}
+  /* Technology chips keep their single-line desktop design, but on phones a long label wraps inside its chip rather than running past the card. */
+  .record-tech li,.stratum-tech li{white-space:normal;max-width:100%}
 }
 @media (max-width:360px){
   .hero h1{font-size:40px}

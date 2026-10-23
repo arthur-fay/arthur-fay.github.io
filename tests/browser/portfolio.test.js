@@ -436,6 +436,34 @@ describe('portfolio: experience, education, contact and privacy', () => {
     }
   });
 
+  it('keeps every experience technology tag inside its card at phone widths in both themes', async () => {
+    for (const width of [320, 375]) {
+      for (const colorScheme of ['dark', 'light']) {
+        const { page, problems, close } = await open('/', { viewport: { width, height: 850 }, colorScheme });
+        try {
+          const outside = await page.evaluate(() => {
+            const found = [];
+            for (const tag of document.querySelectorAll('#experience .record-tech li, #experience .stack-group dd span')) {
+              const card = tag.closest('.record-entry, .record-card');
+              const r = tag.getBoundingClientRect();
+              const c = card.getBoundingClientRect();
+              const s = getComputedStyle(card);
+              const left = c.left + parseFloat(s.borderLeftWidth) + parseFloat(s.paddingLeft);
+              const right = c.right - parseFloat(s.borderRightWidth) - parseFloat(s.paddingRight);
+              if (r.left < left - 0.5 || r.right > right + 0.5) found.push(`"${tag.textContent.trim()}" spans ${r.left.toFixed(1)}-${r.right.toFixed(1)} but the card's content box spans ${left.toFixed(1)}-${right.toFixed(1)}`);
+            }
+            return found;
+          });
+          assert.deepEqual(outside, [], `${width}px ${colorScheme}: every technology tag stays inside its card`);
+          assert.ok((await page.locator('#experience .record-tech li').count()) >= 15, 'the record carries its technology tags');
+          assert.deepEqual(problems, []);
+        } finally {
+          await close();
+        }
+      }
+    }
+  });
+
   it('carries the résumé headline in the document title and the social metadata, with the job title kept for the record', async () => {
     const { page, close } = await open('/');
     try {
