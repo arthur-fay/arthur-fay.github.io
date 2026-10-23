@@ -101,9 +101,15 @@ describe('the professional record', () => {
     assert.match(head, /name="description" content="Arthur Fay is a software engineer in New York working in Python, TypeScript\/React, FastAPI, PostgreSQL, REST APIs and CI\/CD\./);
     for (const property of ['og:description', 'twitter:description']) assert.ok(head.includes(`${property}" content="Software engineer (Python, TypeScript/React, FastAPI, PostgreSQL, REST APIs, CI/CD).`), property);
     assert.doesNotMatch(head, /Backend Software Engineer/, 'the job title is not used as the public headline');
+    const heroRole = text(index.match(/<p class="hero-roleline">[\s\S]*?<\/p>/)[0]);
+    assert.match(heroRole, /Software Engineer \/ Python · TypeScript\/React · FastAPI · PostgreSQL/);
+    const hero = index.match(/<div class="hero-copy">([\s\S]*?)<\/div>\s*<figure class="hero-figure/)[1];
+    assert.ok(hero.indexOf('class="hero-roleline"') < hero.indexOf('id="hero-title"'), 'role is immediately visible before the editorial headline');
     const heroCopy = text(index.match(/<p class="hero-description">[\s\S]*?<\/p>/)[0]);
-    assert.match(heroCopy, /^I'm Arthur Fay, a software engineer in New York: Python, TypeScript\/React, FastAPI, PostgreSQL, REST APIs and CI\/CD\./);
+    assert.match(heroCopy, /^At Blue Sky Trading, I build Python REST APIs, PostgreSQL schemas and ERP-integrated internal applications\s*\./);
+    assert.match(heroCopy, /ATLAS/);
     assert.match(heroCopy, /source code, evidence and limits/);
+    assert.ok(heroCopy.split(/\s+/).length <= 65, 'the desktop summary is concise enough to scan');
     const about = text(block('about'));
     assert.match(about, /A software engineer, building to be inspected\./);
     assert.match(about, /a software engineer in New York\. At Blue Sky Trading, as a Backend Software Engineer I,/);

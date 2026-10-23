@@ -79,7 +79,7 @@ em.ink,.hero h1 em,.section-heading h2 em,.case-study-main h2 em,.about-heading 
 .wordmark-name{display:flex;flex-direction:column;gap:3px;font-family:var(--font-display);font-size:17px;letter-spacing:-.01em;line-height:1;color:var(--text)}
 .wordmark-sub{font-family:var(--font-mono);font-size:10px;letter-spacing:.18em;color:var(--fine);text-transform:uppercase}
 .desktop-nav{display:flex;align-items:center;gap:30px}
-.desktop-nav a{position:relative;display:inline-flex;align-items:baseline;gap:7px;padding:6px 0;font-size:14px;font-weight:500;color:var(--muted);transition:color var(--fast)}
+.desktop-nav a{position:relative;display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:10px 0;font-size:14px;font-weight:600;color:var(--muted);transition:color var(--fast)}
 .nav-index{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.08em;color:var(--fine);transition:color var(--fast)}
 .desktop-nav a::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform var(--fast) var(--ease)}
 .desktop-nav a:hover,.desktop-nav a[aria-current="true"]{color:var(--text)}
@@ -107,21 +107,31 @@ html[data-theme="light"] .theme-icon-sun{display:none}
    -------------------------------------------------------------------------- */
 .hero{position:relative;overflow:hidden}
 .hero::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:56px 56px;background-position:center top;-webkit-mask-image:radial-gradient(ellipse 60% 70% at 68% 40%,#000 10%,transparent 72%);mask-image:radial-gradient(ellipse 60% 70% at 68% 40%,#000 10%,transparent 72%)}
-.hero-inner{position:relative;display:grid;grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);gap:clamp(32px,5vw,80px);align-items:center;padding:clamp(56px,9vh,104px) 0 clamp(48px,7vh,84px);min-height:min(820px,calc(100svh - var(--header-h)))}
+.hero-inner{position:relative;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);gap:clamp(32px,4.4vw,72px);align-items:center;padding:clamp(44px,7vh,82px) 0 clamp(48px,7vh,84px);min-height:min(820px,calc(100svh - var(--header-h)))}
 .hero-copy{min-width:0}
-.eyebrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:0 0 30px;font-size:11px;font-weight:700;color:var(--accent)}
+.eyebrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:0 0 18px;font-size:11px;font-weight:700;color:var(--accent)}
 .eyebrow-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 14%,transparent);flex-shrink:0}
 .hero-serial{color:var(--fine);font-weight:600}
+/* The professional identity is readable before the architectural headline. */
+.hero-roleline{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 13px;margin:0 0 20px;font-family:var(--font-mono);font-size:11.5px;line-height:1.6;letter-spacing:.05em}
+.hero-role-name{color:var(--accent);font-weight:750;letter-spacing:.09em;text-transform:uppercase}
+.hero-role-divider{color:var(--fine)}
+.hero-role-specialty{color:var(--text);font-weight:550}
 .eyebrow-sep{color:var(--fine);font-weight:400}
-.hero h1{font-family:var(--font-display);font-weight:400;font-size:clamp(50px,7.3vw,106px);line-height:.98;letter-spacing:-.035em;margin:0 0 30px;text-wrap:balance}
+.hero h1{font-family:var(--font-display);font-weight:400;font-size:clamp(54px,6.7vw,96px);line-height:.99;letter-spacing:-.035em;margin:0 0 24px;text-wrap:balance}
 .hero h1 .outline{color:transparent;-webkit-text-stroke:1.5px var(--text);font-style:normal}
 @supports not (-webkit-text-stroke:1px #000){.hero h1 .outline{color:var(--text)}}
-.hero-description{font-size:clamp(17px,1.35vw,19px);line-height:1.65;color:var(--muted);max-width:60ch;margin:0 0 36px}
+.hero-description{font-size:clamp(17px,1.3vw,18px);line-height:1.68;color:var(--muted);max-width:57ch;margin:0 0 28px}
 .hero-description strong{color:var(--text);font-weight:500}
 .hero-buttons{display:flex;flex-wrap:wrap;gap:12px}
 .hero .hero-buttons{align-items:center;gap:12px 22px}
 .hero-link{margin-left:4px}
-.hero-index-row{margin:40px 0 0;padding-top:18px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:flex-start;gap:2px 20px;font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+/* Two clear primary choices, followed by two quieter proof/explorer links. */
+@media (min-width:981px){
+  .hero .hero-buttons{display:grid;grid-template-columns:max-content max-content;gap:12px 20px;justify-content:start}
+  .hero .hero-buttons .hero-link{margin-left:0;justify-self:start}
+}
+.hero-index-row{margin:30px 0 0;padding-top:16px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:flex-start;gap:2px 20px;font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
 .hero-index-label{color:var(--accent);font-weight:700;padding:7px 0}
 .hero-index{list-style:none;margin:0;padding:0;min-width:0;display:flex;flex-wrap:wrap;gap:2px 20px}
 @media (min-width:981px){.hero-index{display:grid;grid-template-columns:repeat(2,max-content);column-gap:28px}}
@@ -131,7 +141,7 @@ html[data-theme="light"] .theme-icon-sun{display:none}
 .hero-index a:hover::after,.hero-index a:focus-visible::after{transform:scaleX(1)}
 .hero-index-num{color:var(--accent)}
 /* Title block: the drawing-sheet convention for the facts a reader needs first (role, stack, education, where to verify). */
-.hero-titleblock-wrap{margin:30px 0 0}
+.hero-titleblock-wrap{margin:24px 0 0}
 .hero-titleblock{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;margin:0;background:var(--line);border:1px solid var(--line)}
 .hero-titleblock>div{position:relative;min-width:0;padding:14px 16px 15px;background:color-mix(in srgb,var(--surface) 92%,transparent)}
 .hero-titleblock>div::before{content:"";position:absolute;left:0;top:0;width:22px;height:2px;background:var(--accent)}
@@ -537,6 +547,8 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
   .record{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr)}
   .record-entry{grid-template-columns:176px minmax(0,1fr);gap:8px 22px}
   .hero-inner{grid-template-columns:minmax(0,1fr) minmax(0,.9fr)}
+  /* Avoid an orphaned decorative slash when the professional strap wraps. */
+  .hero-role-divider{display:none}
   .cut{grid-template-columns:250px minmax(0,1fr)}
   .stratum{grid-template-columns:64px minmax(0,1fr) minmax(0,180px)}
   .footer-blocks{grid-template-columns:1.2fr 1fr 1fr 1fr}
@@ -642,6 +654,10 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
   .hero-titleblock{grid-template-columns:1fr}
   .hero-titleblock dd{font-size:18px}
   .eyebrow{font-size:10.5px;gap:8px 10px}
+  .hero-roleline{gap:2px 9px;margin-bottom:16px;font-size:10.5px}
+  .hero-role-name{flex-basis:100%}
+  .hero-role-divider{display:none}
+  .hero-role-specialty{overflow-wrap:anywhere}
   .iso-legend{grid-template-columns:1fr 1fr}
   .figure-dim{display:none}
   .ledger-grid{grid-template-columns:1fr}

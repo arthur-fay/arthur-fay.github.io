@@ -381,6 +381,58 @@ describe('portfolio: project scanning and evidence-first actions', () => {
   }
 });
 
+describe('portfolio: desktop-first hero hierarchy', () => {
+  for (const width of [1280, 1440, 1920]) {
+    it(`at ${width}px the role and both recruiter actions are visible before scrolling`, async () => {
+      const { page, problems, close } = await open('/', { viewport: { width, height: 900 } });
+      try {
+        const layout = await page.evaluate(() => {
+          const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
+          const strap = rect('.hero-roleline');
+          const title = rect('#hero-title');
+          const summary = rect('.hero-description');
+          const primary = rect('.hero-buttons .button-primary');
+          const secondary = rect('.hero-buttons .button-secondary');
+          const subtle = rect('.hero-buttons .hero-link');
+          const art = rect('.hero-figure');
+          return { strap: { top: strap.top, bottom: strap.bottom, left: strap.left, right: strap.right },
+            title: { top: title.top, bottom: title.bottom }, summary: { top: summary.top, bottom: summary.bottom },
+            primary: { top: primary.top, bottom: primary.bottom }, secondary: { top: secondary.top, bottom: secondary.bottom },
+            subtle: { top: subtle.top }, art: { left: art.left, right: art.right },
+            headerLinks: [...document.querySelectorAll('.desktop-nav a')].map(a => a.getBoundingClientRect().height),
+            viewport: document.documentElement.clientWidth };
+        });
+        assert.ok(layout.strap.top >= 0 && layout.strap.bottom < layout.title.top, 'engineering identity appears before the conceptual title');
+        assert.ok(layout.title.bottom < layout.summary.top && layout.summary.bottom <= layout.primary.top + 1, 'editorial headline, summary and actions read top to bottom');
+        assert.ok(layout.primary.bottom <= 900 && layout.secondary.bottom <= 900, 'recruiter actions are above the desktop fold');
+        assert.ok(Math.abs(layout.primary.top - layout.secondary.top) <= 2, 'the two recruiter actions share one clear primary row');
+        assert.ok(layout.subtle.top >= layout.primary.bottom, 'quiet exploration links follow primary actions');
+        assert.ok(layout.art.left >= layout.strap.right - 5, 'the technical drawing remains beside the introductory copy');
+        assert.ok(layout.art.right <= layout.viewport + 1, 'the drawing is not clipped');
+        assert.ok(layout.headerLinks.length === 6 && layout.headerLinks.every(n => n >= 40), 'six desktop navigation links have comfortably sized focus targets');
+        assert.ok((await overflow(page)) <= 1);
+        assert.deepEqual(problems, []);
+      } finally { await close(); }
+    });
+  }
+
+  for (const width of [320, 375, 768, 1001]) {
+    it(`at ${width}px the role strap, actions and technical drawing remain readable`, async () => {
+      const { page, problems, close } = await open('/', { viewport: { width, height: 900 } });
+      try {
+        const strap = await page.locator('.hero-roleline').innerText();
+        assert.match(strap, /software engineer/i, 'the role label remains visible even with uppercase styling');
+        assert.doesNotMatch(strap, /^\/$/m, 'the decorative divider does not occupy its own line');
+        assert.equal(await page.locator('.hero-buttons a[href="#work"]').count(), 1);
+        assert.equal(await page.locator('.hero-buttons a[href="#experience"]').count(), 1);
+        assert.ok((await overflow(page)) <= 1);
+        assert.deepEqual(await clipped(page), []);
+        assert.deepEqual(problems, []);
+      } finally { await close(); }
+    });
+  }
+});
+
 describe('portfolio: recruiter path and evidence-based claims', () => {
   it('leads from the hero straight to the four plates and keeps the section-cut explorer', async () => {
     const { page, close } = await open('/');
