@@ -333,7 +333,7 @@ describe('portfolio: project scanning and evidence-first actions', () => {
             });
             return { disclosureBottom: disclosure.bottom, actionTop: action.top, actionBottom: action.bottom, factsTop: facts.top,
               actionLeft: action.left, actionRight: action.right, bodyLeft: body.left, bodyRight: body.right,
-              columnCount: getComputedStyle(root.querySelector('.plate-facts')).gridTemplateColumns.trim().split(/\\s+/).length,
+              columnCount: getComputedStyle(root.querySelector('.plate-facts')).gridTemplateColumns.trim().split(/\s+/).length,
               rows };
           });
           assert.ok(geometry.disclosureBottom <= geometry.actionTop + 1, `${id}: evidence action comes after the disclosure`);
