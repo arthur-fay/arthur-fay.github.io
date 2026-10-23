@@ -34,7 +34,8 @@ jobs:
         run: node --test tests/unit/*.test.js
   browser:
     name: Browser tests (Playwright, desktop and mobile viewports)
-    runs-on: ubuntu-latest
+    # Playwright 1.56.1 does not install Chromium on the current ubuntu-latest (26.04) runner.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: verify
     steps:

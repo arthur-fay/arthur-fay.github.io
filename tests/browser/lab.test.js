@@ -224,7 +224,9 @@ describe('portfolio page', () => {
       assert.equal(await count(page, '.project:not([hidden])'), 4);
       assert.equal(await page.locator('#filter-status').textContent(), 'Showing 4 projects.');
       assert.ok((await page.locator('.project-lab').textContent()).includes('not a validated real-world robotics navigation system'));
-      await page.locator('.project-lab a[href="/lab/pathfinding/"]').click();
+      assert.equal(await page.locator('.project-lab .project-entry-link[href="/lab/pathfinding/"]').count(), 1, 'the early pathfinding action is present');
+      assert.equal(await page.locator('.project-lab .project-links a[href="/lab/pathfinding/"]').count(), 1, 'the original footer action remains');
+      await page.locator('.project-lab .project-entry-link[href="/lab/pathfinding/"]').click();
       await page.waitForURL(`**${LAB}`);
       assert.ok((await page.locator('h1').textContent()).includes('Pathfinding Lab'));
     } finally {

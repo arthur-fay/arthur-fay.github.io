@@ -737,7 +737,9 @@ describe('portfolio page with the security lab', () => {
       const card = (await page.locator('.project-security').textContent()).toLowerCase();
       assert.ok(card.includes('synthetic events only') && card.includes('not a production siem'));
       assert.ok((await page.locator('.stat-number').first().textContent()).includes('04'));
-      await page.locator('.project-security a[href="/lab/security-events/"]').click();
+      assert.equal(await page.locator('.project-security .project-entry-link[href="/lab/security-events/"]').count(), 1, 'the early security action is present');
+      assert.equal(await page.locator('.project-security .project-links a[href="/lab/security-events/"]').count(), 1, 'the original footer action remains');
+      await page.locator('.project-security .project-entry-link[href="/lab/security-events/"]').click();
       await page.waitForURL(`**${LAB}`);
       assert.ok((await page.locator('h1').textContent()).includes('Security Event Detection'));
       assert.deepEqual(problems, []);
