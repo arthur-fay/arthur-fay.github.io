@@ -80,9 +80,9 @@ try {
     ] }, sessionId);
     await send('Page.navigate', { url: server.baseUrl + '/' }, sessionId);
     await sleep(700);
-    const expr = '(async()=>{await document.fonts.ready;document.documentElement.setAttribute("data-theme",'+JSON.stringify(theme)+');document.documentElement.classList.remove("js");for(const el of document.querySelectorAll("[data-reveal]"))el.classList.add("is-visible");const rect=s=>{const el=document.querySelector(s);if(!el)return null;const r=el.getBoundingClientRect();return{x:r.x+scrollX,y:r.y+scrollY,width:r.width,height:r.height}};return{docHeight:document.documentElement.scrollHeight,docWidth:document.documentElement.scrollWidth,hero:rect(".hero"),experience:rect("#experience"),employment:rect(".record-main"),skills:rect(".record-aside")}})()';
+    const expr = '(async()=>{await document.fonts.ready;document.documentElement.setAttribute("data-theme",'+JSON.stringify(theme)+');document.documentElement.classList.remove("js");for(const el of document.querySelectorAll("[data-reveal]"))el.classList.add("is-visible");const rect=s=>{const el=document.querySelector(s);if(!el)return null;const r=el.getBoundingClientRect();return{x:r.x+scrollX,y:r.y+scrollY,width:r.width,height:r.height}};return{docHeight:document.documentElement.scrollHeight,docWidth:document.documentElement.scrollWidth,hero:rect(".hero"),experience:rect("#experience"),employment:rect(".record-main"),skills:rect(".record-aside"),contact:rect("#contact")}})()';
     const metrics = await evaluate(sessionId, expr);
-    for (const section of ['hero', 'experience']) {
+    for (const section of ['hero', 'experience', ...(width === 1440 || width === 375 ? ['contact'] : [])]) {
       const r = metrics[section];
       if (!r || r.height < 40) throw new Error('Missing section: ' + section);
       const top = section === 'hero' ? 0 : Math.max(0, r.y - 28);
