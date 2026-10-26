@@ -467,7 +467,7 @@ describe('portfolio: recruiter path and evidence-based claims', () => {
       assert.ok(!text.includes('artificial intelligence') && !/\bai\b/.test(text.replace(/ai-assisted development/g, '')), 'no unsupported artificial-intelligence claim');
       const about = (await page.locator('#about').innerText()).toLowerCase();
       assert.ok(!/no employment|degrees|certifications|awards/.test(about), 'the about section no longer leads with what is not claimed');
-      assert.ok(about.includes('public work') && about.includes('source code'), 'the about note points to the verifiable record');
+      assert.ok(about.includes('project repositories') && about.includes('résumé-reported'), 'the about note distinguishes published engineering evidence from the self-reported professional record');
       assert.deepEqual(await page.$$eval('.hero-titleblock dt', (dts) => dts.map((dt) => dt.textContent.trim())), ['Role', 'Stack', 'Education', 'Verify']);
       assert.deepEqual(await page.$$eval('.about-fields li', (items) => items.map((li) => li.textContent.replace(/^\d+/, '').trim())), ['Backend services & REST APIs', 'Database engineering & SQL', 'Frontend development & accessible interfaces', 'Automated testing & CI/CD', 'Forecasting research & analytics', 'Interactive engineering labs']);
       assert.equal(await page.locator('.hero-index a').count(), 4);
@@ -709,6 +709,12 @@ describe('portfolio: experience, education, contact and privacy', () => {
       assert.equal(await page.locator('.contact-actions a[href$="/docs/API.md"]').count(), 1);
       assert.equal(await page.locator('.channel-list a').count(), 4);
       assert.equal(await page.locator('.hero-titleblock a[href="https://github.com/arthur-fay"]').count(), 1, 'the hero says where to verify the work');
+      const contactCopy = (await page.locator('#contact .contact-left > p').innerText()).toLowerCase();
+      assert.match(contactCopy, /résumé you received/, 'direct hiring correspondence uses the separately shared résumé');
+      assert.match(contactCopy, /not a private messaging channel/, 'public GitHub evidence is not misrepresented as a messaging service');
+      assert.doesNotMatch(contactCopy, /start a discussion|shared on request/, 'never promise unavailable GitHub Discussions or an inaccessible private contact channel');
+      const verifyCopy = (await page.locator('.hero-titleblock').innerText()).toLowerCase();
+      assert.ok(verifyCopy.includes('available research evidence') && verifyCopy.includes('tested browser labs'), 'hero verification copy distinguishes tested labs from older BI project artifacts');
     } finally {
       await close();
     }
