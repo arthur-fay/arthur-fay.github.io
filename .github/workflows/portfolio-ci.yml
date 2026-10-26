@@ -54,20 +54,6 @@ jobs:
         env:
           NODE_PATH: ${{ runner.temp }}/playwright/node_modules
         run: node --test tests/browser/*.test.js
-      - name: Capture reproducible visual review screenshots
-        if: always()
-        env:
-          NODE_PATH: ${{ runner.temp }}/playwright/node_modules
-          VISUAL_REVIEW_DIR: ${{ runner.temp }}/architect-lab-visual-review
-        run: node scripts/capture-visual-review.mjs
-      - name: Upload visual review screenshots and layout report
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: architect-lab-visual-review
-          path: ${{ runner.temp }}/architect-lab-visual-review/
-          if-no-files-found: warn
-          retention-days: 14
 
   visual:
     name: Visual baseline screenshots (system Chrome, no npm)
