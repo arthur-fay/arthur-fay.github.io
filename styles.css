@@ -752,3 +752,10 @@ html[data-theme="light"] .sec-art-r2{stroke:#8d3d99}
   .stack-group-text dd{display:block}
   .record-note{border-top:1px solid var(--line);padding-top:14px;margin-top:20px}
 }
+
+/* Ultra-wide desktop optical balance: at 1920px the original 1240px column
+   leaves excessively large side gutters. Preserve every existing breakpoint
+   and only expand the consistent site grid on truly wide monitors. */
+@media (min-width:1680px){
+  .container{max-width:1400px}
+}
