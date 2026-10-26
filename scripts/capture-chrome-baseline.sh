@@ -19,11 +19,11 @@ capture() {
   if [ "$section" = "experience" ]; then url="$url#experience"; fi
   if [ "$theme" = "dark" ]; then
     "$BROWSER" --headless --no-sandbox --disable-gpu --hide-scrollbars --disable-extensions \
-      --force-dark-mode --force-device-scale-factor=1 --window-size="$width,$height" \
+      --force-dark-mode --disable-smooth-scrolling --force-prefers-reduced-motion --force-device-scale-factor=1 --window-size="$width,$height" \
       --virtual-time-budget=3000 --screenshot="$OUT/$section-$width-$theme.png" "$url" >/tmp/architect-lab-chrome.log 2>&1
   else
     "$BROWSER" --headless --no-sandbox --disable-gpu --hide-scrollbars --disable-extensions \
-      --force-device-scale-factor=1 --window-size="$width,$height" \
+      --disable-smooth-scrolling --force-prefers-reduced-motion --force-device-scale-factor=1 --window-size="$width,$height" \
       --virtual-time-budget=3000 --screenshot="$OUT/$section-$width-$theme.png" "$url" >/tmp/architect-lab-chrome.log 2>&1
   fi
   test -s "$OUT/$section-$width-$theme.png"
