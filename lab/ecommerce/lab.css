@@ -85,3 +85,19 @@ html[data-theme="light"]{--eco-pub:#0f8aa3;--eco-hypo:#a8761a;--eco-late:#2f4f55
 @media(max-width:480px){.kpi-grid{grid-template-columns:1fr}.kpi-tile{padding:18px 16px}.chart-card,.trend-note,.detail-card,.dax-section,.flow-section{padding:16px 14px 18px}.lab-panel{padding:20px 16px 22px}.lab-stats{grid-template-columns:1fr 1fr}.lab-stats>div{padding:12px 12px 13px}.lab-stats dd{font-size:20px}.prov-ledger dd{font-size:26px}.preset-button{flex:1 1 calc(50% - 6px)}.range-number{width:5.4em}.explain-card{padding:20px 18px 24px}.chart-head{flex-direction:column;align-items:flex-start}}
 @media(max-width:360px){.prov-ledger{grid-template-columns:1fr 1fr}.lab-stats{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.preset-button,.table-button,.chart-frame .mark,.model-lines .model-link,.button{transition:none}}
+
+
+/* Phase 5 — make dense analytics controls and captions readable on desktop.
+   These are presentation-only overrides: the model and chart data are unchanged. */
+@media (min-width:1181px){
+  .kpi-definition{font-size:14px;line-height:1.7}
+  .chart-caption{font-size:13px;line-height:1.7;color:var(--muted)}
+  .chart-frame .label-value{font-size:12.5px}
+  .chart-frame .label-mono{font-size:11px}
+  .field-hint,.lab-panel-note{font-size:12.5px}
+  .field>label,.field-label{font-size:11.5px;letter-spacing:.08em}
+  .lab-stats dt{font-size:11px}
+  .panel-actions .button-small,.preset-button{min-height:44px;font-size:12px}
+  .table-button-name{font-size:12px}
+  .table-view summary{font-size:13px}
+}
