@@ -738,7 +738,7 @@ html[data-theme="light"] .sec-art-r2{stroke:#8d3d99}
   .record-body h3{font-size:clamp(23px,1.9vw,28px)}
   .record-body h3 small{line-height:1.55}
   .record-points{gap:10px}
-  .record-points li{line-height:1.7}
+  .record-points li{font-size:15px;line-height:1.72}
   .record-when{gap:12px}
   .record-aside{gap:16px}
   .record-card{padding:24px 26px 26px}
@@ -747,7 +747,7 @@ html[data-theme="light"] .sec-art-r2{stroke:#8d3d99}
   .stack-group:first-child{padding-top:0;border-top:0}
   .stack-group dt{margin-bottom:10px}
   .stack-group dd{gap:7px 13px}
-  .stack-group dd span{display:inline-flex;align-items:baseline;border:0;padding:0;color:var(--text);font-size:11px;line-height:1.6;letter-spacing:.04em}
+  .stack-group dd span{display:inline-flex;align-items:baseline;border:0;padding:0;color:var(--text);font-size:12px;line-height:1.7;letter-spacing:.025em}
   .stack-group dd span::before{content:"·";color:var(--accent);font-size:13px;line-height:1;margin-right:7px}
   .stack-group-text dd{display:block}
   .record-note{border-top:1px solid var(--line);padding-top:14px;margin-top:20px}
