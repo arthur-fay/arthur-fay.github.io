@@ -98,6 +98,39 @@ try {
     }
     if (metrics.docWidth > width + 1) throw new Error('Horizontal overflow at ' + width + 'px: ' + metrics.docWidth);
   }
+
+  // The three functioning project workspaces are reviewed alongside the homepage.
+  // Save real section captures (not screenshots of the top of the wrong page).
+  const labs = [
+    ['ecommerce', '/lab/ecommerce/', '#dashboard'],
+    ['pathfinding', '/lab/pathfinding/', '#lab'],
+    ['security', '/lab/security-events/', '#lab'],
+  ];
+  for (const [labName, url, selector] of labs) {
+    for (const [width, height, theme] of [[1440, 900, 'dark'], [1440, 900, 'light'], [375, 812, 'dark']]) {
+      await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false }, sessionId);
+      await send('Emulation.setEmulatedMedia', { features: [
+        { name: 'prefers-color-scheme', value: theme },
+        { name: 'prefers-reduced-motion', value: 'reduce' },
+      ] }, sessionId);
+      await send('Page.navigate', { url: server.baseUrl + url }, sessionId);
+      await sleep(900);
+      const expr = '(async()=>{await document.fonts.ready;document.documentElement.setAttribute("data-theme",'+JSON.stringify(theme)+');document.documentElement.classList.remove("js");for(const el of document.querySelectorAll("[data-reveal]"))el.classList.add("is-visible");const root=document.querySelector('+JSON.stringify(selector)+');if(!root)return null;const r=root.getBoundingClientRect();const panel=root.querySelector(".lab-panel");const p=panel?.getBoundingClientRect();return{top:r.top+scrollY,height:r.height,panelWidth:p?.width||0,docHeight:document.documentElement.scrollHeight,docWidth:document.documentElement.scrollWidth,labels:[...root.querySelectorAll(".field>label,.field-label,.lab-tools legend")].slice(0,6).map(el=>({text:el.textContent.trim().slice(0,60),size:getComputedStyle(el).fontSize})),buttons:[...root.querySelectorAll(".button-small,.tool span,.preset-button")].slice(0,6).map(el=>({text:el.textContent.trim(),height:Math.round(el.getBoundingClientRect().height)}))}})()';
+      const metrics = await evaluate(sessionId, expr);
+      if (!metrics || metrics.height < 100) throw new Error('Missing lab workspace: ' + labName);
+      if (metrics.docWidth > width + 1) throw new Error('Lab overflow: ' + labName + ' at ' + width);
+      const top = Math.max(0, metrics.top - 28);
+      const bottom = Math.min(metrics.docHeight, metrics.top + Math.min(metrics.height, 1950));
+      const screenshot = await send('Page.captureScreenshot', {
+        format: 'png', fromSurface: true, captureBeyondViewport: true,
+        clip: { x: 0, y: top, width, height: bottom - top, scale: 1 },
+      }, sessionId);
+      const name = labName + '-workspace-' + width + '-' + theme + '.png';
+      await writeFile(join(out, name), Buffer.from(screenshot.data, 'base64'));
+      shots.push({ name, labName, width, theme, section: 'workspace', metrics });
+      console.log('Captured ' + name);
+    }
+  }
   await writeFile(join(out, 'layout-report.json'), JSON.stringify({ sha: process.env.GITHUB_SHA || null, shots }, null, 2) + '\n');
   console.log('Captured ' + shots.length + ' screenshots.');
 } finally {
