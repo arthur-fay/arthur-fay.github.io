@@ -481,6 +481,62 @@ describe('portfolio: recruiter path and evidence-based claims', () => {
   });
 });
 
+describe('portfolio: professional record desktop refinement', () => {
+  for (const width of [1280, 1440, 1920]) {
+    for (const colorScheme of ['dark', 'light']) {
+      it('at '+width+'px in '+colorScheme+', work evidence reads wider than the skills index', async () => {
+        const { page, problems, close } = await open('/', { viewport: { width, height: 900 }, colorScheme });
+        try {
+          const layout = await page.evaluate(() => {
+            const record = document.querySelector('.record');
+            const left = document.querySelector('.record-main').getBoundingClientRect();
+            const right = document.querySelector('.record-aside').getBoundingClientRect();
+            const first = document.querySelector('.record-entry');
+            const when = first.querySelector('.record-when').getBoundingClientRect();
+            const body = first.querySelector('.record-body').getBoundingClientRect();
+            const list = document.querySelectorAll('.stack-group dd span');
+            const firstChip = getComputedStyle(list[0]);
+            const skillGrid = document.querySelector('.stack-groups');
+            return {
+              leftWidth: left.width, rightWidth: right.width,
+              gap: right.left - left.right,
+              whenRight: when.right, bodyLeft: body.left, bodyWidth: body.width,
+              skillCount: list.length, chipBorder: parseFloat(firstChip.borderTopWidth),
+              skillGroupRows: [...skillGrid.querySelectorAll('.stack-group')].map(g => g.getBoundingClientRect().top),
+              visibleEducation: [...document.querySelectorAll('.edu-entry')].map(el => el.getBoundingClientRect().width),
+              projectLinks: document.querySelectorAll('.record-entry-independent .record-points a[href^="#plate-"]').length,
+              columns: getComputedStyle(record).gridTemplateColumns.trim().split(/\s+/).length
+            };
+          });
+          assert.equal(layout.columns, 2, 'the desktop record remains a balanced two-column composition');
+          assert.ok(layout.leftWidth > layout.rightWidth * 1.6, 'employment evidence gets more width than the skills index');
+          assert.ok(layout.bodyWidth > 420, 'role descriptions are no longer restricted to narrow paragraphs');
+          assert.ok(layout.bodyLeft > layout.whenRight + 10, 'dates and content have a readable gutter');
+          assert.ok(layout.gap >= 20, 'clear separation between résumé and education');
+          assert.ok(layout.skillCount >= 30 && layout.chipBorder === 0, 'all technology terms remain, without excessive chip borders');
+          assert.ok(layout.skillGroupRows.every((value, i, all) => i === 0 || value > all[i - 1]), 'skill groups retain a top-to-bottom hierarchy');
+          assert.equal(layout.visibleEducation.length, 2, 'both degrees are visible in the academic panel');
+          assert.equal(layout.projectLinks, 4, 'the independent-work links are preserved');
+          assert.equal(await overflow(page), 0);
+          assert.deepEqual(problems, []);
+        } finally { await close(); }
+      });
+    }
+  }
+  for (const width of [320, 375, 768, 980, 1001, 1180]) {
+    it('at '+width+'px the record retains source facts and avoids overflow', async () => {
+      const { page, problems, close } = await open('/', { viewport: { width, height: 850 } });
+      try {
+        assert.equal(await page.locator('#experience .record-body h3').count(), 3, 'two employment roles and independent projects remain');
+        assert.equal(await page.locator('#education .edu-entry').count(), 2);
+        assert.equal(await overflow(page), 0);
+        assert.deepEqual(await clipped(page), []);
+        assert.deepEqual(problems, []);
+      } finally { await close(); }
+    });
+  }
+});
+
 describe('portfolio: experience, education, contact and privacy', () => {
   it('states the professional record apart from the independent work, with both job titles and both degrees as on the latest résumé', async () => {
     const { page, problems, close } = await open('/');
