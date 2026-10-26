@@ -19,7 +19,7 @@ describe('recruiter credibility and contact', () => {
   it('describes GitHub as technical evidence, not a private communications service', () => {
     const contact = unescape(region('id="contact"', '</section>'));
     assert.match(contact, /contact details on the résumé you received/i);
-    assert.match(contact, /GitHub is not a private messaging channel/i);
+    assert.match(contact, /public GitHub links here for source repositories, available tests and technical evidence/i);
     assert.doesNotMatch(contact, /start a discussion on any repository|shared on request/i);
     assert.match(contact, /Software Engineer/);
     assert.match(contact, /Backend Software Engineer/);
