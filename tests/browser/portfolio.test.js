@@ -711,7 +711,7 @@ describe('portfolio: experience, education, contact and privacy', () => {
       assert.equal(await page.locator('.hero-titleblock a[href="https://github.com/arthur-fay"]').count(), 1, 'the hero says where to verify the work');
       const contactCopy = (await page.locator('#contact .contact-left > p').innerText()).toLowerCase();
       assert.match(contactCopy, /résumé you received/, 'direct hiring correspondence uses the separately shared résumé');
-      assert.match(contactCopy, /not a private messaging channel/, 'public GitHub evidence is not misrepresented as a messaging service');
+      assert.match(contactCopy, /public github links here for source repositories, available tests and technical evidence/, 'public GitHub links are presented as inspectable evidence');
       assert.doesNotMatch(contactCopy, /start a discussion|shared on request/, 'never promise unavailable GitHub Discussions or an inaccessible private contact channel');
       const verifyCopy = (await page.locator('.hero-titleblock').innerText()).toLowerCase();
       assert.ok(verifyCopy.includes('available research evidence') && verifyCopy.includes('tested browser labs'), 'hero verification copy distinguishes tested labs from older BI project artifacts');
