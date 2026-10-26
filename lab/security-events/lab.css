@@ -36,3 +36,17 @@ html[data-theme="light"]{--tl-bg:#edf1e8;--sec-success:#1b7381;--sec-failure:#a3
 @media(max-width:780px){.lab-hero{padding:50px 0 30px}.lab-section{padding:30px 0 60px}.lab-section-alt{padding:50px 0}.rules-grid{grid-template-columns:1fr;gap:25px}.lab-footer-note{flex-direction:column;align-items:start;gap:18px}.comparison-diff{grid-template-columns:1fr}.filters-row{grid-template-columns:repeat(2,minmax(0,1fr))}.timeline-toolbar{flex-direction:column;align-items:stretch}.speed-field{min-width:0}}
 @media(max-width:480px){.lab-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.lab-stats>div{padding:12px 12px 13px}.lab-stats dd{font-size:19px}.lab-actions .button{flex:1 1 calc(50% - 6px)}.lab-panel{padding:20px 16px 22px}.timeline-card,.alerts-card,.detail-card,.comparison{padding:16px 14px 18px}.field-pair{grid-template-columns:1fr}.filters-row{grid-template-columns:1fr}.eval-stats{grid-template-columns:1fr 1fr}.pager{justify-content:space-between}.pager-status{width:100%;order:3}}
 @media(prefers-reduced-motion:reduce){.alert-button,.button{transition:none}}
+
+
+/* Phase 5 — clearer control hierarchy and synthetic investigation readouts.
+   No rule thresholds, events, evaluation formulas or responsive flows change. */
+@media (min-width:1181px){
+  .field>label,.field-label,.speed-field label{font-size:11px;letter-spacing:.08em}
+  .lab-panel-note,.field-hint{font-size:12.5px}
+  .field select,.field input[type="number"],.field input[type="text"],.field input[type="file"]{min-height:44px;font-size:14px}
+  .button-small{min-height:44px;font-size:12px}
+  .lab-stats dt{font-size:10.5px}
+  .timeline-summary,.card-note{font-size:12.5px;line-height:1.7}
+  .lab-legend{font-size:12.5px;line-height:1.65}
+  .range-value{font-size:12px}
+}

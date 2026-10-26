@@ -21,3 +21,16 @@ html[data-theme="light"]{--cell-wall:#1b2531;--cell-terrain:#9a9176;--cell-terra
 @media(max-width:780px){.lab-hero{padding:50px 0 30px}.lab-section{padding:30px 0 70px}.lab-toolbar{align-items:stretch;flex-direction:column}.lab-grid{--lab-max-h:min(58vh,520px)}.rules-grid{grid-template-columns:1fr;gap:25px}.lab-footer-note{flex-direction:column;align-items:start;gap:18px}}
 @media(max-width:480px){.lab-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.lab-stats>div{padding:12px 12px 13px}.lab-stats dd{font-size:19px}.tool span{padding:0 11px;font-size:10px}.lab-actions .button{flex:1 1 calc(50% - 6px)}.lab-grid-frame{padding:6px}.lab-panel{padding:20px 16px 22px}}
 @media(prefers-reduced-motion:reduce){.tool span,.lab-cell{transition:none}}
+
+
+/* Phase 5 — readable desktop simulation controls, explanations and results.
+   Geometry and breakpoint behavior below full desktop remain unchanged. */
+@media (min-width:1181px){
+  .field>label,.field-label,.lab-tools legend,.lab-label{font-size:11px;letter-spacing:.08em}
+  .lab-panel-note,.field-hint{font-size:12.5px}
+  .tool span{min-height:44px;font-size:12px}
+  .button-small{min-height:44px;font-size:12px}
+  .lab-stats dt{font-size:10.5px}
+  .lab-legend{font-size:12.5px;line-height:1.65}
+  .field select,.field input[type="number"]{min-height:44px;font-size:14px}
+}
