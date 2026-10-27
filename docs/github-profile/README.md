@@ -6,7 +6,7 @@
 
 I build backend APIs, data systems and browser interfaces, with particular attention to testability, documentation and what the evidence actually supports. My public work includes a forecasting-research platform, a business-intelligence project and three interactive engineering labs.
 
-**[Explore The Architect Lab](https://arthur-fay.github.io/)** · **[View the four projects](https://arthur-fay.github.io/#work)** · **[Experience & education](https://arthur-fay.github.io/#experience)**
+**[Explore The Architect Lab](https://arthur-fay.github.io/)** · **[Review by role](https://arthur-fay.github.io/#hiring)** · **[Experience & education](https://arthur-fay.github.io/#experience)**
 
 ## Selected engineering work
 
@@ -43,7 +43,3 @@ The portfolio itself uses plain HTML, CSS and JavaScript under a restrictive Con
 ## Get in touch
 
 For direct recruiting correspondence, please use the contact details on the résumé shared with you. This public profile links to the [engineering portfolio](https://arthur-fay.github.io/) and [public GitHub repositories](https://github.com/arthur-fay) for technical review; GitHub is not presented as a private hiring inbox.
-
----
-
-*This is a prepared GitHub profile README. To display it on the GitHub user profile, the owner must approve creation of a **public** repository named exactly `arthur-fay/arthur-fay` and place this content in that repository's root `README.md`. The current staging copy is not yet a live profile. Remove this final preparation note when publishing.*
