@@ -42,7 +42,9 @@ The existing review PRs are separate: portfolio #16 stages profile documentation
 
 - `npm test`: passed locally — offline site/anchor/CSP/privacy checks, JavaScript syntax checks and 217 unit tests.
 - Three browser regressions added for filter-to-anchor navigation, repeated keyboard fragment activation and nested fragment targets. The existing responsive/no-JavaScript/theme/lab suite remains applicable.
-- Local Playwright launch could not run because this executor has no installed Chromium executable. The checked-in GitHub Actions workflow provides the full browser and screenshot jobs; its result must be reviewed on the PR head.
-- The managed preview was opened in the cloud browser for a visual review and direct navigation checks. This is separate from the automated browser suite and does not certify accessibility or cross-browser compatibility.
+- GitHub Actions passed on implementation commit `599f9427468ea2a42380a912532154f4d88ac846`: offline integrity/unit checks, **172 browser tests** (zero failures or skips) and the native Chrome visual job. [Verified run](https://github.com/arthur-fay/arthur-fay.github.io/actions/runs/40564080295). Local Playwright launch was unavailable because this executor has no installed Chromium executable; the full browser result is from CI.
+- The managed preview was reviewed in the cloud browser in light and dark themes. A hidden analytics plate was opened from the role guide, restoring the card, All work and the live result count. Phone review frames had content viewports of 320px and 375px with no horizontal document overflow. This is separate from automated testing and does not certify accessibility or cross-browser compatibility.
+
+Visual review: [desktop light](job-readiness-2026-10-27/role-guide-light.jpg), [desktop dark](job-readiness-2026-10-27/role-guide-dark.jpg), [phone content viewports](job-readiness-2026-10-27/role-guide-mobile.jpg). The phone screenshot shows same-origin review frames, not physical devices. The subsequent evidence commit adds only these screenshots and this verification record; implementation and tests are unchanged.
 
 Review the PR's current checks before merge. GitHub Pages publishes from `main`; this branch leaves the live website unchanged until that merge.
