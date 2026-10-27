@@ -1,5 +1,18 @@
 # Arthur Fay — The Architect Lab
 
+## Recruiter quick tour
+
+**[Open the live portfolio](https://arthur-fay.github.io/)** · **[Review professional experience](https://arthur-fay.github.io/#experience)** · **[Inspect source and tests](https://github.com/arthur-fay/arthur-fay.github.io/tree/main/tests)**
+
+| Engineering focus | Evidence |
+| --- | --- |
+| Backend APIs and applied forecasting | [ATLAS source](https://github.com/arthur-fay/demand-forecasting-model) · [API documentation](https://github.com/arthur-fay/demand-forecasting-model/blob/main/docs/API.md) · [Research qualifications](https://github.com/arthur-fay/demand-forecasting-model/blob/main/docs/BACKTESTING.md) |
+| Analytics and dimensional modeling | [Original Power BI project](https://github.com/arthur-fay/customer-revenue-analytics) · [Interactive analytics lab](https://arthur-fay.github.io/lab/ecommerce/) |
+| Algorithm engineering | [Pathfinding live lab](https://arthur-fay.github.io/lab/pathfinding/) · [Source](lab/pathfinding/) |
+| Defensive investigation | [Synthetic Security Events live lab](https://arthur-fay.github.io/lab/security-events/) · [Source](lab/security-events/) |
+
+The portfolio's three interactive browser labs are covered by automated tests. The original Power BI repository contains the dashboard project and its documentation; do not mistake its historical report files for a tested live web service. ATLAS is reproducible research, **not a public production deployment**, and reports its statistical and calibration limitations.
+
 A responsive, accessible, dependency-free engineering portfolio served at **https://arthur-fay.github.io/** using GitHub Pages. It presents Arthur Fay, a software engineer (Python, TypeScript/React, FastAPI, PostgreSQL, REST APIs, CI/CD; employed as a Backend Software Engineer I), through four public projects, an employment and education record, and a contact title block. The homepage is designed as a drafted monograph: numbered project plates with figures and captions, an interactive section cut through each system's architecture, an animated isometric system drawing in the hero, a title block of profile facts, a schedule-style record of experience and education, and title-block contact and footer blocks. See [docs/REDESIGN_2026-10.md](docs/REDESIGN_2026-10.md) for the redesign's audit, creative direction and measurements, [docs/PROFILE_ALIGNMENT_2026-10.md](docs/PROFILE_ALIGNMENT_2026-10.md) for the professional-profile update and the résumé audit against the repositories, and [docs/RESUME_RECONCILIATION_2026-10-22.md](docs/RESUME_RECONCILIATION_2026-10-22.md) for the latest résumé-to-website reconciliation and the privacy decisions.
 
 **Status:** The portfolio is served from `main` by GitHub Pages. New work is prepared on review branches and pull requests; the owner controls whether and when to merge, and merging into `main` publishes the change.
