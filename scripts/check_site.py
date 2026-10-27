@@ -10,6 +10,7 @@ Run with: python3 scripts/check_site.py
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from html.parser import HTMLParser
@@ -52,6 +53,11 @@ FORBIDDEN_JS = (
 
 
 class PageParser(HTMLParser):
+    @property
+    def local_assets(self) -> list[tuple[str, str]]:
+        return [(tag, urlsplit(url).path) for tag, url in self.assets
+                if url.startswith("/") and not url.startswith("//")]
+
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
         self.ids: set[str] = set()
@@ -132,6 +138,18 @@ class PageParser(HTMLParser):
                 self.canonical = attr.get("href") or ""
 
 
+def check_local_asset(url: str, label: str) -> None:
+    parts = urlsplit(url)
+    assert not parts.scheme and not parts.netloc and parts.path.startswith("/") and not parts.fragment, f"{label}: external or malformed runtime asset: {url}"
+    file = (ROOT / parts.path.lstrip("/")).resolve()
+    assert file.is_relative_to(ROOT.resolve()) and file.is_file(), f"{label}: missing local asset: {url}"
+    if parts.path in ("/styles.css", "/script.js"):
+        version = hashlib.sha256(file.read_bytes()).hexdigest()[:12]
+        assert parts.query == f"v={version}", f"{label}: stale shared asset URL {url}; run npm run version:assets"
+    else:
+        assert not parts.query, f"{label}: unexpected asset query: {url}"
+
+
 def check_page(relative_path: str, required_ids: set[str], phrases: tuple[str, ...], canonical: str) -> PageParser:
     html = (ROOT / relative_path).read_text(encoding="utf-8")
     parser = PageParser()
@@ -146,14 +164,13 @@ def check_page(relative_path: str, required_ids: set[str], phrases: tuple[str, .
     assert not parser.errors, f"{label}:\n" + "\n".join(parser.errors)
     missing_ids = required_ids - parser.ids
     assert not missing_ids, f"{label}: missing ids {sorted(missing_ids)}"
-    assert ("script", "/script.js") in parser.assets, f"{label}: shared header script missing"
-    assert ("link", "/styles.css") in parser.assets, f"{label}: shared stylesheet missing"
-    assert ("link", "/favicon.svg") in parser.assets, f"{label}: favicon missing"
+    assert ("script", "/script.js") in parser.local_assets, f"{label}: shared header script missing"
+    assert ("link", "/styles.css") in parser.local_assets, f"{label}: shared stylesheet missing"
+    assert ("link", "/favicon.svg") in parser.local_assets, f"{label}: favicon missing"
     for tag, path in parser.assets:
         if tag == "link" and path.startswith(f"{SITE}/"):
             continue
-        assert path.startswith("/"), f"{label}: external runtime asset forbidden: {tag} {path}"
-        assert (ROOT / path.lstrip("/")).is_file(), f"{label}: missing referenced asset: {path}"
+        check_local_asset(path, label)
     for page in parser.internal_pages:
         target = page.split("#", 1)[0]
         if target == "/":
@@ -369,10 +386,10 @@ def main() -> None:
     assert "default-src 'none'" in not_found.csp and "'unsafe-inline'" not in not_found.csp, "404.html: CSP missing or weakened"
     assert not not_found.errors, "404.html: " + "; ".join(not_found.errors)
     assert "/" in not_found.internal_pages, "404.html: missing return link"
-    assert ("link", "/styles.css") in not_found.assets and ("link", "/404.css") in not_found.assets, "404.html: missing local stylesheet"
+    assert ("link", "/styles.css") in not_found.local_assets and ("link", "/404.css") in not_found.local_assets, "404.html: missing local stylesheet"
     assert "noindex" in not_found_html.casefold(), "404.html: error page should not be indexed"
     for tag, path in not_found.assets:
-        assert path.startswith("/") and (ROOT / path.lstrip("/")).is_file(), f"404.html: missing local asset {tag} {path}"
+        check_local_asset(path, "404.html")
     print(
         "Portfolio static verification passed "
         f"(index: {len(index.links)} links, {len(index.ids)} IDs; pathfinding lab: {len(lab.links)} links, {len(lab.ids)} IDs; "

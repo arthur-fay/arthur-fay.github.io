@@ -58,6 +58,8 @@ The shared header shows its full navigation from 1001 px up and the menu button 
 
 ## Checks and tests
 
+After editing `styles.css` or `script.js`, run `npm run version:assets` to refresh their content-derived URLs in all pages. This prevents a newly published page from using a previously cached shared stylesheet or script. The offline checker verifies that every shared asset URL matches its file's SHA-256 prefix and rejects stale versions; the runtime remains dependency-free.
+
 ```bash
 npm test               # offline integrity checks (scripts/check_site.py), syntax checks, unit tests for all labs
 npm run test:browser   # Playwright browser tests for the homepage (tests/browser/portfolio.test.js) and all three labs; see lab/pathfinding/README.md for the one-off setup
