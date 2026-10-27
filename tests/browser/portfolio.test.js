@@ -87,6 +87,54 @@ const clipped = (page) => page.evaluate(() => {
   return found.slice(0, 8);
 });
 
+describe('portfolio: role evidence links remain usable after filtering', () => {
+  it('opens a hidden analytics plate from the role guide and restores the filter state', async () => {
+    const { page, close } = await open('/');
+    try {
+      await page.locator('[data-filter="engineering"]').click();
+      assert.equal(await page.locator('#plate-commerce').isVisible(), false);
+      await page.locator('#hiring a[href="#plate-commerce"]').click();
+      await page.waitForFunction(() => window.location.hash === '#plate-commerce');
+      assert.equal(await page.locator('#plate-commerce').isVisible(), true);
+      assert.equal(await page.locator('[data-filter="all"]').getAttribute('aria-pressed'), 'true');
+      assert.equal(await page.locator('[data-filter="engineering"]').getAttribute('aria-pressed'), 'false');
+      assert.equal(await page.locator('.project:visible').count(), 4);
+      assert.equal(await page.locator('#filter-status').textContent(), 'Showing 4 projects.');
+      const top = await page.$eval('#plate-commerce', el => el.getBoundingClientRect().top);
+      assert.ok(top >= 0 && top <= 120, `the revealed plate is below the header (top=${top})`);
+    } finally { await close(); }
+  });
+
+  it('restores a plate when a keyboard user follows its current fragment again', async () => {
+    const { page, close } = await open('/#plate-atlas');
+    try {
+      await page.locator('[data-filter="analytics"]').click();
+      assert.equal(await page.locator('#plate-atlas').isVisible(), false);
+      await page.locator('.hero-index a[href="#plate-atlas"]').focus();
+      await page.locator('.hero-index a[href="#plate-atlas"]').press('Enter');
+      assert.equal(await page.locator('#plate-atlas').isVisible(), true);
+      assert.equal(await page.locator('[data-filter="all"]').getAttribute('aria-pressed'), 'true');
+    } finally { await close(); }
+  });
+
+  it('restores hidden plates on fragment navigation, including a nested heading target', async () => {
+    const { page, close } = await open('/');
+    try {
+      await page.locator('[data-filter="analytics"]').click();
+      await page.evaluate(() => { window.location.hash = '#security-title'; });
+      await page.waitForFunction(() => !document.getElementById('plate-security').hidden);
+      assert.equal(await page.locator('[data-filter="all"]').getAttribute('aria-pressed'), 'true');
+      assert.equal(await page.locator('#filter-status').textContent(), 'Showing 4 projects.');
+      // A later unrelated fragment must not clear a filter the visitor chose.
+      await page.locator('[data-filter="analytics"]').click();
+      await page.evaluate(() => { window.location.hash = '#experience'; });
+      await page.waitForFunction(() => window.location.hash === '#experience');
+      assert.equal(await page.locator('[data-filter="analytics"]').getAttribute('aria-pressed'), 'true');
+      assert.equal(await page.locator('.project:visible').count(), 1);
+    } finally { await close(); }
+  });
+});
+
 describe('portfolio: layout integrity at every viewport and in both themes', () => {
   for (const [name, viewport] of Object.entries(VIEWPORTS)) {
     for (const colorScheme of ['dark', 'light']) {

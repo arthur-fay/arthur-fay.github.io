@@ -76,7 +76,7 @@
   const filters = [...document.querySelectorAll('[data-filter]')];
   const projects = [...document.querySelectorAll('.project[data-category]')];
   const liveStatus = document.getElementById('filter-status');
-  filters.forEach((button) => button.addEventListener('click', () => {
+  const selectFilter = (button) => {
     const selected = button.dataset.filter;
     let visible = 0;
     filters.forEach((b) => {
@@ -91,7 +91,32 @@
       if (show) visible += 1;
     });
     if (liveStatus) liveStatus.textContent = `Showing ${visible} ${visible === 1 ? 'project' : 'projects'}.`;
-  }));
+  };
+  filters.forEach((button) => button.addEventListener('click', () => selectFilter(button)));
+
+  // A direct project link must still work after a category has hidden its target.
+  const revealLinkedProject = (hash) => {
+    if (!hash || !hash.startsWith('#')) return null;
+    let id;
+    try { id = decodeURIComponent(hash.slice(1)); } catch (_) { return null; }
+    const target = document.getElementById(id);
+    const project = target?.closest('.project[data-category]');
+    const all = filters.find((button) => button.dataset.filter === 'all');
+    if (!project?.hidden || !all) return null;
+    selectFilter(all);
+    return target;
+  };
+  // Unhide before the browser performs its default fragment scroll, including
+  // repeated links to the same hash (which do not dispatch hashchange).
+  document.addEventListener('click', (event) => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const link = event.target.closest?.('a[href^="#"]');
+    if (link) revealLinkedProject(link.getAttribute('href'));
+  });
+  window.addEventListener('hashchange', () => {
+    const target = revealLinkedProject(window.location.hash);
+    if (target) target.scrollIntoView({ block: 'start' });
+  });
 
   /* Reading progress line. */
   const progress = document.getElementById('reading-progress');
