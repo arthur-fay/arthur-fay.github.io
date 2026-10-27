@@ -215,6 +215,43 @@
           <div><p class="section-index">02 / Selected work</p><h2 id="work-title">Four plates, <em>drawn from real repositories.</em></h2></div>
           <p class="section-intro">Each plate is a case study: the problem, the architecture, the evidence you can inspect, and the limits stated plainly. No invented results, screenshots or metrics.</p>
         </div>
+        <section class="hiring-guide" id="hiring" aria-labelledby="hiring-title">
+          <div class="hiring-heading">
+            <div><p class="section-index">Review paths</p><h3 id="hiring-title">Start with your role.</h3></div>
+            <p>Choose the work closest to your team, then inspect its implementation and tests.</p>
+          </div>
+          <ol class="role-paths">
+            <li>
+              <span class="role-path-index" aria-hidden="true">01 /</span>
+              <div><h4>Backend &amp; API engineering</h4>
+                <p>ATLAS: FastAPI, typed contracts, structured errors and bounded workers. PostgreSQL and ERP work is described in the employment record.</p>
+                <div class="role-links"><a href="#plate-atlas">ATLAS case study <span aria-hidden="true">↓</span></a><a href="https://github.com/arthur-fay/demand-forecasting-model/blob/main/docs/API.md" target="_blank" rel="noopener noreferrer">API design &amp; limits <span aria-hidden="true">↗</span></a><a href="#record-bst">Employment <span aria-hidden="true">↓</span></a></div>
+              </div>
+            </li>
+            <li>
+              <span class="role-path-index" aria-hidden="true">02 /</span>
+              <div><h4>Frontend &amp; full-stack engineering</h4>
+                <p>Run the keyboard-operable JavaScript labs. Inspect ATLAS's React/TypeScript dashboard, generated client types and browser-test design.</p>
+                <div class="role-links"><a href="/lab/pathfinding/">Try pathfinding <span aria-hidden="true">↗</span></a><a href="https://github.com/arthur-fay/demand-forecasting-model/blob/main/docs/DASHBOARD.md" target="_blank" rel="noopener noreferrer">React dashboard evidence <span aria-hidden="true">↗</span></a></div>
+              </div>
+            </li>
+            <li>
+              <span class="role-path-index" aria-hidden="true">03 /</span>
+              <div><h4>Data analysis &amp; business intelligence</h4>
+                <p>Explore the Power BI project's dimensional model and DAX measures, then compare reported KPIs with explicitly hypothetical scenarios in the companion lab.</p>
+                <div class="role-links"><a href="#plate-commerce">Analytics case study <span aria-hidden="true">↓</span></a><a href="/lab/ecommerce/">Try the analytics lab <span aria-hidden="true">↗</span></a><a href="https://github.com/arthur-fay/customer-revenue-analytics/blob/main/README.md#data-model" target="_blank" rel="noopener noreferrer">Model &amp; DAX <span aria-hidden="true">↗</span></a></div>
+              </div>
+            </li>
+            <li>
+              <span class="role-path-index" aria-hidden="true">04 /</span>
+              <div><h4>Quality &amp; test automation</h4>
+                <p>Inspect algorithm tests against independent reference implementations, browser checks for keyboard and mobile use, and the CI workflow that runs them.</p>
+                <div class="role-links"><a href="https://github.com/arthur-fay/arthur-fay.github.io/blob/main/tests/unit/pathfinding.test.js" target="_blank" rel="noopener noreferrer">Algorithm tests <span aria-hidden="true">↗</span></a><a href="https://github.com/arthur-fay/arthur-fay.github.io/blob/main/tests/browser/portfolio.test.js" target="_blank" rel="noopener noreferrer">Browser tests <span aria-hidden="true">↗</span></a><a href="https://github.com/arthur-fay/arthur-fay.github.io/blob/main/.github/workflows/portfolio-ci.yml" target="_blank" rel="noopener noreferrer">CI checks <span aria-hidden="true">↗</span></a></div>
+              </div>
+            </li>
+          </ol>
+          <p class="hiring-note">Also explore <a href="#plate-security">security detection on synthetic events</a> and <a href="#atlas-detail">forecasting research with its uncertainty disclosed</a>. These paths point to project evidence; employment and education are résumé-reported. The ATLAS dashboard is documented in source and is not publicly deployed.</p>
+        </section>
         <div class="filters" role="group" aria-label="Filter projects" data-reveal>
           <span class="filters-label" aria-hidden="true">Legend</span>
           <button class="filter-button is-active" type="button" data-filter="all" aria-pressed="true">All work <span class="filter-count">04</span></button>
@@ -275,7 +312,7 @@
             </div>
           </article>
           <article class="project project-commerce" id="plate-commerce" data-category="analytics interactive" aria-labelledby="commerce-title" data-reveal>
-            <div class="plate-head"><span class="project-num">Plate 02 <span class="project-slash">/</span> Analytics</span><span class="project-label">Business intelligence · SQL · Python · Power BI · interactive lab</span></div>
+            <div class="plate-head"><span class="project-num">Plate 02 <span class="project-slash">/</span> Analytics</span><span class="project-label">Business intelligence · SQL · DAX · Power BI · interactive lab</span></div>
             <div class="plate-grid">
               <figure class="plate-figure">
                 <div class="plate-art frame">
@@ -317,7 +354,7 @@
                   <div><dt>Evidence</dt><dd>The <a href="https://github.com/arthur-fay/customer-revenue-analytics/blob/main/README.md#dashboard-preview" target="_blank" rel="noopener noreferrer">dashboard preview</a> and the <a href="https://github.com/arthur-fay/customer-revenue-analytics/blob/main/README.md#data-model" target="_blank" rel="noopener noreferrer">documented data model</a> in the project repository; on this site, the <a href="/lab/ecommerce/">interactive analytics lab</a>, its <a href="https://github.com/arthur-fay/arthur-fay.github.io/blob/main/lab/ecommerce/model.js" target="_blank" rel="noopener noreferrer">analytics engine</a> and its <a href="https://github.com/arthur-fay/arthur-fay.github.io/blob/main/lab/ecommerce/README.md" target="_blank" rel="noopener noreferrer">methods and tests</a>.</dd></div>
                   <div><dt>Limits</dt><dd>The drawing above shows the documented model, not any figures from it. The lab shows only the README's rounded summary figures and the export's printed data labels, each labelled by provenance; every scenario it projects is hypothetical. Screenshots, annotated views and the Power BI file stay in the source repository.</dd></div>
                 </dl>
-                <div class="tag-list" role="group" aria-label="Analytics project technologies"><span>SQL</span><span>Google Colab</span><span>Python</span><span>DAX</span><span>Power BI</span><span>Data modelling</span><span>Interactive lab</span></div>
+                <div class="tag-list" role="group" aria-label="Analytics project technologies"><span>SQL</span><span>Google Colab</span><span>DAX</span><span>Power BI</span><span>Data modelling</span><span>Interactive lab</span></div>
                 <div class="project-links"><a href="/lab/ecommerce/" class="text-link">Open the interactive analytics lab <span aria-hidden="true">→</span></a><a href="https://github.com/arthur-fay/customer-revenue-analytics" target="_blank" rel="noopener noreferrer" class="text-link quiet-link">Explore project on GitHub <span aria-hidden="true">↗</span></a><a href="https://github.com/arthur-fay/customer-revenue-analytics/blob/main/README.md#dashboard-preview" target="_blank" rel="noopener noreferrer" class="text-link quiet-link">View actual dashboard <span aria-hidden="true">↗</span></a><a href="https://github.com/arthur-fay/customer-revenue-analytics/blob/main/README.md#data-model" target="_blank" rel="noopener noreferrer" class="text-link quiet-link">Inspect data model <span aria-hidden="true">↗</span></a></div>
               </div>
             </div>
@@ -507,7 +544,7 @@
         <div class="container about-inner">
           <div class="about-aside" data-reveal>
             <div class="about-heading"><p class="section-index">05 / About</p><h2 id="about-title">A software engineer,<br/><em>building to be inspected.</em></h2></div>
-            <p class="about-note">Four project repositories document the independent work; three interactive browser labs run here with automated tests. Employment and education are résumé-reported rather than independently verified by the project code.</p>
+            <p class="about-note">Three public project repositories document four independent projects; three interactive browser labs run here with automated tests. Employment and education are résumé-reported rather than independently verified by the project code.</p>
           </div>
           <div class="about-copy" data-reveal="late">
             <p>I'm <strong>Arthur Fay</strong>, a software engineer in New York. At Blue Sky Trading, as a Backend Software Engineer I, I build Python REST APIs and PostgreSQL schemas for operational and inventory applications, design the data models and SQL behind them, and develop internal web applications in Python and Java that integrate with the company's ERP; before that I spent more than five years as a data analyst working with HIPAA-regulated pharmacy data. Independently I build software end to end, from a contract-tested FastAPI research platform with a React 19 and TypeScript dashboard to analytics models and interactive engineering labs with their own test suites. I am pursuing a B.S. in Computer Science at Capella University (expected January 2027), after an A.S. in Computer Science from Borough of Manhattan Community College (CUNY, August 2024), and I am most interested in the part between an idea and a dependable, inspectable implementation.</p>
