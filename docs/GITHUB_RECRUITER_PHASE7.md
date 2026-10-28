@@ -38,3 +38,8 @@ The publish-ready text is [docs/github-profile/README.md](github-profile/README.
 Read the profile like a recruiter encountering it for the first time. Check direct paths to projects and technical evidence, credibility of statistical statements, readability without third-party badge generators or tracking, and privacy. Review all pull-request diffs and green CI before approving any merge or public profile creation.
 
 **Publication status: verified live.** The public GitHub profile displays the approved root README. The owner's approval covers the public profile repository and the prepared introduction; adding personal contact information and changing unrelated repositories remain separate decisions.
+
+
+## Follow-up — 28 October 2026
+
+The owner subsequently supplied the exact LinkedIn URL and recruiting email for public use. The maintained profile text now includes those two routes at the top and in **Get in touch**. The original publication findings above describe the 27 October version. See [the contact change and verification limits](PUBLIC_CONTACT_2026-10-28.md).

@@ -48,3 +48,8 @@ The existing review PRs are separate: portfolio #16 stages profile documentation
 Visual review: [desktop light](job-readiness-2026-10-27/role-guide-light.jpg), [desktop dark](job-readiness-2026-10-27/role-guide-dark.jpg), [phone content viewports](job-readiness-2026-10-27/role-guide-mobile.jpg). The phone screenshot shows same-origin review frames, not physical devices. The subsequent evidence commit adds only these screenshots and this verification record; implementation and tests are unchanged.
 
 Review the PR's current checks before merge. GitHub Pages publishes from `main`; this branch leaves the live website unchanged until that merge.
+
+
+## Follow-up — 28 October 2026
+
+Priority 1 now has an owner-selected recruiting route: the homepage and GitHub introduction use the exact email and LinkedIn URL the owner supplied. See [the contact update](PUBLIC_CONTACT_2026-10-28.md) for scope and verification. The next engineering-evidence task remains a compact, reproducible FastAPI/PostgreSQL project with migrations and integration tests.

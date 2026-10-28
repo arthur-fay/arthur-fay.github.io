@@ -8,6 +8,8 @@ I build backend APIs, data systems and browser interfaces, with particular atten
 
 **[Explore The Architect Lab](https://arthur-fay.github.io/)** · **[Review by role](https://arthur-fay.github.io/#hiring)** · **[Experience & education](https://arthur-fay.github.io/#experience)**
 
+**[Email Arthur](mailto:arthur.fay74@gmail.com)** · **[LinkedIn](https://www.linkedin.com/in/arthur-fay/)**
+
 ## Selected engineering work
 
 | Project | What you can inspect |
@@ -42,4 +44,4 @@ The portfolio itself uses plain HTML, CSS and JavaScript under a restrictive Con
 
 ## Get in touch
 
-For direct recruiting correspondence, please use the contact details on the résumé shared with you. This public profile links to the [engineering portfolio](https://arthur-fay.github.io/) and [public GitHub repositories](https://github.com/arthur-fay) for technical review; GitHub is not presented as a private hiring inbox.
+For recruiting inquiries, email [arthur.fay74@gmail.com](mailto:arthur.fay74@gmail.com) or connect on [LinkedIn](https://www.linkedin.com/in/arthur-fay/). Explore the [engineering portfolio](https://arthur-fay.github.io/) and [public GitHub repositories](https://github.com/arthur-fay) for source code, tests and technical evidence.

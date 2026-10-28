@@ -164,7 +164,7 @@ describe('page integrity across viewports', () => {
     }
   });
 
-  it('internal links resolve and outbound links follow the GitHub-only policy on both pages', async () => {
+  it('internal links resolve and only the homepage adds the exact approved recruiting contacts', async () => {
     for (const url of ['/', LAB]) {
       const { page, close } = await open(url);
       try {
@@ -177,7 +177,8 @@ describe('page integrity across viewports', () => {
             const response = await page.request.get(server.baseUrl + href.split('#')[0]);
             assert.equal(response.status(), 200, `${url}: ${href} returned ${response.status()}`);
           } else {
-            assert.ok(href.startsWith('https://github.com/'), `${url}: unexpected outbound link ${href}`);
+            const recruitingContact = url === '/' && ['mailto:arthur.fay74@gmail.com', 'https://www.linkedin.com/in/arthur-fay/'].includes(href);
+            assert.ok(href.startsWith('https://github.com/') || recruitingContact, `${url}: unexpected outbound link ${href}`);
             if (target === '_blank') assert.ok(/noopener/.test(rel) && /noreferrer/.test(rel), `${url}: ${href} lacks rel noopener noreferrer`);
           }
         }
