@@ -52,6 +52,10 @@ describe('recruiter credibility and contact', () => {
       'href="#plate-pathfinding"', 'href="#plate-security"',
       'href="/lab/ecommerce/"', 'href="/lab/pathfinding/"', 'href="/lab/security-events/"',
       'demand-forecasting-model/blob/main/docs/API.md',
+      'inventory-reservations-api#run-locally',
+      'inventory-reservations-api/blob/main/tests/integration/test_concurrency.py',
     ]) assert.ok(html.includes(href), 'required verifiable route: ' + href);
+    const guide = unescape(region('id="hiring"', '</section>'));
+    assert.match(guide, /Run this synthetic demonstration locally with Docker Compose/);
   });
 });

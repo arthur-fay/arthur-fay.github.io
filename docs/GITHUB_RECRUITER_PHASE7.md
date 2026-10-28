@@ -43,3 +43,5 @@ Read the profile like a recruiter encountering it for the first time. Check dire
 ## Follow-up — 28 October 2026
 
 The owner subsequently supplied the exact LinkedIn URL and recruiting email for public use. The maintained profile text now includes those two routes at the top and in **Get in touch**. The original publication findings above describe the 27 October version. See [the contact change and verification limits](PUBLIC_CONTACT_2026-10-28.md).
+
+The next owner-approved project, the Inventory Reservations API, is published and leads the current five-project profile table. See [the implementation and validation record](INVENTORY_API_EVIDENCE_2026-10-28.md); the original four-project introduction remains a historical publication record above.
