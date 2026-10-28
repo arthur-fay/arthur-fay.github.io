@@ -38,13 +38,19 @@ FORBIDDEN_HOMEPAGE_PHRASES = (
     "artificial intelligence", "machine learning", "no employment history",
     "no degrees", "no certifications", "no awards",
 )
-# Personal contact details are published only by the owner's explicit decision (README, "Contact details").
-# Until then no page may carry a phone number, an e-mail address or a mailto:/tel: link.
+# The owner selected these exact public recruiting contacts on 28 October 2026.
+# Only the homepage may publish them; other addresses, recipients and profiles stay blocked.
+PUBLIC_EMAIL = "arthur.fay74@gmail.com"
+PUBLIC_LINKEDIN = "https://www.linkedin.com/in/arthur-fay/"
+PUBLIC_MAILTO = f"mailto:{PUBLIC_EMAIL}"
+PUBLIC_CONTACT_VALUES = frozenset((PUBLIC_EMAIL, PUBLIC_LINKEDIN, PUBLIC_MAILTO))
+PUBLIC_CONTACT_LINKS = frozenset((PUBLIC_LINKEDIN, PUBLIC_MAILTO))
 PRIVATE_CONTACT_PATTERNS = (
-    re.compile(r"mailto:", re.I),
+    re.compile(r"mailto:[^\s\"'<>]*", re.I),
     re.compile(r"\btel:", re.I),
     re.compile(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", re.I),
     re.compile(r"\(?\b\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}\b"),
+    re.compile(r"(?:https?://)?(?:www\.)?linkedin\.com[^\s\"'<>]*", re.I),
 )
 FORBIDDEN_JS = (
     "fetch(", "XMLHttpRequest", "sendBeacon(", "gtag(", "analytics.js",
@@ -111,6 +117,8 @@ class PageParser(HTMLParser):
                 self.errors.append(f"javascript: link is not allowed: {href}")
             if href.startswith("#"):
                 self.anchors.append(href[1:])
+            elif href in PUBLIC_CONTACT_LINKS:
+                pass
             elif href.startswith("https://"):
                 if urlsplit(href).netloc != "github.com":
                     self.errors.append(f"Unexpected outbound link: {href}")
@@ -150,6 +158,12 @@ def check_local_asset(url: str, label: str) -> None:
         assert not parts.query, f"{label}: unexpected asset query: {url}"
 
 
+def check_contact_details(html: str, label: str) -> None:
+    for pattern in PRIVATE_CONTACT_PATTERNS:
+        for match in pattern.finditer(html):
+            assert label == "index.html" and match.group(0) in PUBLIC_CONTACT_VALUES, f"{label}: unapproved contact detail: {match.group(0)!r}"
+
+
 def check_page(relative_path: str, required_ids: set[str], phrases: tuple[str, ...], canonical: str) -> PageParser:
     html = (ROOT / relative_path).read_text(encoding="utf-8")
     parser = PageParser()
@@ -182,9 +196,7 @@ def check_page(relative_path: str, required_ids: set[str], phrases: tuple[str, .
     folded = html.casefold()
     for phrase in phrases:
         assert phrase.casefold() in folded, f"{label}: required statement omitted: {phrase}"
-    for pattern in PRIVATE_CONTACT_PATTERNS:
-        match = pattern.search(html)
-        assert not match, f"{label}: personal contact details must not be committed without the owner's approval: {match.group(0)!r}"
+    check_contact_details(html, label)
     return parser
 
 

@@ -749,16 +749,19 @@ describe('portfolio: experience, education, contact and privacy', () => {
     }
   });
 
-  it('offers recruiters a clear path: roles of interest, GitHub as the verified channel and the ATLAS API as the first stop', async () => {
+  it('offers recruiters email and LinkedIn while keeping GitHub as technical evidence', async () => {
     const { page, close } = await open('/');
     try {
       assert.deepEqual(await page.locator('.contact-roles li').allTextContents(), ['Software Engineer', 'Backend Software Engineer', 'Full-Stack Engineer · Python & React', 'API / Database Engineer']);
-      assert.equal(await page.locator('.contact-actions a[href="https://github.com/arthur-fay"]').count(), 1);
-      assert.equal(await page.locator('.contact-actions a[href$="/docs/API.md"]').count(), 1);
-      assert.equal(await page.locator('.channel-list a').count(), 4);
+      assert.equal(await page.getByRole('link', { name: 'Email Arthur' }).getAttribute('href'), 'mailto:arthur.fay74@gmail.com');
+      const linkedin = page.getByRole('link', { name: 'Connect on LinkedIn' });
+      assert.equal(await linkedin.getAttribute('href'), 'https://www.linkedin.com/in/arthur-fay/');
+      assert.equal(await linkedin.getAttribute('target'), '_blank');
+      assert.equal(await linkedin.getAttribute('rel'), 'noopener noreferrer');
+      assert.equal(await page.locator('.channel-list a').count(), 6);
       assert.equal(await page.locator('.hero-titleblock a[href="https://github.com/arthur-fay"]').count(), 1, 'the hero says where to verify the work');
       const contactCopy = (await page.locator('#contact .contact-left > p').innerText()).toLowerCase();
-      assert.match(contactCopy, /résumé you received/, 'direct hiring correspondence uses the separately shared résumé');
+      assert.match(contactCopy, /email me about a role or connect on linkedin/, 'recruiters can make contact without already having the résumé');
       assert.match(contactCopy, /public github links here for source repositories, available tests and technical evidence/, 'public GitHub links are presented as inspectable evidence');
       assert.doesNotMatch(contactCopy, /start a discussion|shared on request/, 'never promise unavailable GitHub Discussions or an inaccessible private contact channel');
       const verifyCopy = (await page.locator('.hero-titleblock').innerText()).toLowerCase();
@@ -768,18 +771,20 @@ describe('portfolio: experience, education, contact and privacy', () => {
     }
   });
 
-  it('publishes no personal contact details on any page: GitHub is the only committed channel', async () => {
+  it('publishes only the exact owner-approved recruiting contacts, on the homepage only', async () => {
     for (const url of ['/', '/lab/ecommerce/', '/lab/pathfinding/', '/lab/security-events/', '/does-not-exist']) {
       const { page, close } = await open(url);
       try {
         const html = await page.content();
         const text = await page.locator('body').innerText();
-        assert.ok(!/mailto:|\btel:/i.test(html), `${url}: no mailto or tel link`);
-        assert.ok(!/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(text), `${url}: no e-mail address`);
+        const allowed = url === '/';
+        assert.deepEqual(await page.locator('a[href^="mailto:"]').evaluateAll(as => as.map(a => a.getAttribute('href'))), allowed ? ['mailto:arthur.fay74@gmail.com', 'mailto:arthur.fay74@gmail.com'] : []);
+        assert.ok(!/\btel:/i.test(html), `${url}: no tel link`);
+        assert.deepEqual(text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) || [], allowed ? ['arthur.fay74@gmail.com'] : [], `${url}: only the selected email`);
         assert.ok(!/\(?\b\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}\b/.test(text), `${url}: no phone number`);
-        assert.ok(!/linkedin\.com/i.test(html), `${url}: no LinkedIn link until the owner publishes one`);
-        const hosts = await page.$$eval('a[href^="https://"]', (as) => [...new Set(as.map((a) => new URL(a.href).host))]);
-        assert.deepEqual(hosts, hosts.length ? ['github.com'] : [], `${url}: outbound links stay on GitHub`);
+        assert.deepEqual(await page.locator('a[href*="linkedin.com"]').evaluateAll(as => as.map(a => a.getAttribute('href'))), allowed ? ['https://www.linkedin.com/in/arthur-fay/', 'https://www.linkedin.com/in/arthur-fay/'] : []);
+        const links = await page.$$eval('a[href^="https://"]', (as) => as.map(a => a.href));
+        assert.ok(links.every(href => new URL(href).host === 'github.com' || (allowed && href === 'https://www.linkedin.com/in/arthur-fay/')), `${url}: no unapproved external destination`);
       } finally {
         await close();
       }

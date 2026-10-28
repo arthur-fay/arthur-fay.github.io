@@ -39,7 +39,7 @@ The homepage follows the owner's **latest résumé (22 October 2026)**. Its head
 
 **Research boundaries:** ATLAS's measured model advantages are not statistically established (Holm-adjusted p 0.054 against the best simple baseline; the lead over seasonal naive is sensitive to the test's assumptions), its nominal 95% intervals failed calibration, its optimization uses hypothetical parameters, and its Linux deployment package has only been exercised in a CI container, never deployed. Every ATLAS figure the site states (14 endpoints under an OpenAPI 3.1 contract, API-key authentication for simulations, request-body and in-flight limits, deadline-replaced worker processes, a p95 read latency of at most 11 ms in the project's own benchmark, 822 origins, seven models, 1,780+ pytest tests under a 90% gate with 96% recorded, an 85 KB initial JavaScript bundle under a CI budget, browser tests in Chromium, Firefox and WebKit) was checked against the repository at `98a88b5`. The ATLAS dashboard, datasets and NYC-derived charts stay unpublished and separate from this site's labs.
 
-**Contact and privacy:** GitHub is the only public contact channel committed to this repository. The owner's phone number, personal e-mail, LinkedIn URL and résumé files have not been published. Public branches are visible before merging, and the site checker rejects phone numbers, e-mail addresses, `mailto:`/`tel:` links and unapproved external hosts. A downloadable résumé or a LinkedIn link requires separate owner approval; updating the résumé-derived public *content* does not authorise posting the private files.
+**Contact and privacy:** On 28 October 2026, the owner selected [arthur.fay74@gmail.com](mailto:arthur.fay74@gmail.com) and [this exact LinkedIn profile](https://www.linkedin.com/in/arthur-fay/) for public recruiting contact on the homepage and GitHub profile. The site checker permits only those exact destinations on `index.html`; it continues to reject other email addresses, extra mail recipients or query fields, other LinkedIn profiles, phone numbers and `tel:` links. The labs and error page publish no contact details. No private résumé or employer files are added. The LinkedIn URL reaches an authentication wall in the review browser; its profile contents could not be verified. See [the contact update](docs/PUBLIC_CONTACT_2026-10-28.md).
 
 See [the 22 October 2026 résumé reconciliation](docs/RESUME_RECONCILIATION_2026-10-22.md) for the line-by-line reconciliation, the verification of every claim, the test results, the screenshots and the items left for the owner's approval; the earlier records are [the October résumé refresh](docs/RESUME_REFRESH_2026-10.md) and [the profile alignment](docs/PROFILE_ALIGNMENT_2026-10.md).
 
@@ -107,7 +107,7 @@ See [the October 2026 recruiter-readiness audit](docs/PORTFOLIO_AUDIT_2026-10.md
 
 ## Edits to make next
 
-- Decide whether to publish the LinkedIn URL and a professional e-mail address (see "Contact details" above); both are left out until then.
+- Add a compact, reproducible FastAPI/PostgreSQL example with migrations and integration tests, with its own source and setup instructions.
 - Supply an optional portrait or a downloadable résumé only after deciding what personal information the public repository may hold.
 - Update the record when a role, a degree or its expected date changes; the bachelor's degree is shown as in progress (expected January 2027) until it is conferred.
 - Add future projects only after they have real source links and verifiable descriptions.

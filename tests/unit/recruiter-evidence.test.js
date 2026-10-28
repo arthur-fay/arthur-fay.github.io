@@ -16,11 +16,12 @@ const region = (start, end) => {
 };
 
 describe('recruiter credibility and contact', () => {
-  it('describes GitHub as technical evidence, not a private communications service', () => {
+  it('offers direct recruiting contact and describes GitHub as technical evidence', () => {
     const contact = unescape(region('id="contact"', '</section>'));
-    assert.match(contact, /contact details on the résumé you received/i);
+    assert.match(contact, /Email me about a role or connect on LinkedIn/i);
+    assert.match(contact, /arthur\.fay74@gmail\.com/);
     assert.match(contact, /public GitHub links here for source repositories, available tests and technical evidence/i);
-    assert.doesNotMatch(contact, /start a discussion on any repository|shared on request/i);
+    assert.doesNotMatch(contact, /start a discussion on any repository|shared on request|résumé you received/i);
     assert.match(contact, /Software Engineer/);
     assert.match(contact, /Backend Software Engineer/);
     assert.match(contact, /Full-Stack Engineer/);

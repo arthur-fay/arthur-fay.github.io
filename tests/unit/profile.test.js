@@ -1,7 +1,7 @@
 /**
  * The professional record and the claims around it, read from the committed
- * pages: the privacy guard (no phone number, e-mail address, mailto:/tel: link
- * or LinkedIn URL is committed without the owner's decision), the two degrees
+ * pages: the privacy guard (only the owner's exact approved recruiting contacts
+ * appear on the homepage; no phone or other contact is published), the two degrees
  * from the latest résumé with the bachelor's degree marked as in progress
  * everywhere it appears, both job titles and dates, the hero title block
  * agreeing with the record, the résumé headline carried by the metadata, the
@@ -31,13 +31,16 @@ const heroTitleBlock = () => text(index.match(/<dl class="hero-titleblock">[\s\S
 
 describe('privacy guard', () => {
   for (const page of PAGES) {
-    it(`${page} carries no personal contact details`, () => {
+    it(`${page} carries only the contacts approved for that page`, () => {
       const html = read(page);
-      assert.doesNotMatch(html, /mailto:|\btel:/i);
-      assert.doesNotMatch(text(html), /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i, 'no e-mail address');
+      const allowed = page === 'index.html';
+      assert.deepEqual([...html.matchAll(/mailto:[^\s"'<>]*/gi)].map(m => m[0]), allowed ? ['mailto:arthur.fay74@gmail.com', 'mailto:arthur.fay74@gmail.com'] : []);
+      assert.ok([...text(html).matchAll(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi)].every(m => allowed && m[0] === 'arthur.fay74@gmail.com'), 'only the approved e-mail address');
+      assert.doesNotMatch(html, /\btel:/i);
       assert.doesNotMatch(text(html), /\(?\b\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}\b/, 'no phone number');
-      assert.doesNotMatch(html, /linkedin\.com/i, 'no LinkedIn URL until the owner publishes one');
-      for (const [, href] of html.matchAll(/<a [^>]*href="(https?:\/\/[^"]+)"/g)) assert.equal(new URL(href).host, 'github.com', `outbound link stays on GitHub: ${href}`);
+      const linkedin = [...html.matchAll(/https?:\/\/[^\s"'<>]*linkedin\.com[^\s"'<>]*/gi)].map(m => m[0]);
+      assert.deepEqual(linkedin, allowed ? ['https://www.linkedin.com/in/arthur-fay/', 'https://www.linkedin.com/in/arthur-fay/'] : []);
+      for (const [, href] of html.matchAll(/<a [^>]*href="(https?:\/\/[^"]+)"/g)) assert.ok(new URL(href).host === 'github.com' || (allowed && href === 'https://www.linkedin.com/in/arthur-fay/'), `outbound link uses GitHub or the exact approved LinkedIn profile: ${href}`);
     });
   }
   it('publishes no résumé file and no employer volumes', () => {
