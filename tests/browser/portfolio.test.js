@@ -753,8 +753,8 @@ describe('portfolio: experience, education, contact and privacy', () => {
     const { page, close } = await open('/');
     try {
       assert.deepEqual(await page.locator('.contact-roles li').allTextContents(), ['Software Engineer', 'Backend Software Engineer', 'Full-Stack Engineer · Python & React', 'API / Database Engineer']);
-      assert.equal(await page.getByRole('link', { name: 'Email Arthur' }).getAttribute('href'), 'mailto:arthur.fay74@gmail.com');
-      const linkedin = page.getByRole('link', { name: 'Connect on LinkedIn' });
+      assert.equal(await page.getByRole('link', { name: 'Email Arthur', exact: true }).getAttribute('href'), 'mailto:arthur.fay74@gmail.com');
+      const linkedin = page.getByRole('link', { name: 'Connect on LinkedIn', exact: true });
       assert.equal(await linkedin.getAttribute('href'), 'https://www.linkedin.com/in/arthur-fay/');
       assert.equal(await linkedin.getAttribute('target'), '_blank');
       assert.equal(await linkedin.getAttribute('rel'), 'noopener noreferrer');
