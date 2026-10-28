@@ -53,3 +53,8 @@ Review the PR's current checks before merge. GitHub Pages publishes from `main`;
 ## Follow-up — 28 October 2026
 
 Priority 1 now has an owner-selected recruiting route: the homepage and GitHub introduction use the exact email and LinkedIn URL the owner supplied. See [the contact update](PUBLIC_CONTACT_2026-10-28.md) for scope and verification. The next engineering-evidence task remains a compact, reproducible FastAPI/PostgreSQL project with migrations and integration tests.
+
+
+## Database evidence follow-up — 28 October 2026
+
+The compact FastAPI/PostgreSQL project in priority 2 is implemented as the independent Inventory Reservations API, with migrations, stock transaction and concurrency tests, Docker Compose and a local run guide. See [the implementation and validation record](INVENTORY_API_EVIDENCE_2026-10-28.md). The next recruiting work is targeted résumé positioning and interview explanations of the tested design.
