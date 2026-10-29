@@ -331,6 +331,9 @@ describe('portfolio: motion, hero drawing and immediate reading', () => {
       assert.equal(await page.$eval('.iso-packet', (p) => getComputedStyle(p).display), 'none');
       assert.equal(await page.locator('[data-project-preview][data-preview-state="paused"]').count(), 4);
       assert.equal(await page.locator('.preview-toggle:disabled').count(), 4);
+      assert.equal(await page.locator('.preview-next:disabled').count(), 2);
+      assert.equal(await page.$eval('.atlas-motion', el => getComputedStyle(el).display), 'none');
+      assert.ok(await page.locator('.report-kpis').isVisible(), 'reduced motion retains the complete reported summary');
       assert.deepEqual(problems, []);
     } finally {
       await close();
@@ -940,6 +943,58 @@ describe('portfolio: experience, education, contact and privacy', () => {
 });
 
 describe('portfolio: animated project previews', () => {
+  it('moves ATLAS packets visibly and lets a reader inspect a chapter with the keyboard', async () => {
+    const { page, problems, close } = await open('/#plate-atlas');
+    try {
+      const figure = page.locator('[data-project-preview="atlas"]');
+      await page.waitForFunction(() => document.querySelector('[data-project-preview="atlas"]').dataset.previewState === 'playing');
+      assert.equal(await figure.locator('.story-packet').count(), 16);
+      const pose = () => figure.locator('.story-packet').evaluateAll(els => els.map(el => [el.getAttribute('cx'),el.getAttribute('cy')]));
+      const first = await pose();
+      await page.waitForTimeout(250);
+      assert.notDeepEqual(await pose(), first, 'information moves along the drawing');
+      await page.getByRole('button', {name:'Pause ATLAS preview',exact:true}).click();
+      const frozen = await pose();
+      await page.waitForTimeout(250);
+      assert.deepEqual(await pose(), frozen);
+      await page.getByRole('button', {name:'Replay ATLAS preview',exact:true}).click();
+      await page.getByRole('button', {name:'Next ATLAS step',exact:true}).press('Enter');
+      assert.equal(await figure.getAttribute('data-preview-state'), 'paused');
+      assert.equal(await figure.locator('.preview-step').innerText(), 'Step 2 of 4');
+      assert.match(await figure.locator('.preview-story-title').innerText(), /Compare approaches/);
+      assert.deepEqual(problems, []);
+    } finally { await close(); }
+  });
+
+  it('animates reported category bars while the underlying figures remain fixed', async () => {
+    const { page, problems, close } = await open('/#plate-commerce');
+    try {
+      const figure = page.locator('[data-project-preview="commerce"]');
+      const metrics = () => figure.locator('[data-report-metric]').allTextContents();
+      const reported = ['R$15.84M','99K','96K','97.02%','91.88%'];
+      assert.deepEqual(await metrics(), reported);
+      await page.getByRole('button', {name:'Replay E-Commerce preview',exact:true}).click();
+      const bar = figure.locator('.report-bar-fill').first();
+      await page.waitForFunction(() => Number(document.querySelector('#plate-commerce .report-bar-fill').style.getPropertyValue('--bar-reveal')) > 0.05);
+      await page.getByRole('button', {name:'Pause E-Commerce preview',exact:true}).click();
+      const frozen = await bar.evaluate(el => el.style.getPropertyValue('--bar-reveal'));
+      await page.waitForTimeout(250);
+      assert.equal(await bar.evaluate(el => el.style.getPropertyValue('--bar-reveal')), frozen);
+      assert.deepEqual(await metrics(), reported);
+      await page.getByRole('button', {name:'Next E-Commerce step',exact:true}).press('Enter');
+      assert.equal(await figure.locator('.preview-step').innerText(), 'Step 2 of 4');
+      await page.getByRole('button', {name:'Play E-Commerce preview',exact:true}).click();
+      const signal = figure.locator('.report-bar-signal').first();
+      const position = await signal.getAttribute('x');
+      await page.waitForFunction(before => document.querySelector('#plate-commerce .report-bar-signal').getAttribute('x') !== before, position);
+      await page.getByRole('button', {name:'Pause E-Commerce preview',exact:true}).click();
+      await page.getByRole('button', {name:'Next E-Commerce step',exact:true}).press('Enter');
+      assert.match(await figure.locator('.preview-story-copy').innerText(), /share of delivered orders/);
+      assert.match(await figure.locator('.report-provenance').innerText(), /values stay fixed/);
+      assert.deepEqual(problems, []);
+    } finally { await close(); }
+  });
+
   it('plays each visible project, freezes on pause, and replays from the start', async () => {
     const { page, problems, close } = await open('/');
     try {

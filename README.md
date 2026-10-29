@@ -56,6 +56,8 @@ The [desktop and mobile reading refinement](docs/READABILITY_2026-10-29.md) incr
 
 The [engineering colour refinement](docs/COLOR_DEPTH_2026-10-29.md) carries the four project inks through stronger preview headers, project titles, cards and controls, with a navy animated system panel and a contrasting royal-blue contact section. Dedicated feature-panel contrast checks preserve legibility in both themes.
 
+The [plain-language project walkthroughs](docs/PROJECT_STORIES_2026-10-29.md) make the first two previews more visible and easier to follow: moving packets illustrate ATLAS's conceptual workflow, while an animated E-Commerce report shows published figures with fixed labels and provenance. Four short chapters and a keyboard-operable Next step control let visitors inspect the work at their own pace.
+
 The hero is an [interactive system model](docs/INTERACTIVE_SYSTEM_2026-10-29.md): continuous floating layers and moving signals, native controls to inspect the five layers, related-project links, and a remembered pause setting. It respects reduced-motion preferences and suspends automatic motion offscreen or in a hidden tab. Without JavaScript, the original complete static legend remains readable.
 
 - Plain semantic HTML + CSS + a small, dependency-free JavaScript enhancement file (`script.js`, shared across the portfolio and all lab pages: theme, mobile menu, filters, reading progress, the section-cut tabs, scroll reveals, the active navigation state and the hero drawing's pointer parallax). The custom 404 page uses local CSS and a restrictive Content Security Policy.
