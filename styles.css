@@ -18,7 +18,7 @@ html[data-theme="light"]{color-scheme:light;--bg:#f5f8fd;--bg2:#eaf0f8;--surface
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-padding-top:calc(var(--header-h) + 16px);-webkit-text-size-adjust:100%}
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
-body{margin:0;min-width:320px;background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1.0625rem;line-height:1.7;text-rendering:optimizeLegibility}
+body{margin:0;min-width:0;background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1.0625rem;line-height:1.7;text-rendering:optimizeLegibility}
 a{color:inherit;text-decoration:none}
 button{font:inherit;color:inherit}
 img,svg{display:block;max-width:100%}
@@ -844,7 +844,7 @@ html[data-theme="light"] .sec-art-r2{stroke:#8d3d99}
    -------------------------------------------------------------------------- */
 .hero-description{font-size:1.125rem;line-height:1.75;max-width:58ch}
 .hero-description strong{font-weight:600}
-.section-intro,.project-description,.plate-facts dd,.stratum p,.record-points li,.case-block p,.principle p,.about-copy>p{font-size:1.0625rem;line-height:1.75;text-wrap:pretty}
+.section-intro,.project-description,.plate-facts dd,.stratum p,.record-points li,.case-block p,.principle p,.about-copy>p{font-size:1.0625rem;line-height:1.75;text-wrap:pretty;overflow-wrap:anywhere}
 .project-description,.plate-facts dd,.stratum p,.record-points li,.case-block p,.principle p{max-width:68ch}
 .hero-titleblock dd{font-family:var(--font-body);font-size:1.0625rem;font-weight:600;line-height:1.5;letter-spacing:0}
 .hero-titleblock dd small{font-size:.9375rem;font-weight:400;line-height:1.7;margin-top:8px}
@@ -903,6 +903,8 @@ html[data-theme="light"] .sec-art-r2{stroke:#8d3d99}
    is at least 16px, including on phones, without restricting pinch zoom. */
 body .field select,body .field input[type="number"],body .field input[type="text"],body .field input[type="file"],body .field textarea{font-size:1rem;line-height:1.6;min-height:48px;color:var(--text);background:var(--bg);caret-color:var(--accent)}
 body .field textarea{padding:12px;font-size:1rem;line-height:1.7;min-height:180px}
+body .rule-fieldset .field input[type="number"]{min-height:48px}
+body .rule-fieldset legend{font-size:.9375rem;line-height:1.6}
 body .field input::placeholder,body .field textarea::placeholder{color:var(--fine);opacity:1}
 body .field>label,body .field-label,body .lab-tools legend,body .lab-label,body .speed-field label{font-size:.8125rem;line-height:1.6;letter-spacing:.035em}
 body .field-check label{font-size:1rem;letter-spacing:0}

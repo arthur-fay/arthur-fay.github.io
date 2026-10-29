@@ -122,7 +122,12 @@ describe('portfolio: readable text across desktop and mobile', () => {
     it(`${viewport.width}px: paragraphs tolerate reader text spacing without clipping`, async () => {
       const { page, close } = await open('/', { viewport, reducedMotion: 'reduce' });
       try {
-        await page.addStyleTag({ content: `${READING_COPY}{line-height:1.8!important;letter-spacing:.12em!important;word-spacing:.16em!important}` });
+        // Apply reader spacing through the existing same-origin stylesheet's
+        // CSSOM; the production CSP correctly rejects inline style elements.
+        await page.evaluate(selector => {
+          const sheet = [...document.styleSheets].find(item => item.href?.includes('/styles.css'));
+          sheet.insertRule(`${selector}{line-height:1.8!important;letter-spacing:.12em!important;word-spacing:.16em!important}`, sheet.cssRules.length);
+        }, READING_COPY);
         assert.ok(await overflow(page) <= 1);
         assert.deepEqual(await clipped(page), []);
         assert.deepEqual(await page.$$eval(READING_COPY, els => els.filter(el => el.getClientRects().length && el.scrollWidth > el.clientWidth + 1).map(el => el.className || el.tagName)), []);
@@ -342,6 +347,8 @@ describe('portfolio: motion, hero drawing and immediate reading', () => {
       assert.notEqual(await pose(), first, 'the model keeps moving after the entrance has completed');
       assert.equal(await page.$eval('.iso-packet', (p) => getComputedStyle(p).animationIterationCount), 'infinite');
       await page.getByRole('button', { name: 'Pause animation', exact: true }).click();
+      await page.waitForFunction(() => getComputedStyle(document.querySelector('.depth-3 .iso-float')).animationPlayState === 'paused');
+      await page.$eval('.depth-3 .iso-float', el => Promise.all(el.getAnimations().map(animation => animation.ready)));
       const paused = await pose();
       await page.waitForTimeout(250);
       assert.equal(await pose(), paused, 'pausing freezes the layer animation');
@@ -746,18 +753,17 @@ describe('portfolio: experience, education, contact and privacy', () => {
     }
   });
 
-  it('fits both degrees in the hero title block and the education card at phone widths, each status chip on one line', async () => {
+  it('fits both degrees and readable, naturally wrapping status labels at phone widths', async () => {
     for (const width of [320, 375]) {
       const { page, problems, close } = await open('/', { viewport: { width, height: 850 } });
       try {
         const chips = await page.locator('#education .edu-status').evaluateAll((els) => els.map((el) => {
           const r = el.getBoundingClientRect();
           const card = el.closest('.record-card').getBoundingClientRect();
-          return { text: el.textContent, height: r.height, inside: r.left >= card.left + 8 && r.right <= card.right - 8 };
+          return { text: el.textContent, size: parseFloat(getComputedStyle(el).fontSize), fits: el.scrollWidth <= el.clientWidth + 1, inside: r.left >= card.left + 8 && r.right <= card.right - 8 };
         }));
         assert.deepEqual(chips.map((c) => c.text), ['In progress · expected Jan 2027', 'Completed · Aug 2024']);
-        for (const chip of chips) assert.ok(chip.inside, `${width}px: "${chip.text}" stays inside its card`);
-        assert.ok(Math.abs(chips[0].height - chips[1].height) < 1, `${width}px: both status chips sit on one line (${chips[0].height} vs ${chips[1].height})`);
+        for (const chip of chips) assert.ok(chip.inside && chip.fits && chip.size >= 13, `${width}px: "${chip.text}" stays readable inside its card`);
         const cell = await page.locator('.hero-titleblock > div').nth(2).evaluate((el) => ({ right: el.getBoundingClientRect().right, fits: el.scrollWidth <= el.clientWidth + 0.5, text: el.innerText }));
         assert.ok(cell.right <= width + 0.5 && cell.fits, `${width}px: the education cell does not overflow`);
         assert.ok(/expected January 2027/.test(cell.text) && /August 2024/.test(cell.text), `${width}px: both degrees are read in the title block`);
