@@ -46,6 +46,8 @@ The homepage follows the owner's **latest résumé (22 October 2026)**. Its head
 
 See [the 22 October 2026 résumé reconciliation](docs/RESUME_RECONCILIATION_2026-10-22.md) for the line-by-line reconciliation, the verification of every claim, the test results, the screenshots and the items left for the owner's approval; the earlier records are [the October résumé refresh](docs/RESUME_REFRESH_2026-10.md) and [the profile alignment](docs/PROFILE_ALIGNMENT_2026-10.md).
 
+The [29 October visual refinement](docs/VISUAL_REFINEMENT_2026-10-29.md) adds midnight-blue and cool-white themes, coordinated blue/cyan/violet/amber project inks, clearer role cards and matching brand assets. All project disclosures and evidence boundaries remain in place.
+
 ## Architecture
 
 - Plain semantic HTML + CSS + a small, dependency-free JavaScript enhancement file (`script.js`, shared across the portfolio and all lab pages: theme, mobile menu, filters, reading progress, the section-cut tabs, scroll reveals, the active navigation state and the hero drawing's pointer parallax). The custom 404 page uses local CSS and a restrictive Content Security Policy.
@@ -74,7 +76,7 @@ The shared header shows its full navigation from 1001 px up and the menu button 
 
 ## Checks and tests
 
-After editing `styles.css` or `script.js`, run `npm run version:assets` to refresh their content-derived URLs in all pages. This prevents a newly published page from using a previously cached shared stylesheet or script. The offline checker verifies that every shared asset URL matches its file's SHA-256 prefix and rejects stale versions; the runtime remains dependency-free.
+After editing `styles.css`, `script.js` or `lab/pathfinding/lab.css`, run `npm run version:assets` to refresh their content-derived URLs in the pages that use them. This prevents a newly published page from using a previously cached palette or script. The offline checker verifies that every versioned asset URL matches its file's SHA-256 prefix and rejects stale versions; the runtime remains dependency-free.
 
 ```bash
 npm test               # offline integrity checks (scripts/check_site.py), syntax checks, unit tests for all labs

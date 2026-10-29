@@ -151,7 +151,7 @@ def check_local_asset(url: str, label: str) -> None:
     assert not parts.scheme and not parts.netloc and parts.path.startswith("/") and not parts.fragment, f"{label}: external or malformed runtime asset: {url}"
     file = (ROOT / parts.path.lstrip("/")).resolve()
     assert file.is_relative_to(ROOT.resolve()) and file.is_file(), f"{label}: missing local asset: {url}"
-    if parts.path in ("/styles.css", "/script.js"):
+    if parts.path in ("/styles.css", "/script.js", "/lab/pathfinding/lab.css"):
         version = hashlib.sha256(file.read_bytes()).hexdigest()[:12]
         assert parts.query == f"v={version}", f"{label}: stale shared asset URL {url}; run npm run version:assets"
     else:
@@ -303,7 +303,7 @@ def main() -> None:
         f"{SITE}/{LAB_DIR}/",
     )
     assert f"/{LAB_DIR}/app.js" in lab.module_scripts, "lab page must load app.js as an ES module"
-    assert ("link", f"/{LAB_DIR}/lab.css") in lab.assets, "lab page must load its stylesheet"
+    assert ("link", f"/{LAB_DIR}/lab.css") in lab.local_assets, "lab page must load its stylesheet"
     assert {"grid", "status"} <= lab.roles or ("grid" in lab.roles and lab.live_regions >= 1), "lab page needs an ARIA grid and a live status region"
 
     security = check_page(

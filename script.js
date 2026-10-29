@@ -25,7 +25,7 @@
       themeButton.setAttribute('title', label);
     }
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', theme === 'dark' ? '#0b0e13' : '#f4f2ec');
+    if (meta) meta.setAttribute('content', theme === 'dark' ? '#0b1020' : '#f5f8fd');
   };
   setTheme(initialTheme);
   if (themeButton) {
