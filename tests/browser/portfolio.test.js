@@ -758,7 +758,15 @@ describe('portfolio: experience, education, contact and privacy', () => {
       assert.equal(await linkedin.getAttribute('href'), 'https://www.linkedin.com/in/arthur-fay/');
       assert.equal(await linkedin.getAttribute('target'), '_blank');
       assert.equal(await linkedin.getAttribute('rel'), 'noopener noreferrer');
-      assert.equal(await page.locator('.channel-list a').count(), 6);
+      assert.deepEqual(await page.locator('.channel-list a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), [
+        'mailto:arthur.fay74@gmail.com',
+        'https://www.linkedin.com/in/arthur-fay/',
+        'https://github.com/arthur-fay',
+        'https://github.com/arthur-fay/arthur-fay.github.io',
+        'https://github.com/arthur-fay/inventory-reservations-api',
+        'https://github.com/arthur-fay/demand-forecasting-model',
+        'https://github.com/arthur-fay/customer-revenue-analytics',
+      ], 'recruiting contacts and all four implementation repositories are reachable');
       assert.equal(await page.locator('.hero-titleblock a[href="https://github.com/arthur-fay"]').count(), 1, 'the hero says where to verify the work');
       const contactCopy = (await page.locator('#contact .contact-left > p').innerText()).toLowerCase();
       assert.match(contactCopy, /email me about a role or connect on linkedin/, 'recruiters can make contact without already having the résumé');
