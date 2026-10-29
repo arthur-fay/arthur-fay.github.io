@@ -56,14 +56,14 @@ function plate(k, conduit = '') {
   const shadow = k === 1
     ? `<path class="iso-shade iso-fade ${delay}" d="M${pt(back[0] + 8, back[1] + 12)}L${pt(right[0] + 8, right[1] + 12)}L${pt(front[0] + 8, front[1] + 12)}L${pt(left[0] + 8, left[1] + 12)}Z" fill="url(#iso-shade)"/>`
     : '';
-  return `<g class="depth-${k}" data-depth="${k}">${shadow}`
+  return `<g class="depth-${k}" data-depth="${k}"><g class="iso-float">${shadow}`
     + `<path class="iso-side iso-fade ${delay}" d="${sideLeft}" fill="url(#iso-hatch-l)"/>`
     + `<path class="iso-side iso-fade ${delay}" d="${sideRight}" fill="url(#iso-hatch-r)"/>`
     + `<path class="iso-top iso-fade ${delay}" d="${top}"/>`
     + `<path class="iso-grid iso-draw ${delay}" pathLength="1" d="${grid}"/>`
     + `<path class="iso-slab iso-draw ${delay}" pathLength="1" d="${outline}"/>`
     + `<path class="iso-leader iso-draw ${delay}" pathLength="1" d="${leader}"/>`
-    + label + conduit + nodes + '</g>';
+    + label + conduit + nodes + '</g></g>';
 }
 
 function node(cx, topY, variant, delay) {
@@ -83,7 +83,8 @@ function spine(k) {
   const to = NODES[k].find((entry) => entry[2] === 'accent');
   const d = `M${pt(SPINE_X, from[1])}V${n(to[1] + 13)}`;
   const delay = `d${k * 2 - 1}`;
-  return `<path class="iso-flow-under iso-fade ${delay}" d="${d}"/><path class="iso-flow ${delay}" d="${d}"/>`;
+  return `<path class="iso-flow-under iso-fade ${delay}" d="${d}"/><path class="iso-flow ${delay}" d="${d}"/>`
+    + `<circle class="iso-packet packet-${k}" cx="${n(SPINE_X)}" cy="${n(from[1])}" r="3.5" aria-hidden="true"/>`;
 }
 
 function frame() {

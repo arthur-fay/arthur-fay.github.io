@@ -218,18 +218,76 @@
     sections.forEach((section) => spy.observe(section));
   }
 
-  /* Hero drawing: a restrained pointer parallax for fine pointers when motion is allowed. */
+  /* Interactive system model: continuous CSS motion, a pause control and inspectable layers. */
   const hero = document.querySelector('.hero');
   const iso = hero && hero.querySelector('.iso');
-  if (hero && iso && 'IntersectionObserver' in window) {
-    // The drawing's flow line loops forever; pause it while the hero is scrolled out of view.
-    new IntersectionObserver((entries) => entries.forEach((entry) => hero.classList.toggle('is-offscreen', !entry.isIntersecting))).observe(hero);
+  const systemFigure = hero && hero.querySelector('.system-figure');
+  const motionButton = document.getElementById('system-motion');
+  if (systemFigure && iso && motionButton) {
+    const explorer = document.getElementById('system-explorer');
+    const layerButtons = [...systemFigure.querySelectorAll('[data-system-layer]')];
+    const layerTitle = document.getElementById('system-layer-title');
+    const layerCopy = document.getElementById('system-layer-copy');
+    const relatedWork = document.getElementById('system-related-work');
+    const layers = {
+      '1': ['01 / Data', 'Versioned inputs, seeded scenarios and integrity checks give each experiment a reproducible starting point.', '#plate-commerce'],
+      '2': ['02 / Models', 'Forecasting models, graph searches and detection rules turn inputs into outputs that can be inspected.', '#plate-atlas'],
+      '3': ['03 / Evaluation', 'Backtests, calibration checks, precision and recall expose what worked and what did not validate.', '#atlas-detail'],
+      '4': ['04 / Interface', 'APIs, dashboards and keyboard-operable browser labs make the underlying behavior explorable.', '#plate-pathfinding'],
+      '5': ['05 / Evidence', 'Source code, automated tests, documentation and release gates let a reviewer check the work.', '#hiring'],
+    };
+    let userPaused = false;
+    let inView = true;
+    try { userPaused = window.localStorage.getItem('af-system-motion') === 'paused'; } catch (_) { /* optional preference */ }
+    const updateMotion = () => {
+      const enabled = !userPaused && !reduceMotion.matches;
+      const running = enabled && inView && !document.hidden;
+      systemFigure.dataset.motion = running ? 'playing' : 'paused';
+      motionButton.disabled = reduceMotion.matches;
+      motionButton.textContent = reduceMotion.matches ? 'Motion reduced' : (userPaused ? 'Play animation' : 'Pause animation');
+      if (reduceMotion.matches) motionButton.setAttribute('title', 'Your device requests reduced motion. Layer controls still work.');
+      else motionButton.removeAttribute('title');
+      if (!enabled) systemFigure.classList.add('is-built');
+      if (!running) { iso.style.setProperty('--px', '0'); iso.style.setProperty('--py', '0'); }
+    };
+    systemFigure.classList.add('is-enhanced');
+    explorer.hidden = false;
+    updateMotion();
+    motionButton.addEventListener('click', () => {
+      userPaused = !userPaused;
+      try { window.localStorage.setItem('af-system-motion', userPaused ? 'paused' : 'playing'); } catch (_) { /* optional preference */ }
+      updateMotion();
+    });
+    layerButtons.forEach((button) => button.addEventListener('click', () => {
+      const id = button.dataset.systemLayer;
+      const detail = layers[id];
+      if (!detail) return;
+      layerButtons.forEach((other) => other.setAttribute('aria-pressed', String(other === button)));
+      iso.querySelectorAll('[data-depth]').forEach((plate) => plate.classList.toggle('is-selected', plate.dataset.depth === id));
+      layerTitle.textContent = detail[0];
+      layerCopy.textContent = detail[1];
+      relatedWork.setAttribute('href', detail[2]);
+    }));
+    iso.addEventListener('animationend', (event) => {
+      if (event.animationName === 'iso-draw' && event.target.classList.contains('iso-dim')) systemFigure.classList.add('is-built');
+    });
+    document.addEventListener('visibilitychange', updateMotion);
+    if (reduceMotion.addEventListener) reduceMotion.addEventListener('change', updateMotion);
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver((entries) => entries.forEach((entry) => {
+        inView = entry.isIntersecting;
+        hero.classList.toggle('is-offscreen', !inView);
+        updateMotion();
+      })).observe(systemFigure);
+    }
   }
+  // Pointer movement adds depth without competing with the nested floating groups.
   if (hero && iso && finePointer.matches && !reduceMotion.matches) {
     let frame = false;
     let next = [0, 0];
     const apply = () => { iso.style.setProperty('--px', next[0].toFixed(2)); iso.style.setProperty('--py', next[1].toFixed(2)); frame = false; };
     hero.addEventListener('pointermove', (event) => {
+      if (systemFigure && systemFigure.dataset.motion !== 'playing') return;
       const rect = hero.getBoundingClientRect();
       next = [((event.clientX - rect.left) / rect.width - 0.5) * 2, ((event.clientY - rect.top) / rect.height - 0.5) * 2];
       if (!frame) { frame = true; requestAnimationFrame(apply); }
