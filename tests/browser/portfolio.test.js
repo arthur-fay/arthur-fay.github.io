@@ -260,6 +260,7 @@ describe('portfolio: the section cut', () => {
       assert.equal(await page.locator('.project').count(), 4);
       assert.ok(await page.locator('#system-explorer').isHidden(), 'interactive controls stay hidden without JavaScript');
       assert.ok(await page.locator('.iso-legend').isVisible(), 'the complete static legend remains readable');
+      assert.equal(await page.locator('.preview-toolbar:visible').count(), 0, 'project replay controls stay hidden without JavaScript');
       assert.equal(await overflow(page), 0);
     } finally {
       await close();
@@ -279,6 +280,8 @@ describe('portfolio: motion, hero drawing and reveals', () => {
       assert.ok(await page.locator('#system-motion').isDisabled(), 'reduced-motion preference keeps autoplay off');
       assert.equal(await page.$eval('.iso-float', (p) => getComputedStyle(p).transform), 'none');
       assert.equal(await page.$eval('.iso-packet', (p) => getComputedStyle(p).display), 'none');
+      assert.equal(await page.locator('[data-project-preview][data-preview-state="paused"]').count(), 4);
+      assert.equal(await page.locator('.preview-toggle:disabled').count(), 4);
       assert.deepEqual(problems, []);
     } finally {
       await close();
@@ -880,6 +883,68 @@ describe('portfolio: experience, education, contact and privacy', () => {
       } finally {
         await close();
       }
+    }
+  });
+});
+
+describe('portfolio: animated project previews', () => {
+  it('plays each visible project, freezes on pause, and replays from the start', async () => {
+    const { page, problems, close } = await open('/');
+    try {
+      for (const [id, name] of [['atlas', 'ATLAS'], ['commerce', 'E-Commerce'], ['pathfinding', 'Pathfinding'], ['security', 'Security']]) {
+        const figure = page.locator(`[data-project-preview="${id}"]`);
+        await page.locator(`#plate-${id}`).evaluate((n) => n.scrollIntoView({ block: 'start', behavior: 'instant' }));
+        await page.waitForFunction((id) => document.querySelector(`[data-project-preview="${id}"]`).dataset.previewState === 'playing', id);
+        const progress = () => figure.evaluate((n) => n.style.getPropertyValue('--preview-progress'));
+        const before = await progress();
+        await page.waitForTimeout(250);
+        assert.notEqual(await progress(), before, `${name} preview advances without a reload`);
+        await page.getByRole('button', { name: `Pause ${name} preview`, exact: true }).click();
+        const paused = await progress();
+        await page.waitForTimeout(250);
+        assert.equal(await progress(), paused, `${name} preview freezes`);
+        assert.equal(await figure.getAttribute('data-preview-state'), 'paused');
+        await page.getByRole('button', { name: `Replay ${name} preview`, exact: true }).press('Enter');
+        assert.equal(await figure.getAttribute('data-preview-state'), 'playing');
+        assert.ok(Number(await progress()) < 0.1, `${name} replay starts at the beginning`);
+      }
+      await page.getByRole('button', { name: 'Pause Security preview', exact: true }).click();
+      await page.reload({ waitUntil: 'load' });
+      assert.ok(await page.getByRole('button', { name: 'Play Security preview', exact: true }).isVisible(), 'an explicit pause survives a reload');
+      assert.deepEqual(problems, []);
+    } finally {
+      await close();
+    }
+  });
+
+  it('shows a real search progressing into its route and a synthetic cursor advancing', async () => {
+    const { page, close } = await open('/#plate-pathfinding');
+    try {
+      await page.waitForFunction(() => document.querySelector('[data-project-preview="pathfinding"]').dataset.previewState === 'playing');
+      await page.waitForFunction(() => document.querySelector('#plate-pathfinding .lab-art-visited').getAttribute('d').length > 0);
+      await page.waitForFunction(() => document.querySelector('[data-project-preview="pathfinding"]').dataset.previewPhase === 'route', null, { timeout: 12000 });
+      assert.match(await page.locator('#plate-pathfinding .lab-art-route').getAttribute('d'), /^M/);
+      await page.locator('#plate-security').evaluate((n) => n.scrollIntoView({ block: 'start', behavior: 'instant' }));
+      await page.waitForFunction(() => document.querySelector('[data-project-preview="security"]').dataset.previewState === 'playing');
+      const cursor = await page.locator('#plate-security .sec-art-cursor').getAttribute('d');
+      await page.waitForFunction((before) => document.querySelector('#plate-security .sec-art-cursor').getAttribute('d') !== before, cursor);
+      assert.match(await page.locator('#plate-security .preview-stage').innerText(), /Synthetic replay/);
+    } finally {
+      await close();
+    }
+  });
+
+  it('stops project previews when offscreen or hidden by a project filter', async () => {
+    const { page, close } = await open('/#plate-pathfinding');
+    try {
+      await page.waitForFunction(() => document.querySelector('[data-project-preview="pathfinding"]').dataset.previewState === 'playing');
+      await page.getByRole('button', { name: 'Security', exact: true }).click();
+      await page.waitForFunction(() => document.querySelector('[data-project-preview="pathfinding"]').dataset.previewState === 'paused');
+      assert.ok(await page.locator('#plate-pathfinding').isHidden());
+      await page.locator('#contact').evaluate((n) => n.scrollIntoView({ block: 'end', behavior: 'instant' }));
+      await page.waitForFunction(() => [...document.querySelectorAll('[data-project-preview]')].every((n) => n.dataset.previewState === 'paused'));
+    } finally {
+      await close();
     }
   });
 });

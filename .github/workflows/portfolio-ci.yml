@@ -22,6 +22,7 @@ jobs:
         run: |
           node --version
           node --check script.js
+          node --check project-previews.js
           node --check scripts/hero-section.js
           node --check scripts/social-card.js
           node --check lab/pathfinding/pathfinding.js

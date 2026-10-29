@@ -23,7 +23,7 @@ LAB_DIR = "lab/pathfinding"
 SEC_DIR = "lab/security-events"
 ECO_DIR = "lab/ecommerce"
 REQUIRED = {
-    "index.html", "404.html", "404.css", "styles.css", "script.js",
+    "index.html", "404.html", "404.css", "styles.css", "script.js", "project-previews.js",
     "favicon.svg", "robots.txt", "sitemap.xml", ".nojekyll", "package.json",
     f"{LAB_DIR}/index.html", f"{LAB_DIR}/lab.css", f"{LAB_DIR}/app.js",
     f"{LAB_DIR}/pathfinding.js", f"{LAB_DIR}/README.md",
@@ -151,7 +151,7 @@ def check_local_asset(url: str, label: str) -> None:
     assert not parts.scheme and not parts.netloc and parts.path.startswith("/") and not parts.fragment, f"{label}: external or malformed runtime asset: {url}"
     file = (ROOT / parts.path.lstrip("/")).resolve()
     assert file.is_relative_to(ROOT.resolve()) and file.is_file(), f"{label}: missing local asset: {url}"
-    if parts.path in ("/styles.css", "/script.js", "/lab/pathfinding/lab.css"):
+    if parts.path in ("/styles.css", "/script.js", "/project-previews.js", "/lab/pathfinding/lab.css"):
         version = hashlib.sha256(file.read_bytes()).hexdigest()[:12]
         assert parts.query == f"v={version}", f"{label}: stale shared asset URL {url}; run npm run version:assets"
     else:
@@ -360,7 +360,7 @@ def main() -> None:
 
     for stylesheet in ("styles.css", "404.css", f"{LAB_DIR}/lab.css", f"{SEC_DIR}/lab.css", f"{ECO_DIR}/lab.css"):
         check_css(stylesheet)
-    for script in ("script.js", f"{LAB_DIR}/app.js", f"{LAB_DIR}/pathfinding.js", f"{SEC_DIR}/app.js", f"{SEC_DIR}/detection.js", f"{ECO_DIR}/app.js", f"{ECO_DIR}/model.js"):
+    for script in ("script.js", "project-previews.js", f"{LAB_DIR}/app.js", f"{LAB_DIR}/pathfinding.js", f"{SEC_DIR}/app.js", f"{SEC_DIR}/detection.js", f"{ECO_DIR}/app.js", f"{ECO_DIR}/model.js"):
         check_javascript(script)
     app = (ROOT / LAB_DIR / "app.js").read_text(encoding="utf-8")
     assert "from './pathfinding.js'" in app, "app.js must import the pure algorithm module"
