@@ -27,6 +27,7 @@ describe('hero system section drawing', () => {
 
   it('draws five plates, each with a lit top, two hatched cut faces, a grid, an outline, a leader and a label', () => {
     assert.equal(count(svg, /<g class="depth-\d" data-depth="\d">/g), 5);
+    assert.equal(count(svg, /<g class="iso-float">/g), 5, 'ambient movement has a separate group from pointer parallax');
     assert.equal(count(svg, /class="iso-top iso-fade/g), 5);
     assert.equal(count(svg, /class="iso-side iso-fade[^"]*" d="[^"]+" fill="url\(#iso-hatch-[lr]\)"/g), 10);
     assert.equal(count(svg, /<pattern id="iso-hatch-[lr]"/g), 2);
@@ -47,6 +48,7 @@ describe('hero system section drawing', () => {
     assert.equal(count(svg, /iso-node-accent/g), 5, 'one accent block per plate');
     assert.equal(count(svg, /class="iso-flow d\d"/g), 4, 'four spine segments join the five accent blocks');
     assert.equal(count(svg, /class="iso-flow-under iso-fade/g), 4);
+    assert.equal(count(svg, /<circle class="iso-packet packet-\d"[^>]+aria-hidden="true"/g), 4, 'each conduit has one decorative moving signal');
     // Every spine segment is vertical and starts on the accent column.
     for (const [, d] of svg.matchAll(/class="iso-flow d\d" d="([^"]+)"/g)) assert.match(d, /^M264\.6 [\d.]+V[\d.]+$/);
     // Each segment is drawn by the plate it pierces: after that plate's faces and outline, before its blocks.

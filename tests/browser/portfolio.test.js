@@ -258,6 +258,8 @@ describe('portfolio: the section cut', () => {
       const hidden = await page.$$eval('[data-reveal]', (els) => els.filter((el) => getComputedStyle(el).opacity !== '1' || getComputedStyle(el).visibility === 'hidden').length);
       assert.equal(hidden, 0, 'reveal styling never hides content without JS');
       assert.equal(await page.locator('.project').count(), 4);
+      assert.ok(await page.locator('#system-explorer').isHidden(), 'interactive controls stay hidden without JavaScript');
+      assert.ok(await page.locator('.iso-legend').isVisible(), 'the complete static legend remains readable');
       assert.equal(await overflow(page), 0);
     } finally {
       await close();
@@ -273,7 +275,69 @@ describe('portfolio: motion, hero drawing and reveals', () => {
       assert.equal(hidden, 0);
       assert.equal(await page.$eval('.iso .iso-draw', (p) => getComputedStyle(p).strokeDashoffset), '0px');
       assert.equal(await page.$eval('.iso .iso-fade', (p) => getComputedStyle(p).opacity), '1');
+      assert.equal(await page.locator('.system-figure').getAttribute('data-motion'), 'paused');
+      assert.ok(await page.locator('#system-motion').isDisabled(), 'reduced-motion preference keeps autoplay off');
+      assert.equal(await page.$eval('.iso-float', (p) => getComputedStyle(p).transform), 'none');
+      assert.equal(await page.$eval('.iso-packet', (p) => getComputedStyle(p).display), 'none');
       assert.deepEqual(problems, []);
+    } finally {
+      await close();
+    }
+  });
+
+  it('continues moving after the entrance, pauses, resumes and remembers an explicit pause', async () => {
+    const { page, close } = await open('/', { reducedMotion: 'no-preference' });
+    try {
+      await page.waitForFunction(() => document.querySelector('.system-figure').classList.contains('is-built'));
+      const pose = () => page.$eval('.depth-3 .iso-float', (p) => getComputedStyle(p).transform);
+      const first = await pose();
+      await page.waitForTimeout(350);
+      assert.notEqual(await pose(), first, 'the model keeps moving after the entrance has completed');
+      assert.equal(await page.$eval('.iso-packet', (p) => getComputedStyle(p).animationIterationCount), 'infinite');
+      await page.getByRole('button', { name: 'Pause animation', exact: true }).click();
+      const paused = await pose();
+      await page.waitForTimeout(250);
+      assert.equal(await pose(), paused, 'pausing freezes the layer animation');
+      assert.equal(await page.locator('.system-figure').getAttribute('data-motion'), 'paused');
+      await page.getByRole('button', { name: 'Play animation', exact: true }).click();
+      assert.equal(await page.locator('.system-figure').getAttribute('data-motion'), 'playing');
+      await page.getByRole('button', { name: 'Pause animation', exact: true }).click();
+      await page.reload({ waitUntil: 'load' });
+      assert.ok(await page.getByRole('button', { name: 'Play animation', exact: true }).isVisible());
+      assert.equal(await page.locator('.system-figure').getAttribute('data-motion'), 'paused');
+    } finally {
+      await close();
+    }
+  });
+
+  it('lets a keyboard user inspect each layer and reach its related work', async () => {
+    const { page, close } = await open('/');
+    try {
+      const evidence = page.getByRole('button', { name: '05 Evidence', exact: true });
+      await evidence.press('Enter');
+      assert.equal(await evidence.getAttribute('aria-pressed'), 'true');
+      assert.equal(await page.locator('.iso .is-selected').getAttribute('data-depth'), '5');
+      assert.match(await page.locator('#system-layer-copy').innerText(), /automated tests/);
+      assert.equal(await page.locator('#system-related-work').getAttribute('href'), '#hiring');
+      await page.getByRole('button', { name: '01 Data', exact: true }).press('Space');
+      assert.equal(await evidence.getAttribute('aria-pressed'), 'false');
+      assert.equal(await page.locator('.iso .is-selected').getAttribute('data-depth'), '1');
+      assert.equal(await page.locator('#system-related-work').getAttribute('href'), '#plate-commerce');
+      await page.locator('#system-related-work').click();
+      assert.ok(page.url().endsWith('#plate-commerce'));
+    } finally {
+      await close();
+    }
+  });
+
+  it('pauses automatic motion offscreen and resumes when the model is visible again', async () => {
+    const { page, close } = await open('/', { reducedMotion: 'no-preference' });
+    try {
+      await page.waitForFunction(() => document.querySelector('.system-figure').dataset.motion === 'playing');
+      await page.locator('#contact').evaluate((n) => n.scrollIntoView({ block: 'center', behavior: 'instant' }));
+      await page.waitForFunction(() => document.querySelector('.system-figure').dataset.motion === 'paused');
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+      await page.waitForFunction(() => document.querySelector('.system-figure').dataset.motion === 'playing');
     } finally {
       await close();
     }
