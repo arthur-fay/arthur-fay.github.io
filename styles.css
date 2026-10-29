@@ -6,11 +6,11 @@
    The first two rule blocks are design tokens read by the contrast tests
    (tests/unit/*contrast*.test.js); keep them as single flat blocks.
    ========================================================================== */
-:root{color-scheme:dark;--bg:#0b1020;--bg2:#0e1729;--surface:#121d30;--surface2:#192840;--text:#edf3ff;--muted:#adbcd0;--fine:#90a2ba;--line:#27364e;--line2:#405574;--accent:#91baff;--accent-dark:#77a7f5;--on-accent:#0b1020;--cyan:#75d6d5;--warm:#f1be71;--violet:#c6afff;--grid:#1c2b42;--hatch:#33435c;--plate:#24364e;--plate-hi:#354d6b;--plate-side:#0f1929;--plate-edge:#9babc4;--node-top:#2a3c54;--node-l:#111c2d;--node-r:#1e2c42;--glow-alpha:.1;--shade-alpha:.5;--shadow:0 30px 80px rgba(0,0,0,.35);--font-display:"Iowan Old Style",Charter,"Bitstream Charter",Cambria,Georgia,"Times New Roman",serif;--font-body:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Inter,Roboto,"Helvetica Neue",Arial,sans-serif;--font-mono:ui-monospace,"SF Mono",Menlo,Consolas,"JetBrains Mono","Liberation Mono","DejaVu Sans Mono",monospace;--header-h:72px;--container:1240px;--gutter:clamp(16px,5vw,64px);--ease:cubic-bezier(.22,.72,.18,1);--fast:.22s;--slow:.6s}
-html[data-theme="light"]{color-scheme:light;--bg:#f5f8fd;--bg2:#eaf0f8;--surface:#ffffff;--surface2:#edf2fa;--text:#13203a;--muted:#455671;--fine:#56647b;--line:#d8e0ec;--line2:#aab8cd;--accent:#234fc1;--accent-dark:#193e9e;--on-accent:#ffffff;--cyan:#116b76;--warm:#89580e;--violet:#7543ad;--grid:#e0e8f3;--hatch:#c4d0e1;--plate:#cbd5e3;--plate-hi:#e1e9f4;--plate-side:#aebdd2;--plate-edge:#596a82;--node-top:#ffffff;--node-l:#bccadd;--node-r:#dce5f1;--glow-alpha:.05;--shade-alpha:.12;--shadow:0 24px 60px rgba(24,48,88,.1)}
+:root{color-scheme:dark;--bg:#0b1020;--bg2:#0e1729;--surface:#121d30;--surface2:#192840;--text:#edf3ff;--muted:#c5d0e0;--fine:#b2c1d5;--line:#27364e;--line2:#405574;--accent:#91baff;--accent-dark:#77a7f5;--on-accent:#0b1020;--cyan:#75d6d5;--warm:#f1be71;--violet:#c6afff;--grid:#1c2b42;--hatch:#33435c;--plate:#24364e;--plate-hi:#354d6b;--plate-side:#0f1929;--plate-edge:#9babc4;--node-top:#2a3c54;--node-l:#111c2d;--node-r:#1e2c42;--glow-alpha:.1;--shade-alpha:.5;--shadow:0 30px 80px rgba(0,0,0,.35);--font-display:"Iowan Old Style",Charter,"Bitstream Charter",Cambria,Georgia,"Times New Roman",serif;--font-body:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Inter,Roboto,"Helvetica Neue",Arial,sans-serif;--font-mono:ui-monospace,"SF Mono",Menlo,Consolas,"JetBrains Mono","Liberation Mono","DejaVu Sans Mono",monospace;--header-h:72px;--container:1240px;--gutter:clamp(16px,5vw,64px);--ease:cubic-bezier(.22,.72,.18,1);--fast:.22s;--slow:.6s}
+html[data-theme="light"]{color-scheme:light;--bg:#f5f8fd;--bg2:#eaf0f8;--surface:#ffffff;--surface2:#edf2fa;--text:#13203a;--muted:#34445e;--fine:#3e4e67;--line:#d8e0ec;--line2:#aab8cd;--accent:#234fc1;--accent-dark:#193e9e;--on-accent:#ffffff;--cyan:#116b76;--warm:#89580e;--violet:#7543ad;--grid:#e0e8f3;--hatch:#c4d0e1;--plate:#cbd5e3;--plate-hi:#e1e9f4;--plate-side:#aebdd2;--plate-edge:#596a82;--node-top:#ffffff;--node-l:#bccadd;--node-r:#dce5f1;--glow-alpha:.05;--shade-alpha:.12;--shadow:0 24px 60px rgba(24,48,88,.1)}
 
 /* Pages without the theme script (the 404 page) follow the system preference. */
-@media (prefers-color-scheme:light){html:not([data-theme]){color-scheme:light;--bg:#f5f8fd;--bg2:#eaf0f8;--surface:#ffffff;--surface2:#edf2fa;--text:#13203a;--muted:#455671;--fine:#56647b;--line:#d8e0ec;--line2:#aab8cd;--accent:#234fc1;--accent-dark:#193e9e;--on-accent:#ffffff;--cyan:#116b76;--warm:#89580e;--violet:#7543ad;--grid:#e0e8f3;--hatch:#c4d0e1;--plate:#cbd5e3;--plate-hi:#e1e9f4;--plate-side:#aebdd2;--plate-edge:#596a82;--node-top:#ffffff;--node-l:#bccadd;--node-r:#dce5f1;--glow-alpha:.05;--shade-alpha:.12;--shadow:0 24px 60px rgba(24,48,88,.1)}}
+@media (prefers-color-scheme:light){html:not([data-theme]){color-scheme:light;--bg:#f5f8fd;--bg2:#eaf0f8;--surface:#ffffff;--surface2:#edf2fa;--text:#13203a;--muted:#34445e;--fine:#3e4e67;--line:#d8e0ec;--line2:#aab8cd;--accent:#234fc1;--accent-dark:#193e9e;--on-accent:#ffffff;--cyan:#116b76;--warm:#89580e;--violet:#7543ad;--grid:#e0e8f3;--hatch:#c4d0e1;--plate:#cbd5e3;--plate-hi:#e1e9f4;--plate-side:#aebdd2;--plate-edge:#596a82;--node-top:#ffffff;--node-l:#bccadd;--node-r:#dce5f1;--glow-alpha:.05;--shade-alpha:.12;--shadow:0 24px 60px rgba(24,48,88,.1)}}
 
 /* --------------------------------------------------------------------------
    Base
@@ -18,7 +18,7 @@ html[data-theme="light"]{color-scheme:light;--bg:#f5f8fd;--bg2:#eaf0f8;--surface
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-padding-top:calc(var(--header-h) + 16px);-webkit-text-size-adjust:100%}
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
-body{margin:0;min-width:320px;background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{margin:0;min-width:0;background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1.0625rem;line-height:1.7;text-rendering:optimizeLegibility}
 a{color:inherit;text-decoration:none}
 button{font:inherit;color:inherit}
 img,svg{display:block;max-width:100%}
@@ -346,15 +346,7 @@ html.js .cut-panel:not(.is-active){display:none}
 .cut-foot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px 24px;padding:18px 26px;border-top:1px solid var(--line);background:var(--bg2)}
 .cut-foot-links{display:flex;flex-wrap:wrap;gap:12px 24px}
 .cut-foot .cut-foot-note{font-size:12.5px;color:var(--fine);max-width:48ch;margin:0}
-html.js .cut-panel.is-active .stratum{animation:stratum-in .55s var(--ease) both}
-html.js .cut-panel.is-active .stratum:nth-child(2){animation-delay:.06s}
-html.js .cut-panel.is-active .stratum:nth-child(3){animation-delay:.12s}
-html.js .cut-panel.is-active .stratum:nth-child(4){animation-delay:.18s}
-html.js .cut-panel.is-active .stratum:nth-child(5){animation-delay:.24s}
-html.js .cut-panel.is-active .stratum:nth-child(6){animation-delay:.3s}
-html.js .cut-panel.is-active .cut-head{animation:fade-in .4s ease both}
-@keyframes stratum-in{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
-@keyframes fade-in{from{opacity:0}to{opacity:1}}
+/* Project text is immediately readable when a tab changes. */
 html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--line)}
 
 /* --------------------------------------------------------------------------
@@ -622,14 +614,9 @@ html:not(.js) .cut-panel+.cut-panel{margin-top:28px;border-top:1px solid var(--l
 .footer-note{font-size:12px;color:var(--fine);margin-top:16px;line-height:1.7;letter-spacing:.04em}
 
 /* --------------------------------------------------------------------------
-   Scroll reveals (only with JS and when motion is allowed; content is always
-   visible otherwise)
+   Reading copy stays visible and stationary while diagrams animate.
    -------------------------------------------------------------------------- */
-@media (prefers-reduced-motion:no-preference){
-  html.js [data-reveal]{opacity:0;transform:translateY(18px);transition:opacity .7s var(--ease),transform .8s var(--ease)}
-  html.js [data-reveal].is-visible{opacity:1;transform:none}
-  html.js [data-reveal="late"]{transition-delay:.12s}
-}
+[data-reveal]{opacity:1;transform:none}
 
 /* --------------------------------------------------------------------------
    Responsive
@@ -847,6 +834,111 @@ html[data-theme="light"] .sec-art-r2{stroke:#8d3d99}
   .stack-group dd span::before{content:"·";color:var(--accent);font-size:13px;line-height:1;margin-right:7px}
   .stack-group-text dd{display:block}
   .record-note{border-top:1px solid var(--line);padding-top:14px;margin-top:20px}
+}
+
+/* --------------------------------------------------------------------------
+   Reading scale — shared by desktop, phones and the three browser labs.
+   Prose uses 17–18px at default zoom; supporting copy is 15px, labels 13px.
+   Relative units respect the reader's font-size preference. System rendering
+   keeps its native weight instead of forcing thin font smoothing.
+   -------------------------------------------------------------------------- */
+.hero-description{font-size:1.125rem;line-height:1.75;max-width:58ch}
+.hero-description strong{font-weight:600}
+.section-intro,.project-description,.plate-facts dd,.stratum p,.record-points li,.case-block p,.principle p,.about-copy>p{font-size:1.0625rem;line-height:1.75;text-wrap:pretty;overflow-wrap:anywhere}
+.project-description,.plate-facts dd,.stratum p,.record-points li,.case-block p,.principle p{max-width:68ch}
+.hero-titleblock dd{font-family:var(--font-body);font-size:1.0625rem;font-weight:600;line-height:1.5;letter-spacing:0}
+.hero-titleblock dd small{font-size:.9375rem;font-weight:400;line-height:1.7;margin-top:8px}
+.hero-titleblock>div{padding:18px}
+.hero-titleblock dt,.eyebrow,.hero-index-row,.section-index,.figure-row,.cut-tab-kind,.stratum-index,.plate-head,.plate-facts dt,.record-dates,.record-kind,.record-card h3,.stack-group dt,.edu-status,.case-eyebrow,.case-block-num,.principle-top,.footer-block dt,.contact-top span,.channel-kind,.contact-roles li{font-size:.8125rem;line-height:1.6;letter-spacing:.055em}
+.hero-roleline{font-size:.9375rem;line-height:1.7;letter-spacing:.01em}
+.hero-role-name{font-size:.875rem;letter-spacing:.04em}
+.hero-role-divider{display:none}
+.hero-role-specialty{flex-basis:100%}
+.eyebrow{font-size:.75rem}
+.hero-index-row{font-size:.75rem;letter-spacing:.045em}
+.hero-index a{min-height:44px;align-items:center}
+.button,.text-link,.header-github{font-size:.9375rem;line-height:1.5}
+.text-link{min-height:44px}
+.desktop-nav a{font-size:.9375rem;min-height:44px}
+.desktop-nav{gap:24px}
+.nav-index{font-size:.75rem;letter-spacing:.03em}
+.wordmark-name{font-size:19px}
+.site-header{background:color-mix(in srgb,var(--bg) 97%,transparent)}
+.hero-figcaption,.plate-figure figcaption,.cut-foot .cut-foot-note,.case-footer p,.record-note,.about-note,.hiring-note,.footer-note{font-size:.9375rem;line-height:1.75}
+.plate-figure figcaption b{font-size:.8125rem;letter-spacing:.04em}
+.hiring-heading>p,.role-paths p,.role-links a,.stat-description,.project-disclosure,.project-subtitle,.record-body h3 small,.edu-entry p,.about-fields li,.stack-group-text dd,.footer-block dd,.footer-inner>span,.footer-inner>a:last-child{font-size:1rem;line-height:1.7}
+.role-paths h4{font-size:1.125rem;line-height:1.5}
+.role-path-index{font-size:.8125rem}
+.role-links{gap:4px 20px}
+.stat-description b,.filter-button,.filters-label,.cut-meta,.tag-list span,.record-tech li,.stratum-tech li,.stack-group dd span,.about-tags li{font-size:.8125rem;line-height:1.6;letter-spacing:.035em}
+.filter-button{min-height:44px}
+.edu-status{white-space:normal;align-items:flex-start}
+.edu-status::before{margin-top:6px}
+.project-entry-link{font-size:1rem;line-height:1.6}
+.project-entry-context{font-size:.875rem;letter-spacing:0;overflow-wrap:anywhere}
+.plate-facts{gap:22px 26px}
+.project-disclosure{padding-block:6px}
+.project-links{row-gap:8px}
+.record-points{gap:14px}
+.record-body h3,.edu-entry h4{line-height:1.3}
+.stack-group dd span,.tag-list span,.about-tags li{overflow-wrap:anywhere;max-width:100%}
+.contact-card p{font-size:1.0625rem;line-height:1.75}
+.contact-card p,.contact-top span,.channel-kind{color:inherit}
+.channel-name{font-family:var(--font-body);font-size:1.125rem;font-weight:600;line-height:1.5;letter-spacing:0}
+.system-toolbar>span,.preview-heading,.preview-loop{font-size:.75rem;letter-spacing:.04em;line-height:1.6}
+.system-motion,.preview-actions button{min-height:44px;font-size:.875rem;line-height:1.5;padding:8px 12px}
+.system-layers button{font-size:.8125rem;line-height:1.5;padding:8px 4px;overflow-wrap:anywhere}
+.system-layers button span{font-size:.75rem}
+.system-layer-detail{min-height:0;padding-top:16px}
+.system-layer-detail strong{font-size:1rem;line-height:1.5}
+.system-layer-detail p,.system-related-work,.preview-stage{font-size:.9375rem;line-height:1.7}
+.system-related-work{min-height:44px}
+.preview-heading{flex-wrap:wrap}
+.preview-toolbar{gap:10px 12px}
+.preview-stage{flex:1 1 100%;min-height:2em}
+.preview-actions{margin-left:0}
+.iso text{font-size:13.5px;letter-spacing:.02em}
+
+/* Labs keep dense data views inside their own scroll containers. Input text
+   is at least 16px, including on phones, without restricting pinch zoom. */
+body .field select,body .field input[type="number"],body .field input[type="text"],body .field input[type="file"],body .field textarea{font-size:1rem;line-height:1.6;min-height:48px;color:var(--text);background:var(--bg);caret-color:var(--accent)}
+body .field textarea{padding:12px;font-size:1rem;line-height:1.7;min-height:180px}
+body .rule-fieldset .field input[type="number"]{min-height:48px}
+body .rule-fieldset legend{font-size:.9375rem;line-height:1.6}
+body .field input::placeholder,body .field textarea::placeholder{color:var(--fine);opacity:1}
+body .field>label,body .field-label,body .lab-tools legend,body .lab-label,body .speed-field label{font-size:.8125rem;line-height:1.6;letter-spacing:.035em}
+body .field-check label{font-size:1rem;letter-spacing:0}
+body .field-hint,body .lab-panel-note,body .lab-legend,body .timeline-summary,body .chart-caption,body .kpi-definition,body .detail-block p,body .detail-list,body .empty-state,body .lab-help ul,body .explain-card p,body .explain-card li,body .rules-block p,body .rules-block li,body .pipeline p,body .lab-footer-note p,body .import-schema p,body .import-schema li{font-size:.9375rem;line-height:1.75}
+body .button-small,body .panel-actions .button-small,body .preset-button,body .tool span{font-size:.875rem;min-height:44px;line-height:1.5}
+body .lab-stats dt{font-size:.8125rem;letter-spacing:.035em;line-height:1.6}
+body .lab-stats dd small,body .detail-chips li,body .table-button-name,body .table-view summary,body .alert-button-meta{font-size:.8125rem;line-height:1.6}
+body .alert-button-head{font-size:.9375rem;line-height:1.6}
+body .lab-table,body .evidence-table{font-size:.875rem;line-height:1.7}
+body .lab-table caption,body .evidence-table th{font-size:.8125rem;letter-spacing:.035em}
+
+@media(min-width:981px){
+  .plate-facts{gap:0}
+  .plate-facts>div{grid-template-columns:112px minmax(0,1fr);gap:18px;padding:20px 0}
+}
+@media(max-width:1180px){.desktop-nav{gap:16px}}
+@media(min-width:981px) and (max-width:1200px){.system-layers{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:780px){
+  .hero-description{font-size:1.0625rem}
+  .hero-roleline{font-size:.875rem}
+  .hero-titleblock dd{font-size:1.0625rem}
+  .project-body{padding:26px 20px}
+  .record-body h3{font-size:1.5rem}
+  .hero-index{display:flex;flex-direction:column;gap:0}
+  .preview-stage{min-height:0}
+  .preview-heading,.preview-toolbar{padding:12px}
+}
+@media(max-width:600px){.system-layers{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:360px){
+  .hero-titleblock>div{padding:16px}
+  .plate-figure{padding:16px}
+  .project-body{padding:24px 16px}
+  .preview-heading{font-size:.6875rem}
+  .system-layers{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
 /* Ultra-wide desktop optical balance: at 1920px the original 1240px column
