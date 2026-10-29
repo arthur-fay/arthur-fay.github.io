@@ -941,6 +941,94 @@ body .lab-table caption,body .evidence-table th{font-size:.8125rem;letter-spacin
   .system-layers{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
+/* --------------------------------------------------------------------------
+   Engineering colour system — saturated structure, calm reading surfaces.
+   Project colour remains an extra cue alongside names and numbered labels.
+   The system drawing and contact panel use their own high-contrast inks in
+   both page themes; body type and the reading scale above are unchanged.
+   -------------------------------------------------------------------------- */
+.hero .system-figure{--bg:#0c1933;--bg2:#112342;--surface:#13294b;--surface2:#1b3762;--text:#f1f6ff;--muted:#d2dff1;--fine:#c1d1e9;--line:#304d76;--line2:#698bb7;--accent:#a5ccff;--accent-dark:#c1dcff;--on-accent:#0c1933;--cyan:#7ce5dd;--violet:#c4b4ff;--warm:#f3cf8e;--plate:#244568;--plate-hi:#42688f;--plate-side:#112d4b;--plate-edge:#a0c1e4;--node-top:#507799;--node-l:#193957;--node-r:#2a5277;--glow-alpha:.18;--shade-alpha:.5;color-scheme:dark;color:var(--text);background:var(--bg);border-color:var(--line2);border-top:3px solid var(--cyan);border-radius:8px;box-shadow:0 22px 58px #07173140}
+.contact-section .contact-card{--accent:#b8dcff;--on-accent:#f1f6ff;--contact-start:#0c1d3c;--contact-middle:#1c3a78;--contact-end:#143e59;--contact-button:#d0ebff;--contact-button-text:#102445;background:linear-gradient(120deg,var(--contact-start),var(--contact-middle) 62%,var(--contact-end));color:var(--on-accent);border:1px solid #638ac2;border-top:4px solid #7ce5dd;box-shadow:0 20px 52px #0b24552b}
+
+.hero{background:radial-gradient(ellipse at 95% 15%,color-mix(in srgb,var(--accent) 18%,transparent),transparent 64%),radial-gradient(ellipse at 55% 100%,color-mix(in srgb,var(--cyan) 9%,transparent),transparent 64%),var(--bg)}
+.hero::before{opacity:.7}
+.hero .eyebrow{color:var(--accent)}
+.hero .hero-role-name{padding:4px 10px;border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));background:color-mix(in srgb,var(--accent) 10%,var(--surface));border-radius:3px}
+.hero .button-primary{box-shadow:0 7px 22px color-mix(in srgb,var(--accent) 18%,transparent)}
+.hero-index-row{border-top-color:color-mix(in srgb,var(--accent) 30%,var(--line));row-gap:10px}
+.hero-index{gap:10px 12px}
+.hero-index a{padding:9px 12px;border:1px solid color-mix(in srgb,var(--accent) 28%,var(--line));border-left:3px solid var(--accent);border-radius:4px;background:color-mix(in srgb,var(--accent) 7%,var(--surface));line-height:1.5}
+.hero-index a::after{display:none}
+.hero-index a:hover,.hero-index a:focus-visible{background:color-mix(in srgb,var(--accent) 13%,var(--surface));border-color:var(--accent)}
+.hero-titleblock{border:0;background:transparent;gap:12px}
+.hero-titleblock>div{border:1px solid color-mix(in srgb,var(--accent) 22%,var(--line));border-top:2px solid var(--accent);border-radius:4px;background:color-mix(in srgb,var(--accent) 5%,var(--surface))}
+.hero-titleblock>div::before{display:none}
+.wordmark-symbol{color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface));border-radius:4px}
+.wordmark-symbol .mark-pen{stroke:var(--cyan)}
+.site-header{border-bottom-color:color-mix(in srgb,var(--accent) 32%,var(--line))}
+.icon-button,.header-github{background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
+.desktop-nav a:hover,.desktop-nav a[aria-current="true"]{color:var(--accent)}
+.section-index::before{height:3px;background:linear-gradient(90deg,var(--accent),var(--cyan))}
+
+/* The plate faces remain blue; coloured edges distinguish the five layers. */
+.system-figure .depth-1 .iso-slab{stroke:var(--cyan)}
+.system-figure .depth-3 .iso-slab{stroke:var(--violet)}
+.system-figure .depth-5 .iso-slab{stroke:var(--warm)}
+.system-figure .depth-1 .iso-label-accent{fill:var(--cyan)}
+.system-figure .depth-3 .iso-label-accent{fill:var(--violet)}
+.system-figure .depth-5 .iso-label-accent{fill:var(--warm)}
+.system-figure .iso .is-selected .iso-slab{stroke:var(--cyan);stroke-width:2.6}
+.system-figure .system-layers button:nth-child(1) span{color:var(--cyan)}
+.system-figure .system-layers button:nth-child(3) span{color:var(--violet)}
+.system-figure .system-layers button:nth-child(5) span{color:var(--warm)}
+.system-figure .system-layers button{border-top:2px solid var(--line2)}
+.system-figure .system-layers button[aria-pressed="true"]{border-color:var(--cyan)}
+.system-figure .hero-figcaption{padding-top:14px;border-top:1px solid var(--line)}
+
+.stat:nth-child(2){--accent:var(--cyan)}
+.stat:nth-child(3){--accent:var(--violet)}
+.stat:nth-child(4){--accent:var(--warm)}
+.stat{position:relative;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 6%,transparent),transparent 72%)}
+.stat::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent)}
+.stat-number,.stat-description b{color:var(--accent)}
+.cut-tab{border-color:color-mix(in srgb,var(--accent) 22%,var(--line));border-radius:4px}
+.cut-tab[aria-selected="true"]{background:color-mix(in srgb,var(--accent) 12%,var(--surface));box-shadow:0 6px 22px color-mix(in srgb,var(--accent) 7%,transparent)}
+.cut-head{background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
+.role-paths>li{background:color-mix(in srgb,var(--accent) 8%,var(--surface));border-color:color-mix(in srgb,var(--accent) 30%,var(--line));border-top-color:var(--accent)}
+.role-path-index{color:var(--accent);font-weight:700}
+.role-paths h4{color:var(--text)}
+.project{--project-panel:color-mix(in srgb,var(--accent) 8%,var(--bg2));border-color:color-mix(in srgb,var(--accent) 30%,var(--line));border-top-color:var(--accent);border-radius:7px;box-shadow:0 10px 28px color-mix(in srgb,var(--accent) 4%,transparent)}
+.plate-head{background:color-mix(in srgb,var(--accent) 12%,var(--surface));border-bottom-color:color-mix(in srgb,var(--accent) 30%,var(--line))}
+.plate-figure{background:var(--project-panel)}
+.plate-art{background:radial-gradient(ellipse at 50% 20%,color-mix(in srgb,var(--accent) 8%,transparent),transparent 72%),var(--bg)}
+.plate-art .art-line{stroke:color-mix(in srgb,var(--accent) 42%,var(--line2))}
+.preview-heading{background:color-mix(in srgb,var(--accent) 12%,var(--surface));border-color:color-mix(in srgb,var(--accent) 36%,var(--line2))}
+.preview-toolbar{border-color:color-mix(in srgb,var(--accent) 36%,var(--line2))}
+.preview-actions button{border-color:color-mix(in srgb,var(--accent) 28%,var(--line2))}
+.project h3{color:var(--accent)}
+.project-entry{background:color-mix(in srgb,var(--accent) 7%,var(--bg2));border-color:color-mix(in srgb,var(--accent) 32%,var(--line2))}
+.tag-list span{background:color-mix(in srgb,var(--accent) 5%,var(--surface));border-color:color-mix(in srgb,var(--accent) 26%,var(--line2))}
+.filter-button.is-active{background:color-mix(in srgb,var(--accent) 12%,var(--surface));border-color:var(--accent)}
+
+.case-study-section{background:radial-gradient(ellipse at 0 10%,color-mix(in srgb,var(--accent) 9%,transparent),transparent 54%),var(--bg2)}
+.record-main{border-top:3px solid var(--accent);border-radius:5px}
+.record-entry::before{background-color:color-mix(in srgb,var(--accent) 8%,transparent)}
+.record-card{border-radius:5px;border-top:3px solid var(--accent);background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 5%,transparent),transparent 65%),var(--surface)}
+.record-card:nth-child(1){--accent:var(--cyan)}
+.record-card:nth-child(2){--accent:var(--violet)}
+.principle{border-radius:5px;background:linear-gradient(145deg,color-mix(in srgb,var(--accent) 7%,transparent),transparent 60%),var(--surface);border-color:color-mix(in srgb,var(--accent) 24%,var(--line));border-top-color:var(--accent)}
+.about-section{background:radial-gradient(ellipse at 0 0,color-mix(in srgb,var(--cyan) 6%,transparent),transparent 50%),var(--surface)}
+.about-tags li{background:color-mix(in srgb,var(--accent) 5%,var(--surface));border-color:color-mix(in srgb,var(--accent) 25%,var(--line2));border-radius:3px}
+.contact-section .contact-card .button-primary{background:var(--contact-button);color:var(--contact-button-text);border-color:var(--contact-button)}
+.contact-section .contact-card .button-primary:hover{background:#f1f6ff;border-color:#f1f6ff}
+.contact-section .contact-card .button-outline{background:#ffffff08;border-color:#8eacd5;color:var(--on-accent)}
+.contact-section .contact-card .button-outline:hover{background:#ffffff14;border-color:var(--on-accent)}
+.contact-section .contact-card .contact-roles li{background:#ffffff0a;border-color:#8eacd5}
+.contact-section .contact-card .channel-kind{color:#d0e3ff}
+.site-footer{border-top:2px solid var(--accent)}
+@media(min-width:981px){.plate-grid{background:linear-gradient(90deg,var(--project-panel) 0 41.6667%,var(--surface) 41.6667% 100%)}}
+@media(max-width:780px){.hero .system-figure{box-shadow:0 14px 32px #07173126}}
+
 /* Ultra-wide desktop optical balance: at 1920px the original 1240px column
    leaves excessively large side gutters. Preserve every existing breakpoint
    and only expand the consistent site grid on truly wide monitors. */
