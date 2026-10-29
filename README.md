@@ -54,6 +54,8 @@ The four [animated project figures](docs/PROJECT_PREVIEWS_2026-10-29.md) add gui
 
 The [desktop and mobile reading refinement](docs/READABILITY_2026-10-29.md) increases prose, captions, labels and input text, strengthens contrast in both themes, and makes reading copy visible immediately while the engineering figures animate. Browser checks cover small screens, custom text spacing and typed lab fields.
 
+The [engineering colour refinement](docs/COLOR_DEPTH_2026-10-29.md) carries the four project inks through stronger preview headers, project titles, cards and controls, with a navy animated system panel and a contrasting royal-blue contact section. Dedicated feature-panel contrast checks preserve legibility in both themes.
+
 The hero is an [interactive system model](docs/INTERACTIVE_SYSTEM_2026-10-29.md): continuous floating layers and moving signals, native controls to inspect the five layers, related-project links, and a remembered pause setting. It respects reduced-motion preferences and suspends automatic motion offscreen or in a hidden tab. Without JavaScript, the original complete static legend remains readable.
 
 - Plain semantic HTML + CSS + a small, dependency-free JavaScript enhancement file (`script.js`, shared across the portfolio and all lab pages: theme, mobile menu, filters, reading progress, the section-cut tabs, scroll reveals, the active navigation state and the hero drawing's pointer parallax). The custom 404 page uses local CSS and a restrictive Content Security Policy.
