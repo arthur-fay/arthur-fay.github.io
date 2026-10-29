@@ -14,14 +14,16 @@ PAGES = ("index.html", "404.html", "lab/pathfinding/index.html",
 
 def main() -> None:
     versions = {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()[:12]
-                for name in ("styles.css", "script.js", "lab/pathfinding/lab.css")}
+                for name in ("styles.css", "script.js", "project-previews.js", "lab/pathfinding/lab.css")}
     for page in PAGES:
         file = ROOT / page
         html = file.read_text(encoding="utf-8")
         for name, version in versions.items():
             pattern = rf'((?:href|src)="/){re.escape(name)}(?:\?v=[a-f0-9]{{12}})?(")'
             html, count = re.subn(pattern, lambda match: f'{match[1]}{name}?v={version}{match[2]}', html)
-            if name == "lab/pathfinding/lab.css":
+            if name == "project-previews.js":
+                expected = 1 if page == "index.html" else 0
+            elif name == "lab/pathfinding/lab.css":
                 expected = 1 if page == "lab/pathfinding/index.html" else 0
             else:
                 expected = 0 if page == "404.html" and name == "script.js" else 1

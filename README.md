@@ -50,6 +50,8 @@ The [29 October visual refinement](docs/VISUAL_REFINEMENT_2026-10-29.md) adds mi
 
 ## Architecture
 
+The four [animated project figures](docs/PROJECT_PREVIEWS_2026-10-29.md) add guided schematic flows for ATLAS and E-Commerce, an actual seeded A* replay and a synthetic security-event replay. Native pause/replay controls, offscreen suspension, reduced-motion views and complete static fallbacks keep the diagrams usable. Desktop figures stay beside their project details while reading.
+
 The hero is an [interactive system model](docs/INTERACTIVE_SYSTEM_2026-10-29.md): continuous floating layers and moving signals, native controls to inspect the five layers, related-project links, and a remembered pause setting. It respects reduced-motion preferences and suspends automatic motion offscreen or in a hidden tab. Without JavaScript, the original complete static legend remains readable.
 
 - Plain semantic HTML + CSS + a small, dependency-free JavaScript enhancement file (`script.js`, shared across the portfolio and all lab pages: theme, mobile menu, filters, reading progress, the section-cut tabs, scroll reveals, the active navigation state and the hero drawing's pointer parallax). The custom 404 page uses local CSS and a restrictive Content Security Policy.
@@ -78,7 +80,7 @@ The shared header shows its full navigation from 1001 px up and the menu button 
 
 ## Checks and tests
 
-After editing `styles.css`, `script.js` or `lab/pathfinding/lab.css`, run `npm run version:assets` to refresh their content-derived URLs in the pages that use them. This prevents a newly published page from using a previously cached palette or script. The offline checker verifies that every versioned asset URL matches its file's SHA-256 prefix and rejects stale versions; the runtime remains dependency-free.
+After editing `styles.css`, `script.js`, `project-previews.js` or `lab/pathfinding/lab.css`, run `npm run version:assets` to refresh their content-derived URLs in the pages that use them. This prevents a newly published page from using a previously cached palette or script. The offline checker verifies that every versioned asset URL matches its file's SHA-256 prefix and rejects stale versions; the runtime remains dependency-free.
 
 ```bash
 npm test               # offline integrity checks (scripts/check_site.py), syntax checks, unit tests for all labs

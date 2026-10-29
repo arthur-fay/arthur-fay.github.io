@@ -22,7 +22,8 @@
   <meta name="twitter:image" content="https://arthur-fay.github.io/social-card.png" />
   <link rel="canonical" href="https://arthur-fay.github.io/" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="stylesheet" href="/styles.css?v=06697bd53001" />
+  <link rel="stylesheet" href="/styles.css?v=c363ece2b77d" />
+  <script type="module" src="/project-previews.js?v=4d48d6c8901f"></script>
   <script defer src="/script.js?v=b628a8142d78"></script>
   <title>Arthur Fay — Software Engineer · The Architect Lab · Python, TypeScript/React, FastAPI &amp; PostgreSQL</title>
 </head>
@@ -276,7 +277,8 @@
           <article class="project project-atlas" id="plate-atlas" data-category="engineering" aria-labelledby="atlas-title" data-reveal>
             <div class="plate-head"><span class="project-num">Plate 01 <span class="project-slash">/</span> Flagship</span><span class="project-label">Research software · Python · FastAPI · React · CI</span></div>
             <div class="plate-grid">
-              <figure class="plate-figure">
+              <figure class="plate-figure" data-project-preview="atlas" data-preview-name="ATLAS">
+                <div class="preview-heading" data-preview-ui hidden><span class="preview-indicator" aria-hidden="true"></span><span>Pipeline · conceptual</span><span class="preview-loop">Animated preview</span></div>
                 <div class="plate-art frame">
                   <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet" focusable="false" aria-hidden="true">
                     <path class="art-grid" d="M0 20H400M0 40H400M0 60H400M0 80H400M0 100H400M0 120H400M0 140H400M0 160H400M0 180H400M0 200H400M0 220H400M0 240H400M0 260H400M0 280H400M20 0V300M40 0V300M60 0V300M80 0V300M100 0V300M120 0V300M140 0V300M160 0V300M180 0V300M200 0V300M220 0V300M240 0V300M260 0V300M280 0V300M300 0V300M320 0V300M340 0V300M360 0V300M380 0V300"/>
@@ -302,6 +304,11 @@
                     <text class="art-text-faint" x="24" y="286">M0</text><text class="art-text-faint" x="102.2" y="286" text-anchor="middle">M2</text><text class="art-text-faint" x="180.4" y="286" text-anchor="middle">M4</text><text class="art-text-faint" x="258.7" y="286" text-anchor="middle">M6</text><text class="art-text-faint" x="336.9" y="286" text-anchor="middle">M8</text><text class="art-text-faint" x="376" y="286" text-anchor="end">M9</text>
                   </svg>
                 </div>
+                <div class="preview-toolbar" data-preview-ui hidden>
+                  <span class="preview-stage" aria-hidden="true">Conceptual pipeline</span>
+                  <div class="preview-actions"><button class="preview-toggle" type="button" aria-label="Pause ATLAS preview">Pause</button><button class="preview-replay" type="button" aria-label="Replay ATLAS preview">Replay</button></div>
+                </div>
+                <div class="preview-progress" data-preview-ui aria-hidden="true" hidden><span></span></div>
                 <figcaption><b>Fig. 01</b>Conceptual pipeline drawing of the ATLAS milestones M0–M9. No ATLAS data, charts or projections are reproduced on this portfolio.</figcaption>
               </figure>
               <div class="project-body">
@@ -326,7 +333,8 @@
           <article class="project project-commerce" id="plate-commerce" data-category="analytics interactive" aria-labelledby="commerce-title" data-reveal>
             <div class="plate-head"><span class="project-num">Plate 02 <span class="project-slash">/</span> Analytics</span><span class="project-label">Business intelligence · SQL · DAX · Power BI · interactive lab</span></div>
             <div class="plate-grid">
-              <figure class="plate-figure">
+              <figure class="plate-figure" data-project-preview="commerce" data-preview-name="E-Commerce">
+                <div class="preview-heading" data-preview-ui hidden><span class="preview-indicator" aria-hidden="true"></span><span>Model · schematic</span><span class="preview-loop">Animated preview</span></div>
                 <div class="plate-art frame">
                   <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet" focusable="false" aria-hidden="true">
                     <path class="art-grid" d="M0 20H400M0 40H400M0 60H400M0 80H400M0 100H400M0 120H400M0 140H400M0 160H400M0 180H400M0 200H400M0 220H400M0 240H400M0 260H400M0 280H400M20 0V300M40 0V300M60 0V300M80 0V300M100 0V300M120 0V300M140 0V300M160 0V300M180 0V300M200 0V300M220 0V300M240 0V300M260 0V300M280 0V300M300 0V300M320 0V300M340 0V300M360 0V300M380 0V300"/>
@@ -350,6 +358,11 @@
                     <rect class="art-box-accent" x="320" y="240" width="56" height="30"/><text class="art-text-accent" x="348" y="259" text-anchor="middle">Power BI</text>
                   </svg>
                 </div>
+                <div class="preview-toolbar" data-preview-ui hidden>
+                  <span class="preview-stage" aria-hidden="true">Documented toolchain</span>
+                  <div class="preview-actions"><button class="preview-toggle" type="button" aria-label="Pause E-Commerce preview">Pause</button><button class="preview-replay" type="button" aria-label="Replay E-Commerce preview">Replay</button></div>
+                </div>
+                <div class="preview-progress" data-preview-ui aria-hidden="true" hidden><span></span></div>
                 <figcaption><b>Fig. 02</b>Drawing of the project's documented dimensional model and toolchain; table names follow the repository README. The interactive lab republishes the README's figures with their provenance; the screenshots and the Power BI file are in the repository.</figcaption>
               </figure>
               <div class="project-body">
@@ -374,10 +387,16 @@
           <article class="project project-lab" id="plate-pathfinding" data-category="engineering interactive" aria-labelledby="pathfinding-title" data-reveal>
             <div class="plate-head"><span class="project-num">Plate 03 <span class="project-slash">/</span> Interactive</span><span class="project-label">Algorithm simulation · JavaScript ES modules · tested</span></div>
             <div class="plate-grid">
-              <figure class="plate-figure">
+              <figure class="plate-figure" data-project-preview="pathfinding" data-preview-name="Pathfinding">
+                <div class="preview-heading" data-preview-ui hidden><span class="preview-indicator" aria-hidden="true"></span><span>A* · seed 11</span><span class="preview-loop">Animated preview</span></div>
                 <div class="plate-art frame plate-art-run">
-                  <svg class="lab-preview-art" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid meet" focusable="false"><path class="lab-art-grid" d="M10 0V90M20 0V90M30 0V90M40 0V90M50 0V90M60 0V90M70 0V90M80 0V90M90 0V90M100 0V90M110 0V90M120 0V90M130 0V90M140 0V90M150 0V90M0 10H160M0 20H160M0 30H160M0 40H160M0 50H160M0 60H160M0 70H160M0 80H160"/><path class="lab-art-visited" d="M50 40h10v10h-10zM50 50h10v10h-10zM40 50h10v10h-10zM40 60h10v10h-10zM30 30h10v10h-10zM30 50h10v10h-10zM30 60h10v10h-10zM20 30h10v10h-10zM20 20h10v10h-10zM10 30h10v10h-10zM20 50h10v10h-10zM20 60h10v10h-10zM10 50h10v10h-10zM10 40h10v10h-10zM0 40h10v10h-10zM50 60h10v10h-10zM50 70h10v10h-10zM60 60h10v10h-10zM70 60h10v10h-10zM70 70h10v10h-10zM70 50h10v10h-10zM80 50h10v10h-10zM80 40h10v10h-10zM90 40h10v10h-10zM90 50h10v10h-10zM90 60h10v10h-10zM40 10h10v10h-10zM60 10h10v10h-10zM60 30h10v10h-10zM70 10h10v10h-10zM80 10h10v10h-10zM100 20h10v10h-10zM110 20h10v10h-10zM110 40h10v10h-10zM120 20h10v10h-10zM120 40h10v10h-10z"/><path class="lab-art-walls" d="M60 0h10v10h-10zM150 0h10v10h-10zM0 10h10v10h-10zM50 10h10v10h-10zM140 10h10v10h-10zM150 10h10v10h-10zM30 20h10v10h-10zM90 20h10v10h-10zM130 20h10v10h-10zM140 20h10v10h-10zM50 30h10v10h-10zM70 30h10v10h-10zM140 30h10v10h-10zM60 40h10v10h-10zM70 40h10v10h-10zM100 40h10v10h-10zM60 50h10v10h-10zM100 50h10v10h-10zM110 50h10v10h-10zM150 50h10v10h-10zM80 60h10v10h-10zM130 60h10v10h-10zM140 60h10v10h-10zM60 70h10v10h-10zM110 70h10v10h-10zM140 70h10v10h-10zM10 80h10v10h-10zM50 80h10v10h-10zM110 80h10v10h-10zM140 80h10v10h-10z"/><path class="lab-art-route" d="M25 45L35 45L45 45L45 35L45 25L55 25L65 25L75 25L85 25L85 35L95 35L105 35L115 35L125 35L135 35L135 45"/><rect class="lab-art-start" x="22" y="42" width="6" height="6"/><rect class="lab-art-target" x="132" y="42" width="6" height="6"/></svg>
+                  <svg role="img" aria-label="Seeded A star search and route preview" class="lab-preview-art" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid meet" focusable="false"><path class="lab-art-grid" d="M10 0V90M20 0V90M30 0V90M40 0V90M50 0V90M60 0V90M70 0V90M80 0V90M90 0V90M100 0V90M110 0V90M120 0V90M130 0V90M140 0V90M150 0V90M0 10H160M0 20H160M0 30H160M0 40H160M0 50H160M0 60H160M0 70H160M0 80H160"/><path class="lab-art-visited" d="M50 40h10v10h-10zM50 50h10v10h-10zM40 50h10v10h-10zM40 60h10v10h-10zM30 30h10v10h-10zM30 50h10v10h-10zM30 60h10v10h-10zM20 30h10v10h-10zM20 20h10v10h-10zM10 30h10v10h-10zM20 50h10v10h-10zM20 60h10v10h-10zM10 50h10v10h-10zM10 40h10v10h-10zM0 40h10v10h-10zM50 60h10v10h-10zM50 70h10v10h-10zM60 60h10v10h-10zM70 60h10v10h-10zM70 70h10v10h-10zM70 50h10v10h-10zM80 50h10v10h-10zM80 40h10v10h-10zM90 40h10v10h-10zM90 50h10v10h-10zM90 60h10v10h-10zM40 10h10v10h-10zM60 10h10v10h-10zM60 30h10v10h-10zM70 10h10v10h-10zM80 10h10v10h-10zM100 20h10v10h-10zM110 20h10v10h-10zM110 40h10v10h-10zM120 20h10v10h-10zM120 40h10v10h-10z"/><path class="lab-art-walls" d="M60 0h10v10h-10zM150 0h10v10h-10zM0 10h10v10h-10zM50 10h10v10h-10zM140 10h10v10h-10zM150 10h10v10h-10zM30 20h10v10h-10zM90 20h10v10h-10zM130 20h10v10h-10zM140 20h10v10h-10zM50 30h10v10h-10zM70 30h10v10h-10zM140 30h10v10h-10zM60 40h10v10h-10zM70 40h10v10h-10zM100 40h10v10h-10zM60 50h10v10h-10zM100 50h10v10h-10zM110 50h10v10h-10zM150 50h10v10h-10zM80 60h10v10h-10zM130 60h10v10h-10zM140 60h10v10h-10zM60 70h10v10h-10zM110 70h10v10h-10zM140 70h10v10h-10zM10 80h10v10h-10zM50 80h10v10h-10zM110 80h10v10h-10zM140 80h10v10h-10z"/><path class="lab-art-route" d="M25 45L35 45L45 45L45 35L45 25L55 25L65 25L75 25L85 25L85 35L95 35L105 35L115 35L125 35L135 35L135 45"/><rect class="lab-art-start" x="22" y="42" width="6" height="6"/><rect class="lab-art-target" x="132" y="42" width="6" height="6"/></svg>
                 </div>
+                <div class="preview-toolbar" data-preview-ui hidden>
+                  <span class="preview-stage" aria-hidden="true">Seeded A* replay</span>
+                  <div class="preview-actions"><button class="preview-toggle" type="button" aria-label="Pause Pathfinding preview">Pause</button><button class="preview-replay" type="button" aria-label="Replay Pathfinding preview">Replay</button></div>
+                </div>
+                <div class="preview-progress" data-preview-ui aria-hidden="true" hidden><span></span></div>
                 <figcaption><b>Fig. 03</b>A real A* run on a seeded 16 × 9 field, rendered from the algorithm module and regenerated by the test suite.</figcaption>
               </figure>
               <div class="project-body">
@@ -402,10 +421,16 @@
           <article class="project project-security" id="plate-security" data-category="engineering interactive security" aria-labelledby="security-title" data-reveal>
             <div class="plate-head"><span class="project-num">Plate 04 <span class="project-slash">/</span> Security</span><span class="project-label">Detection simulation · synthetic events only · tested</span></div>
             <div class="plate-grid">
-              <figure class="plate-figure">
+              <figure class="plate-figure" data-project-preview="security" data-preview-name="Security">
+                <div class="preview-heading" data-preview-ui hidden><span class="preview-indicator" aria-hidden="true"></span><span>Events · synthetic</span><span class="preview-loop">Animated preview</span></div>
                 <div class="plate-art frame plate-art-run">
-                  <svg class="security-preview-art" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid meet" focusable="false"><path class="sec-art-grid" d="M6 17H154M6 28H154M6 39H154M6 50H154M6 61H154M6 72H154M6 83H154"/><path class="sec-art-r1" d="M36.7 6h4.5v11h-4.5z"/><path class="sec-art-r2" d="M39.9 17h14.8v5.5h-14.8z"/><path class="sec-art-r3" d="M36.7 11.5h9.2v5.5h-9.2z"/><path class="sec-art-success" d="M6.5 31.5h2v4h-2zM9.2 64.5h2v4h-2zM9.3 42.5h2v4h-2zM15.1 53.5h2v4h-2zM15.1 64.5h2v4h-2zM16.8 42.5h2v4h-2zM33.9 31.5h2v4h-2zM35 31.5h2v4h-2zM38.1 9.5h2v4h-2z"/><path class="sec-art-failure" d="M5 29.5h2v8h-2zM5.5 29.5h2v8h-2zM37.2 7.5h2v8h-2zM37.3 7.5h2v8h-2zM37.3 7.5h2v8h-2zM37.4 7.5h2v8h-2zM37.5 7.5h2v8h-2zM37.5 7.5h2v8h-2zM37.6 7.5h2v8h-2zM37.7 7.5h2v8h-2zM37.8 7.5h2v8h-2zM40.4 18.5h2v8h-2zM41.7 18.5h2v8h-2zM43.4 18.5h2v8h-2zM44.6 18.5h2v8h-2zM45.6 18.5h2v8h-2z"/><path class="sec-art-future" d="M48.1 18.5h2v8h-2zM49.5 18.5h2v8h-2zM52.2 18.5h2v8h-2zM89.1 75.5h2v4h-2zM114.7 53.5h2v4h-2zM118.4 53.5h2v4h-2zM123.8 75.5h2v4h-2zM124.4 42.5h2v4h-2zM133.1 42.5h2v4h-2zM153 31.5h2v4h-2z"/><path class="sec-art-cursor" d="M46.6 3V86"/></svg>
+                  <svg role="img" aria-label="Synthetic sign-in events and detection rule alerts" class="security-preview-art" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid meet" focusable="false"><path class="sec-art-grid" d="M6 17H154M6 28H154M6 39H154M6 50H154M6 61H154M6 72H154M6 83H154"/><path class="sec-art-r1" d="M36.7 6h4.5v11h-4.5z"/><path class="sec-art-r2" d="M39.9 17h14.8v5.5h-14.8z"/><path class="sec-art-r3" d="M36.7 11.5h9.2v5.5h-9.2z"/><path class="sec-art-success" d="M6.5 31.5h2v4h-2zM9.2 64.5h2v4h-2zM9.3 42.5h2v4h-2zM15.1 53.5h2v4h-2zM15.1 64.5h2v4h-2zM16.8 42.5h2v4h-2zM33.9 31.5h2v4h-2zM35 31.5h2v4h-2zM38.1 9.5h2v4h-2z"/><path class="sec-art-failure" d="M5 29.5h2v8h-2zM5.5 29.5h2v8h-2zM37.2 7.5h2v8h-2zM37.3 7.5h2v8h-2zM37.3 7.5h2v8h-2zM37.4 7.5h2v8h-2zM37.5 7.5h2v8h-2zM37.5 7.5h2v8h-2zM37.6 7.5h2v8h-2zM37.7 7.5h2v8h-2zM37.8 7.5h2v8h-2zM40.4 18.5h2v8h-2zM41.7 18.5h2v8h-2zM43.4 18.5h2v8h-2zM44.6 18.5h2v8h-2zM45.6 18.5h2v8h-2z"/><path class="sec-art-future" d="M48.1 18.5h2v8h-2zM49.5 18.5h2v8h-2zM52.2 18.5h2v8h-2zM89.1 75.5h2v4h-2zM114.7 53.5h2v4h-2zM118.4 53.5h2v4h-2zM123.8 75.5h2v4h-2zM124.4 42.5h2v4h-2zM133.1 42.5h2v4h-2zM153 31.5h2v4h-2z"/><path class="sec-art-cursor" d="M46.6 3V86"/></svg>
                 </div>
+                <div class="preview-toolbar" data-preview-ui hidden>
+                  <span class="preview-stage" aria-hidden="true">Seeded synthetic replay</span>
+                  <div class="preview-actions"><button class="preview-toggle" type="button" aria-label="Pause Security preview">Pause</button><button class="preview-replay" type="button" aria-label="Replay Security preview">Replay</button></div>
+                </div>
+                <div class="preview-progress" data-preview-ui aria-hidden="true" hidden><span></span></div>
                 <figcaption><b>Fig. 04</b>A real run of the detection engine on the seeded “card” dataset (seed 13), rendered from the engine and regenerated by the test suite.</figcaption>
               </figure>
               <div class="project-body">
