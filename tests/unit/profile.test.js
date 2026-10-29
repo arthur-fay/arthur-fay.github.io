@@ -132,10 +132,10 @@ describe('the professional record', () => {
     const chips = [...stack.matchAll(/<span>([^<]+)<\/span>/g)].map((m) => m[1].replace(/&amp;/g, '&'));
     const expected = {
       programming: ['Python', 'TypeScript', 'JavaScript', 'SQL', 'HTML · CSS', 'Bash', 'Java', 'C++'],
-      backend: ['FastAPI', 'REST API design', 'OpenAPI 3.1', 'Pydantic', 'PostgreSQL', 'API-key authentication', 'Rate limiting', 'pandas', 'NumPy', 'SciPy'],
+      backend: ['FastAPI', 'REST API design', 'OpenAPI 3.1', 'Pydantic', 'PostgreSQL', 'SQLAlchemy', 'Alembic', 'API-key authentication', 'Rate limiting', 'pandas', 'NumPy', 'SciPy'],
       frontend: ['React 19', 'TypeScript (strict)', 'Vite', 'openapi-typescript', 'Zod', 'D3 · SVG charts', 'Accessible UI · WCAG 2.2 AA'],
       testing: ['pytest', 'Hypothesis', 'Vitest', 'Playwright', 'mypy --strict', 'Ruff', 'ESLint', 'axe-core', 'Dependency audits'],
-      infrastructure: ['Git · pull requests', 'GitHub Actions', 'Docker (CI)', 'Linux', 'systemd', 'nginx · TLS', 'Automatic rollback (tested)'],
+      infrastructure: ['Git · pull requests', 'GitHub Actions', 'Docker · Compose', 'Linux', 'systemd', 'nginx · TLS', 'Automatic rollback (tested)'],
     };
     assert.deepEqual(chips, Object.values(expected).flat());
     const practices = text(stack.match(/<dt>Practices<\/dt><dd>([\s\S]*?)<\/dd>/)[1]);
@@ -194,7 +194,7 @@ describe('ATLAS figures carry their qualifications', () => {
     assert.match(cut, /keyboard-operable SVG charts/);
     assert.match(cut, /Chromium, Firefox and WebKit/);
     assert.match(cut, /axe-core checks against the WCAG 2\.2 AA rules/);
-    assert.match(cut, /initial JavaScript bundle of 85 KB held under a CI size budget/);
+    assert.match(cut, /initial JavaScript bundle of 85 KB \(gzip\) held under a CI size budget/);
     assert.match(cut, /822 historical origins/);
     assert.match(cut, /1 to 30 days/);
     assert.match(cut, /WAPE 9\.2%/);

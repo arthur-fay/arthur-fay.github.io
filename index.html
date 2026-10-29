@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0b0e13" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'none'; base-uri 'self'; form-action 'none'" />
-  <meta name="description" content="Arthur Fay is a software engineer in New York working in Python, TypeScript/React, FastAPI, PostgreSQL, REST APIs and CI/CD. The Architect Lab is his portfolio of software, data and research systems: a contract-tested forecasting API and dashboard with its uncertainty left in, and three interactive labs that run in your browser, each with source code, tests and documented limits, plus his professional experience and education." />
+  <meta name="description" content="Arthur Fay is a software engineer in New York working in Python, TypeScript/React, FastAPI, PostgreSQL, REST APIs and CI/CD. Explore a PostgreSQL inventory API with concurrency tests, the ATLAS forecasting API and React dashboard, and three interactive browser labs, with source code, tests and documented limits." />
   <meta name="author" content="Arthur Fay" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Arthur Fay — The Architect Lab" />
   <meta property="og:title" content="Arthur Fay — Software Engineer · The Architect Lab" />
-  <meta property="og:description" content="Software engineer (Python, TypeScript/React, FastAPI, PostgreSQL, REST APIs, CI/CD). Software, data and research systems that show their work: a forecasting API and dashboard, analytics modelling and interactive engineering labs, with source code, tests and documented limits." />
+  <meta property="og:description" content="Software engineer (Python, TypeScript/React, FastAPI, PostgreSQL, REST APIs, CI/CD). Inspect a PostgreSQL inventory API, the ATLAS forecasting API and React dashboard, and three tested browser labs, with source code and documented limits." />
   <meta property="og:url" content="https://arthur-fay.github.io/" />
   <meta property="og:image" content="https://arthur-fay.github.io/social-card.png" />
   <meta property="og:image:width" content="1200" />
@@ -18,7 +18,7 @@
   <meta property="og:image:alt" content="Arthur Fay — The Architect Lab. Software engineer: software, data and research systems that show their work." />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Arthur Fay — Software Engineer · The Architect Lab" />
-  <meta name="twitter:description" content="Software engineer (Python, TypeScript/React, FastAPI, PostgreSQL, REST APIs, CI/CD). Software, data and research systems that show their work, with source code, tests and documented limits." />
+  <meta name="twitter:description" content="Software engineer (Python, TypeScript/React, FastAPI, PostgreSQL, REST APIs, CI/CD). PostgreSQL inventory API, ATLAS forecasting API and React dashboard, and three tested browser labs. Source code, tests and documented limits." />
   <meta name="twitter:image" content="https://arthur-fay.github.io/social-card.png" />
   <link rel="canonical" href="https://arthur-fay.github.io/" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -140,7 +140,7 @@
                 <dl class="cut-meta"><dt>Section</dt><dd>A–A′</dd><dt>Plate</dt><dd>01 of 04</dd><dt>Status</dt><dd>v1.0 release candidate</dd></dl>
               </header>
               <ol class="strata" aria-label="ATLAS layers, top to bottom">
-                <li class="stratum"><span class="stratum-index">L6</span><h4>Interface</h4><p>A React 19 and TypeScript dashboard whose client types are generated from the API contract: keyboard-operable SVG charts, component tests, end-to-end browser tests in Chromium, Firefox and WebKit, axe-core checks against the WCAG 2.2 AA rules, and an initial JavaScript bundle of 85 KB held under a CI size budget. A static, read-only build for GitHub Pages is prepared but <strong>not published</strong>; the project's publication gate governs it.</p><ul class="stratum-tech" aria-label="Technologies"><li>React 19</li><li>TypeScript</li><li>Vite</li><li>D3</li><li>Playwright</li><li>axe-core</li></ul></li>
+                <li class="stratum"><span class="stratum-index">L6</span><h4>Interface</h4><p>A React 19 and TypeScript dashboard whose client types are generated from the API contract: keyboard-operable SVG charts, component tests, end-to-end browser tests in Chromium, Firefox and WebKit, axe-core checks against the WCAG 2.2 AA rules, and an initial JavaScript bundle of 85 KB (gzip) held under a CI size budget. A static, read-only build for GitHub Pages is prepared but <strong>not published</strong>; the project's publication gate governs it.</p><ul class="stratum-tech" aria-label="Technologies"><li>React 19</li><li>TypeScript</li><li>Vite</li><li>D3</li><li>Playwright</li><li>axe-core</li></ul></li>
                 <li class="stratum"><span class="stratum-index">L5</span><h4>Service</h4><p>A FastAPI service: <strong>14 versioned endpoints</strong> with Pydantic schemas, a committed OpenAPI 3.1 contract that a test keeps identical to the served document, one structured error body, API-key authentication for simulations, request-body and in-flight limits, and bounded hypothetical simulations in a pool of worker processes that are replaced when they pass their deadline. Read endpoints answered with a p95 of at most 11 ms in the project's own local benchmark.</p><ul class="stratum-tech" aria-label="Technologies"><li>Python</li><li>FastAPI</li><li>Pydantic</li><li>OpenAPI 3.1</li></ul></li>
                 <li class="stratum"><span class="stratum-index">L4</span><h4>Decision scenarios</h4><p>A linear programme over the projected demand with optimality certificates, solved only for a model whose staffing, cost and budget parameters are invented and labelled hypothetical, so the plans are <strong>demonstrations, not recommendations</strong>.</p><ul class="stratum-tech" aria-label="Technologies"><li>Linear programming</li><li>SciPy</li></ul></li>
                 <li class="stratum"><span class="stratum-index">L3</span><h4>Evaluation</h4><p>A pre-registered rolling-origin protocol: seven models refitted at 822 historical origins for horizons of 1 to 30 days. The selected regression's error is 28% below seasonal naive and 11% below the best simple baseline (WAPE 9.2%), but that lead is <strong>not statistically established</strong> (Holm-adjusted p 0.054 against the baseline) and the 95% prediction intervals covered 92.1% of outcomes: <strong>failed calibration</strong>, kept in the record.</p><ul class="stratum-tech" aria-label="Technologies"><li>Backtesting</li><li>Diebold–Mariano tests</li><li>Calibration audit</li></ul></li>
@@ -225,7 +225,7 @@
               <span class="role-path-index" aria-hidden="true">01 /</span>
               <div><h4>Backend &amp; API engineering</h4>
                 <p>Start with the Inventory Reservations API: FastAPI, PostgreSQL row locks, Alembic migrations and tested retry handling. Run this synthetic demonstration locally with Docker Compose. ATLAS adds typed API contracts and bounded workers.</p>
-                <div class="role-links"><a href="https://github.com/arthur-fay/inventory-reservations-api#run-locally" target="_blank" rel="noopener noreferrer">Run Inventory API <span aria-hidden="true">↗</span></a><a href="https://github.com/arthur-fay/inventory-reservations-api/blob/main/tests/integration/test_concurrency.py" target="_blank" rel="noopener noreferrer">PostgreSQL race tests <span aria-hidden="true">↗</span></a><a href="#plate-atlas">ATLAS case study <span aria-hidden="true">↓</span></a><a href="https://github.com/arthur-fay/demand-forecasting-model/blob/main/docs/API.md" target="_blank" rel="noopener noreferrer">API design &amp; limits <span aria-hidden="true">↗</span></a><a href="#record-bst">Employment <span aria-hidden="true">↓</span></a></div>
+                <div class="role-links"><a href="https://github.com/arthur-fay/inventory-reservations-api#run-locally" target="_blank" rel="noopener noreferrer">Local API run guide <span aria-hidden="true">↗</span></a><a href="https://github.com/arthur-fay/inventory-reservations-api/blob/main/tests/integration/test_concurrency.py" target="_blank" rel="noopener noreferrer">PostgreSQL race tests <span aria-hidden="true">↗</span></a><a href="#plate-atlas">ATLAS case study <span aria-hidden="true">↓</span></a><a href="https://github.com/arthur-fay/demand-forecasting-model/blob/main/docs/API.md" target="_blank" rel="noopener noreferrer">API design &amp; limits <span aria-hidden="true">↗</span></a><a href="#record-bst">Employment <span aria-hidden="true">↓</span></a></div>
               </div>
             </li>
             <li>
@@ -504,13 +504,13 @@
               <h3 id="stack-title">Core stack</h3>
               <dl class="stack-groups">
                 <div class="stack-group"><dt>Programming</dt><dd><span>Python</span><span>TypeScript</span><span>JavaScript</span><span>SQL</span><span>HTML · CSS</span><span>Bash</span><span>Java</span><span>C++</span></dd></div>
-                <div class="stack-group"><dt>Backend &amp; data</dt><dd><span>FastAPI</span><span>REST API design</span><span>OpenAPI 3.1</span><span>Pydantic</span><span>PostgreSQL</span><span>API-key authentication</span><span>Rate limiting</span><span>pandas</span><span>NumPy</span><span>SciPy</span></dd></div>
+                <div class="stack-group"><dt>Backend &amp; data</dt><dd><span>FastAPI</span><span>REST API design</span><span>OpenAPI 3.1</span><span>Pydantic</span><span>PostgreSQL</span><span>SQLAlchemy</span><span>Alembic</span><span>API-key authentication</span><span>Rate limiting</span><span>pandas</span><span>NumPy</span><span>SciPy</span></dd></div>
                 <div class="stack-group"><dt>Frontend</dt><dd><span>React 19</span><span>TypeScript (strict)</span><span>Vite</span><span>openapi-typescript</span><span>Zod</span><span>D3 · SVG charts</span><span>Accessible UI · WCAG 2.2 AA</span></dd></div>
                 <div class="stack-group"><dt>Testing &amp; quality</dt><dd><span>pytest</span><span>Hypothesis</span><span>Vitest</span><span>Playwright</span><span>mypy --strict</span><span>Ruff</span><span>ESLint</span><span>axe-core</span><span>Dependency audits</span></dd></div>
-                <div class="stack-group"><dt>Infrastructure &amp; CI/CD</dt><dd><span>Git · pull requests</span><span>GitHub Actions</span><span>Docker (CI)</span><span>Linux</span><span>systemd</span><span>nginx · TLS</span><span>Automatic rollback (tested)</span></dd></div>
+                <div class="stack-group"><dt>Infrastructure &amp; CI/CD</dt><dd><span>Git · pull requests</span><span>GitHub Actions</span><span>Docker · Compose</span><span>Linux</span><span>systemd</span><span>nginx · TLS</span><span>Automatic rollback (tested)</span></dd></div>
                 <div class="stack-group stack-group-text"><dt>Practices</dt><dd>Technical documentation (architecture, runbooks), reproducible software, code review, automated testing, and AI-assisted development gated by human review, tests and CI.</dd></div>
               </dl>
-              <p class="record-note">Grouped as on my résumé. Where each technology was used is stated on this page: the employment entries list the technologies of each role and the plates list those of each public project; no years of experience per technology are claimed.</p>
+              <p class="record-note">Grouped as on my résumé, with the Inventory API adding SQLAlchemy, Alembic and Docker Compose. The employment entries and project evidence links show where each technology was used; no years of experience per technology are claimed.</p>
             </section>
           </section>
         </div>
@@ -557,7 +557,7 @@
               <li><span class="field-index" aria-hidden="true">05</span>Forecasting research &amp; analytics</li>
               <li><span class="field-index" aria-hidden="true">06</span>Interactive engineering labs</li>
             </ul>
-            <ul class="about-tags" aria-label="Toolset in evidence across the four projects"><li>Python</li><li>FastAPI</li><li>pytest</li><li>React</li><li>TypeScript</li><li>Vite</li><li>D3</li><li>SQL</li><li>Power BI</li><li>DAX</li><li>JavaScript</li><li>Playwright</li><li>GitHub Actions</li></ul>
+            <ul class="about-tags" aria-label="Toolset in evidence across the five projects"><li>Python</li><li>FastAPI</li><li>PostgreSQL</li><li>SQLAlchemy</li><li>Alembic</li><li>pytest</li><li>React</li><li>TypeScript</li><li>Vite</li><li>D3</li><li>SQL</li><li>Power BI</li><li>DAX</li><li>JavaScript</li><li>Playwright</li><li>GitHub Actions</li></ul>
           </div>
         </div>
       </section>
@@ -580,6 +580,7 @@
               <li><a href="https://www.linkedin.com/in/arthur-fay/" target="_blank" rel="noopener noreferrer"><span class="channel-kind">Professional profile</span><span class="channel-name">Arthur Fay on LinkedIn</span><span aria-hidden="true">↗</span></a></li>
               <li><a href="https://github.com/arthur-fay" target="_blank" rel="noopener noreferrer"><span class="channel-kind">Public code profile</span><span class="channel-name">github.com/arthur-fay</span><span aria-hidden="true">↗</span></a></li>
               <li><a href="https://github.com/arthur-fay/arthur-fay.github.io" target="_blank" rel="noopener noreferrer"><span class="channel-kind">This portfolio's source</span><span class="channel-name">arthur-fay.github.io</span><span aria-hidden="true">↗</span></a></li>
+              <li><a href="https://github.com/arthur-fay/inventory-reservations-api" target="_blank" rel="noopener noreferrer"><span class="channel-kind">Backend repository · runs locally</span><span class="channel-name">inventory-reservations-api</span><span aria-hidden="true">↗</span></a></li>
               <li><a href="https://github.com/arthur-fay/demand-forecasting-model" target="_blank" rel="noopener noreferrer"><span class="channel-kind">Research repository</span><span class="channel-name">demand-forecasting-model</span><span aria-hidden="true">↗</span></a></li>
               <li><a href="https://github.com/arthur-fay/customer-revenue-analytics" target="_blank" rel="noopener noreferrer"><span class="channel-kind">Analytics repository</span><span class="channel-name">customer-revenue-analytics</span><span aria-hidden="true">↗</span></a></li>
             </ul>

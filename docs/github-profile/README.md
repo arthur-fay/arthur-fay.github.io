@@ -28,10 +28,10 @@ ATLAS's observed forecasting improvements are **not robustly established**, its 
 
 ## Professional experience
 
-- **Backend Software Engineer I · Blue Sky Trading (March 2026–present).** Résumé-reported work includes Python REST APIs, PostgreSQL schemas, automated testing and Python/Java internal applications that integrate with inventory/distribution ERP systems.
-- **Data Analyst · 21st Ave Pharmacy & Medical Supply (March 2020–December 2025).** Résumé-reported experience includes inventory exceptions, severity-based prioritization and data-integrity work with HIPAA-regulated records.
+- **Backend Software Engineer I · Blue Sky Trading (March 2026–present).** I build Python REST APIs, design PostgreSQL schemas and write automated tests. I also develop Python/Java internal applications that integrate with inventory/distribution ERP systems.
+- **Data Analyst · 21st Ave Pharmacy & Medical Supply (March 2020–December 2025).** I worked on inventory exceptions, severity-based prioritization and data-integrity work with HIPAA-regulated records.
 
-Employer systems, operational datasets and private code are **not** published here. Professional roles are résumé-reported; public GitHub repositories substantiate the independent work.
+Employer systems, operational datasets and private code are **not** published here. The public GitHub repositories document my independent work.
 
 ## Education
 
