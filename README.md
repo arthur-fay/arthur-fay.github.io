@@ -52,6 +52,8 @@ The [29 October visual refinement](docs/VISUAL_REFINEMENT_2026-10-29.md) adds mi
 
 The four [animated project figures](docs/PROJECT_PREVIEWS_2026-10-29.md) add guided schematic flows for ATLAS and E-Commerce, an actual seeded A* replay and a synthetic security-event replay. Native pause/replay controls, offscreen suspension, reduced-motion views and complete static fallbacks keep the diagrams usable. Desktop figures stay beside their project details while reading.
 
+The [desktop and mobile reading refinement](docs/READABILITY_2026-10-29.md) increases prose, captions, labels and input text, strengthens contrast in both themes, and makes reading copy visible immediately while the engineering figures animate. Browser checks cover small screens, custom text spacing and typed lab fields.
+
 The hero is an [interactive system model](docs/INTERACTIVE_SYSTEM_2026-10-29.md): continuous floating layers and moving signals, native controls to inspect the five layers, related-project links, and a remembered pause setting. It respects reduced-motion preferences and suspends automatic motion offscreen or in a hidden tab. Without JavaScript, the original complete static legend remains readable.
 
 - Plain semantic HTML + CSS + a small, dependency-free JavaScript enhancement file (`script.js`, shared across the portfolio and all lab pages: theme, mobile menu, filters, reading progress, the section-cut tabs, scroll reveals, the active navigation state and the hero drawing's pointer parallax). The custom 404 page uses local CSS and a restrictive Content Security Policy.

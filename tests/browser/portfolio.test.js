@@ -31,6 +31,8 @@ const VIEWPORTS = {
 };
 const PROJECTS = ['atlas', 'commerce', 'pathfinding', 'security'];
 
+const READING_COPY = '.hero-description,.project-description,.plate-facts dd,.stratum p,.record-points li,.case-block p,.principle p,.about-copy>p';
+
 let server;
 let browser;
 
@@ -85,6 +87,48 @@ const clipped = (page) => page.evaluate(() => {
     if (rect.right > width + 0.5 && !inScroller(el)) found.push(`${el.tagName.toLowerCase()}#${el.id || ''} right=${rect.right.toFixed(1)}`);
   }
   return found.slice(0, 8);
+});
+
+describe('portfolio: readable text across desktop and mobile', () => {
+  for (const [name, viewport] of Object.entries({ narrow: VIEWPORTS.narrow, mobile: VIEWPORTS.mobile, tablet: VIEWPORTS.tablet, desktop: VIEWPORTS.desktop })) {
+    for (const colorScheme of ['dark', 'light']) {
+      it(`${name} ${colorScheme}: reading sizes, line spacing and controls stay usable`, async () => {
+        const { page, problems, close } = await open('/', { viewport, colorScheme });
+        try {
+          const data = await page.evaluate(selector => {
+            const copy = [...document.querySelectorAll(selector)].filter(el => el.getClientRects().length);
+            return {
+              copy: copy.map(el => ({ element: el.className || el.tagName, size: parseFloat(getComputedStyle(el).fontSize), leading: parseFloat(getComputedStyle(el).lineHeight) / parseFloat(getComputedStyle(el).fontSize) })),
+              supporting: [...document.querySelectorAll('.hero-titleblock small,.hero-figcaption,.plate-figure figcaption,.system-layer-detail p')].map(el => parseFloat(getComputedStyle(el).fontSize)),
+              controls: [...document.querySelectorAll('.system-layers button,.preview-actions button')].map(el => ({ size: parseFloat(getComputedStyle(el).fontSize), height: el.getBoundingClientRect().height })),
+              profileFont: getComputedStyle(document.querySelector('.hero-titleblock dd')).fontFamily,
+              scaleLocked: /(?:user-scalable=no|maximum-scale=1(?:[,\s]|$))/.test(document.querySelector('meta[name="viewport"]').content),
+            };
+          }, READING_COPY);
+          assert.ok(data.copy.length > 20, 'check real paragraphs throughout the page');
+          assert.deepEqual(data.copy.filter(item => item.size < 17 || item.leading < 1.7), [], 'reading copy is at least 17px with comfortable leading');
+          assert.ok(data.supporting.every(size => size >= 15), 'captions and supporting facts are readable');
+          assert.ok(data.controls.every(item => item.size >= 13 && item.height >= 44), 'animation controls have readable text and touch targets');
+          assert.ok(data.profileFont.includes('sans-serif'), 'profile facts use the reading font');
+          assert.equal(data.scaleLocked, false, 'visitors can zoom');
+          assert.ok(await overflow(page) <= 1);
+          assert.deepEqual(await clipped(page), []);
+          assert.deepEqual(problems, []);
+        } finally { await close(); }
+      });
+    }
+  }
+  for (const viewport of [VIEWPORTS.narrow, VIEWPORTS.desktop]) {
+    it(`${viewport.width}px: paragraphs tolerate reader text spacing without clipping`, async () => {
+      const { page, close } = await open('/', { viewport, reducedMotion: 'reduce' });
+      try {
+        await page.addStyleTag({ content: `${READING_COPY}{line-height:1.8!important;letter-spacing:.12em!important;word-spacing:.16em!important}` });
+        assert.ok(await overflow(page) <= 1);
+        assert.deepEqual(await clipped(page), []);
+        assert.deepEqual(await page.$$eval(READING_COPY, els => els.filter(el => el.getClientRects().length && el.scrollWidth > el.clientWidth + 1).map(el => el.className || el.tagName)), []);
+      } finally { await close(); }
+    });
+  }
 });
 
 describe('portfolio: role evidence links remain usable after filtering', () => {
@@ -268,7 +312,7 @@ describe('portfolio: the section cut', () => {
   });
 });
 
-describe('portfolio: motion, hero drawing and reveals', () => {
+describe('portfolio: motion, hero drawing and immediate reading', () => {
   it('shows everything immediately under prefers-reduced-motion, with the drawing fully drawn', async () => {
     const { page, problems, close } = await open('/', { reducedMotion: 'reduce' });
     try {
@@ -346,7 +390,7 @@ describe('portfolio: motion, hero drawing and reveals', () => {
     }
   });
 
-  it('reveals sections as they scroll into view and draws the hero figure with an accessible description', async () => {
+  it('keeps reading sections visible on entry and draws an accessible hero figure', async () => {
     const { page, close } = await open('/');
     try {
       const iso = page.locator('.hero .iso');
@@ -355,10 +399,12 @@ describe('portfolio: motion, hero drawing and reveals', () => {
       assert.equal(await page.locator('.iso-legend li').count(), 5, 'the legend lists the five layers');
       const caption = (await page.locator('.hero-figcaption').textContent()).toLowerCase();
       assert.ok(caption.includes('not a live dashboard'), 'the drawing is labelled as conceptual');
+      assert.deepEqual(await page.$$eval('[data-reveal]', els => els.filter(el => {
+        const style = getComputedStyle(el);
+        return style.opacity !== '1' || style.transform !== 'none';
+      }).map(el => el.className)), [], 'copy is clear before scrolling, without a fade or translated text');
       await page.locator('#contact').evaluate((n) => n.scrollIntoView({ block: 'center' }));
       await page.waitForFunction(() => document.querySelector('.contact-card').classList.contains('is-visible'));
-      // The reveal is a 0.7s opacity transition; wait for it to settle rather than sampling mid-fade.
-      await page.waitForFunction(() => getComputedStyle(document.querySelector('.contact-card')).opacity === '1', null, { timeout: 5000 });
       assert.equal(await page.$eval('.contact-card', (el) => getComputedStyle(el).opacity), '1');
       await page.waitForFunction(() => [...document.querySelectorAll('.iso .iso-draw')].every((p) => getComputedStyle(p).strokeDashoffset === '0px'), null, { timeout: 5000 });
     } finally {

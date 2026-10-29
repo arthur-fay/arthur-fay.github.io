@@ -187,18 +187,9 @@
     window.addEventListener('hashchange', fromHash);
   }
 
-  /* Scroll reveals and the active navigation link, both via IntersectionObserver with safe fallbacks. */
-  const revealed = [...document.querySelectorAll('[data-reveal]')];
-  if ('IntersectionObserver' in window && !reduceMotion.matches && revealed.length) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) { entry.target.classList.add('is-visible'); observer.unobserve(entry.target); }
-      });
-    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
-    revealed.forEach((el) => observer.observe(el));
-  } else {
-    revealed.forEach((el) => el.classList.add('is-visible'));
-  }
+  /* Reading copy is visible immediately; only diagrams need motion observers. */
+  document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-visible'));
+  /* The active navigation link still follows the section in view. */
   const navLinks = [...document.querySelectorAll('.desktop-nav a[href^="#"]')];
   const sections = navLinks.map((link) => document.getElementById(link.getAttribute('href').slice(1))).filter(Boolean);
   if ('IntersectionObserver' in window && sections.length) {
