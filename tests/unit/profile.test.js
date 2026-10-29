@@ -234,6 +234,15 @@ for (const theme of ['dark', 'light']) {
       expect('title block notes (muted)', 'var(--muted)', sheet, 4.5);
       expect('title block link arrow (accent)', 'var(--accent)', sheet, 4.5);
     });
+    it('project inks and supporting copy meet AA on the tinted project and role surfaces', () => {
+      for (const ink of ['--accent', '--violet', '--cyan', '--warm']) {
+        for (const percentage of [4, 5, 6, 9]) {
+          const tinted = opaque(`color-mix(in srgb,var(${ink}) ${percentage}%,var(--surface))`, t, bg);
+          expect(`${ink} label on ${percentage}% tinted surface`, `var(${ink})`, tinted, 4.5);
+          expect(`supporting copy on ${ink} ${percentage}% tinted surface`, 'var(--muted)', tinted, 4.5);
+        }
+      }
+    });
     it('the contact card keeps its copy, role chips and outline button readable on the accent', () => {
       const accent = opaque('var(--accent)', t, bg);
       expect('contact copy', 'color-mix(in srgb,var(--on-accent) 85%,transparent)', accent, 4.5);

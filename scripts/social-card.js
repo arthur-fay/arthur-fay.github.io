@@ -38,7 +38,7 @@ body{width:1200px;height:630px;overflow:hidden;background:var(--bg);color:var(--
 .mark-name{font-family:var(--font-display);font-size:27px;letter-spacing:-.01em;line-height:1}
 .mark-sub{display:block;margin-top:7px;font-family:var(--font-mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}
 h1{position:absolute;left:64px;top:158px;margin:0;font-family:var(--font-display);font-weight:400;font-size:88px;line-height:.98;letter-spacing:-.035em;color:var(--text)}
-h1 .outline{color:transparent;-webkit-text-stroke:1.6px var(--text)}
+h1 .outline{color:var(--text)}
 h1 em{font-style:italic;color:var(--accent)}
 h1 .period{font-style:normal;color:var(--text)}
 p.lead{position:absolute;left:64px;top:364px;margin:0;width:430px;font-size:22px;line-height:1.5;color:var(--muted)}

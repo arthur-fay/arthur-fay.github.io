@@ -854,10 +854,10 @@ describe('portfolio: navigation, theme and metadata', () => {
   it('switches themes, updates the browser chrome colour and remembers the choice', async () => {
     const { page, close } = await open('/', { colorScheme: 'dark' });
     try {
-      assert.equal(await page.locator('meta[name="theme-color"]').getAttribute('content'), '#0b0e13');
+      assert.equal(await page.locator('meta[name="theme-color"]').getAttribute('content'), '#0b1020');
       await page.locator('#theme-toggle').click();
       assert.equal(await page.getAttribute('html', 'data-theme'), 'light');
-      assert.equal(await page.locator('meta[name="theme-color"]').getAttribute('content'), '#f4f2ec');
+      assert.equal(await page.locator('meta[name="theme-color"]').getAttribute('content'), '#f5f8fd');
       assert.equal(await page.locator('#theme-toggle').getAttribute('aria-label'), 'Switch to dark theme');
       await page.reload({ waitUntil: 'load' });
       assert.equal(await page.getAttribute('html', 'data-theme'), 'light', 'the preference persists');
