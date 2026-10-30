@@ -1022,7 +1022,7 @@ body .lab-table caption,body .evidence-table th{font-size:.8125rem;letter-spacin
 .system-layer-parts li{padding:5px 9px;border:1px solid var(--line2);border-radius:3px;background:var(--surface);color:var(--text);font-size:.8125rem;line-height:1.5}
 @media(hover:hover) and (pointer:fine){.system-figure.is-enhanced[data-view="overview"] .iso [data-depth]:hover .iso-slab{stroke:var(--text);stroke-width:2.4;filter:drop-shadow(0 0 5px color-mix(in srgb,var(--cyan) 40%,transparent))}}
 @media(max-width:420px){.system-viewbar{align-items:flex-start;gap:8px}.system-reset{font-size:.8125rem;padding:8px}.system-viewbar strong{font-size:.875rem}.system-viewbar>div>span{font-size:.8125rem;max-width:17ch}}
-@media(prefers-reduced-motion:reduce){.iso-camera{transition:none}.system-figure .iso [data-depth],.system-figure .iso-backdrop,.system-figure .iso-dims,.system-figure .iso-marks,.system-figure .iso-leader,.system-figure .iso-float>text{transition:none}}
+@media(prefers-reduced-motion:reduce){.iso-camera{transition:none!important}.system-figure .iso [data-depth],.system-figure .iso-backdrop,.system-figure .iso-dims,.system-figure .iso-marks,.system-figure .iso-leader,.system-figure .iso-float>text{transition:none}}
 
 .stat:nth-child(2){--accent:var(--cyan)}
 .stat:nth-child(3){--accent:var(--violet)}
