@@ -320,7 +320,7 @@ describe('portfolio: the section cut', () => {
   });
 });
 
-describe('portfolio: system panel follows the page theme', () => {
+describe('portfolio: system and contact panels follow the page theme', () => {
   for (const viewport of [VIEWPORTS.desktop, VIEWPORTS.mobile]) {
     it(`${viewport.width}px: switches the box, drawing and controls between light and dark without losing a focused layer`, async () => {
       const { page, problems, close } = await open('/#system-model', { viewport, colorScheme: 'dark', reducedMotion: 'reduce' });
@@ -329,12 +329,14 @@ describe('portfolio: system panel follows the page theme', () => {
         const inspect = async () => {
           // Even the site's 0.01ms reduced-motion transitions can be pending for
           // one compositor frame. Compare settled palettes, not interpolation samples.
-          await page.locator('.system-figure').evaluate(el => Promise.all(el.getAnimations({ subtree: true })
+          await page.evaluate(() => Promise.all(document.getAnimations()
             .filter(animation => animation instanceof CSSTransition)
             .map(animation => animation.finished.catch(() => {}))));
           return page.evaluate(() => {
             const figure = document.querySelector('.system-figure');
             const style = getComputedStyle(figure);
+            const contact = document.querySelector('.contact-card');
+            const contactStyle = getComputedStyle(contact);
             const rgb = value => value.match(/[\d.]+/g).slice(0, 3).map(Number);
             const lightness = value => rgb(value).reduce((sum, n) => sum + n, 0) / 3;
             return {
@@ -347,17 +349,33 @@ describe('portfolio: system panel follows the page theme', () => {
               layerButton: getComputedStyle(document.querySelector('[data-system-layer="3"]')).backgroundColor,
               layer: figure.dataset.layer,
               camera: getComputedStyle(document.querySelector('.iso-camera')).transform,
+              contact: {
+                scheme: contactStyle.colorScheme,
+                text: lightness(contactStyle.color),
+                label: lightness(getComputedStyle(contact.querySelector('.channel-kind')).color),
+                stops: [...contactStyle.backgroundImage.matchAll(/rgb\([^)]+\)/g)].map(match => lightness(match[0])),
+                button: lightness(getComputedStyle(contact.querySelector('.button-primary')).backgroundColor),
+                buttonText: lightness(getComputedStyle(contact.querySelector('.button-primary')).color),
+              },
             };
           });
         };
         const dark = await inspect();
         assert.equal(dark.scheme, 'dark');
         assert.ok(dark.background < 60 && dark.text > 210 && dark.viewportBackground < 60);
+        assert.equal(dark.contact.scheme, 'dark');
+        assert.ok(dark.contact.text > 210 && dark.contact.label > 200);
+        assert.ok(dark.contact.stops.length >= 2 && dark.contact.stops.every(value => value < 120));
+        assert.ok(dark.contact.button > 200 && dark.contact.buttonText < 80);
         await page.getByRole('button', { name: 'Switch to light theme', exact: true }).click();
         const light = await inspect();
         assert.equal(light.theme, 'light');
         assert.equal(light.scheme, 'light');
         assert.ok(light.background > 240 && light.text < 80 && light.viewportBackground > 240, 'paper panel and dark inks match the light page');
+        assert.equal(light.contact.scheme, 'light');
+        assert.ok(light.contact.text < 80 && light.contact.label < 100);
+        assert.ok(light.contact.stops.length >= 2 && light.contact.stops.every(value => value > 220), 'the contact gradient follows the light page');
+        assert.ok(light.contact.button < 150 && light.contact.buttonText > 240, 'light mode uses a blue primary action with white text');
         assert.notEqual(light.plate, dark.plate, 'the drawing changes palette with its sheet');
         assert.notEqual(light.layerButton, dark.layerButton, 'the controls change palette too');
         assert.equal(light.layer, '3');
@@ -369,6 +387,7 @@ describe('portfolio: system panel follows the page theme', () => {
         assert.equal(restored.plate, dark.plate);
         assert.equal(restored.layerButton, dark.layerButton);
         assert.equal(restored.camera, dark.camera);
+        assert.deepEqual(restored.contact, dark.contact, 'contact labels, gradient and primary action return to their dark palette');
         assert.equal(await overflow(page), 0);
         assert.deepEqual(problems, []);
       } finally { await close(); }

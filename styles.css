@@ -950,7 +950,8 @@ body .lab-table caption,body .evidence-table th{font-size:.8125rem;letter-spacin
 .hero .system-figure{--bg:#0c1933;--bg2:#112342;--surface:#13294b;--surface2:#1b3762;--text:#f1f6ff;--muted:#d2dff1;--fine:#c1d1e9;--line:#304d76;--line2:#698bb7;--accent:#a5ccff;--accent-dark:#c1dcff;--on-accent:#0c1933;--cyan:#7ce5dd;--violet:#c4b4ff;--warm:#f3cf8e;--plate:#244568;--plate-hi:#42688f;--plate-side:#112d4b;--plate-edge:#a0c1e4;--node-top:#4c7396;--node-l:#193957;--node-r:#2a5277;--glow-alpha:.18;--shade-alpha:.5;--system-shadow:0 22px 58px #07173140;--system-shadow-small:0 14px 32px #07173126;color-scheme:dark;color:var(--text);background:var(--bg);border-color:var(--line2);border-top:3px solid var(--cyan);border-radius:8px;box-shadow:var(--system-shadow)}
 /* The same diagram uses paper surfaces and darker inks when the page is light. */
 html[data-theme="light"] .hero .system-figure{--bg:#ffffff;--bg2:#f1f5fc;--surface:#f8fbff;--surface2:#e9f0fa;--text:#13233d;--muted:#344660;--fine:#3d4f69;--line:#ccd9ea;--line2:#748aaa;--accent:#2454b8;--accent-dark:#1c4193;--on-accent:#ffffff;--cyan:#126772;--violet:#7043a9;--warm:#845610;--grid:#e1e9f4;--hatch:#bdcde2;--plate:#b9cfe6;--plate-hi:#dce7f5;--plate-side:#9eb5d1;--plate-edge:#425b7e;--node-top:#ffffff;--node-l:#9bb4d2;--node-r:#bfd1e8;--glow-alpha:.07;--shade-alpha:.14;--system-shadow:0 18px 42px #173e7d14;--system-shadow-small:0 12px 28px #173e7d12;color-scheme:light}
-.contact-section .contact-card{--accent:#b8dcff;--on-accent:#f1f6ff;--contact-start:#0c1d3c;--contact-middle:#1c3a78;--contact-end:#143e59;--contact-button:#d0ebff;--contact-button-text:#102445;background:linear-gradient(120deg,var(--contact-start),var(--contact-middle) 62%,var(--contact-end));color:var(--on-accent);border:1px solid #638ac2;border-top:4px solid #7ce5dd;box-shadow:0 20px 52px #0b24552b}
+.contact-section .contact-card{--accent:#b8dcff;--on-accent:#f1f6ff;--contact-start:#0c1d3c;--contact-middle:#1c3a78;--contact-end:#143e59;--contact-copy:#f1f6ff;--contact-muted:#d0e3ff;--contact-button:#d0ebff;--contact-button-text:#102445;--contact-button-hover:#f1f6ff;--contact-border:#638ac2;--contact-rule:#617da5;--contact-top:#7ce5dd;--contact-control:#8eacd5;--contact-outline:#ffffff08;--contact-hover:#ffffff14;--contact-chip:#ffffff0a;--contact-focus:#f1f6ff;--contact-shadow:0 20px 52px #0b24552b;background:linear-gradient(120deg,var(--contact-start),var(--contact-middle) 62%,var(--contact-end));color:var(--on-accent);border:1px solid var(--contact-border);border-top:4px solid var(--contact-top);box-shadow:var(--contact-shadow);color-scheme:dark}
+html[data-theme="light"] .contact-section .contact-card{--accent:#234fc1;--on-accent:#13233d;--contact-start:#ffffff;--contact-middle:#edf3ff;--contact-end:#e5f2f4;--contact-copy:#23354f;--contact-muted:#344660;--contact-button:#234fc1;--contact-button-text:#ffffff;--contact-button-hover:#193e9e;--contact-border:#adbfda;--contact-rule:#b5c6dd;--contact-top:#126772;--contact-control:#6a819f;--contact-outline:#ffffff70;--contact-hover:#e0ebfa;--contact-chip:#ffffff80;--contact-focus:#234fc1;--contact-shadow:0 18px 42px #173e7d14;color-scheme:light}
 
 .hero{background:radial-gradient(ellipse at 95% 15%,color-mix(in srgb,var(--accent) 18%,transparent),transparent 64%),radial-gradient(ellipse at 55% 100%,color-mix(in srgb,var(--cyan) 9%,transparent),transparent 64%),var(--bg)}
 .hero::before{opacity:.7}
@@ -1061,11 +1062,14 @@ html[data-theme="light"] .hero .system-figure{--bg:#ffffff;--bg2:#f1f5fc;--surfa
 .about-section{background:radial-gradient(ellipse at 0 0,color-mix(in srgb,var(--cyan) 6%,transparent),transparent 50%),var(--surface)}
 .about-tags li{background:color-mix(in srgb,var(--accent) 5%,var(--surface));border-color:color-mix(in srgb,var(--accent) 25%,var(--line2));border-radius:3px}
 .contact-section .contact-card .button-primary{background:var(--contact-button);color:var(--contact-button-text);border-color:var(--contact-button)}
-.contact-section .contact-card .button-primary:hover{background:#f1f6ff;border-color:#f1f6ff}
-.contact-section .contact-card .button-outline{background:#ffffff08;border-color:#8eacd5;color:var(--on-accent)}
-.contact-section .contact-card .button-outline:hover{background:#ffffff14;border-color:var(--on-accent)}
-.contact-section .contact-card .contact-roles li{background:#ffffff0a;border-color:#8eacd5}
-.contact-section .contact-card .channel-kind{color:#d0e3ff}
+.contact-section .contact-card .button-primary:hover{background:var(--contact-button-hover);border-color:var(--contact-button-hover)}
+.contact-section .contact-card .button-outline{background:var(--contact-outline);border-color:var(--contact-control);color:var(--on-accent)}
+.contact-section .contact-card .button-outline:hover{background:var(--contact-hover);border-color:var(--on-accent)}
+.contact-section .contact-card .contact-roles li{background:var(--contact-chip);border-color:var(--contact-control)}
+.contact-section .contact-card p{color:var(--contact-copy)}
+.contact-section .contact-card .channel-kind,.contact-section .contact-card .contact-top span{color:var(--contact-muted)}
+.contact-section .contact-card .channel-list,.contact-section .contact-card .channel-list li{border-color:var(--contact-rule)}
+.contact-section .contact-card .button:focus-visible,.contact-section .contact-card .channel-list a:focus-visible{outline-color:var(--contact-focus)}
 .site-footer{border-top:2px solid var(--accent)}
 @media(min-width:981px){.plate-grid{background:linear-gradient(90deg,var(--project-panel) 0 41.6667%,var(--surface) 41.6667% 100%)}}
 @media(max-width:780px){.hero .system-figure{box-shadow:var(--system-shadow-small)}}
