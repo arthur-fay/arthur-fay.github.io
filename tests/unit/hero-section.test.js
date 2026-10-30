@@ -99,7 +99,7 @@ for (const theme of ['dark', 'light']) {
     });
 
     it('keeps all five layer edges distinct from their own plate faces (3:1)', () => {
-      for (const [index, ink] of ['--cyan', '--accent', '--violet', '--accent', '--warm'].entries()) {
+      for (const [index, ink] of ['--cyan', '--plate-edge', '--violet', '--plate-edge', '--warm'].entries()) {
         const face = opaque(`color-mix(in srgb,var(--plate-hi) ${index * 25}%,var(--plate))`, t, sheet);
         expect(`layer ${index + 1} edge`, `var(${ink})`, face, 3);
       }
