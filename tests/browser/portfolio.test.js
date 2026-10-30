@@ -46,8 +46,8 @@ after(async () => {
   await server?.close();
 });
 
-async function open(url, { viewport = VIEWPORTS.desktop, colorScheme = 'dark', reducedMotion = 'no-preference', javaScriptEnabled = true } = {}) {
-  const context = await browser.newContext({ viewport, colorScheme, reducedMotion, javaScriptEnabled });
+async function open(url, { viewport = VIEWPORTS.desktop, colorScheme = 'dark', reducedMotion = 'no-preference', javaScriptEnabled = true, hasTouch = false } = {}) {
+  const context = await browser.newContext({ viewport, colorScheme, reducedMotion, javaScriptEnabled, hasTouch });
   if (javaScriptEnabled) {
     await context.addInitScript(() => {
       document.addEventListener('DOMContentLoaded', () => { document.documentElement.style.scrollBehavior = 'auto'; });
@@ -308,12 +308,132 @@ describe('portfolio: the section cut', () => {
       assert.equal(hidden, 0, 'reveal styling never hides content without JS');
       assert.equal(await page.locator('.project').count(), 4);
       assert.ok(await page.locator('#system-explorer').isHidden(), 'interactive controls stay hidden without JavaScript');
+      assert.ok(await page.locator('#system-inspector').isHidden());
+      assert.ok(await page.locator('#system-viewbar').isHidden());
+      assert.equal(await page.locator('.iso').getAttribute('role'), 'img', 'the unenhanced diagram remains one complete image');
       assert.ok(await page.locator('.iso-legend').isVisible(), 'the complete static legend remains readable');
       assert.equal(await page.locator('.preview-toolbar:visible').count(), 0, 'project replay controls stay hidden without JavaScript');
       assert.equal(await overflow(page), 0);
     } finally {
       await close();
     }
+  });
+});
+
+describe('portfolio: zoomable system layers', () => {
+  for (const [name, viewport] of Object.entries({ desktop: VIEWPORTS.desktop, mobile: VIEWPORTS.mobile, narrow: VIEWPORTS.narrow })) {
+    it(`${name}: every layer zooms into a complete, centred surface and returns to the full system`, async () => {
+      const { page, problems, close } = await open('/#system-model', { viewport, hasTouch: name !== 'desktop' });
+      try {
+        const figure = page.locator('.system-figure');
+        const reset = page.getByRole('button', { name: 'Full system', exact: true });
+        for (const [id, label] of [['1', '01 Data'], ['2', '02 Models'], ['3', '03 Evaluation'], ['4', '04 Interface'], ['5', '05 Evidence']]) {
+          const button = page.getByRole('button', { name: label, exact: true });
+          if (name === 'desktop') await button.click(); else await button.tap();
+          await page.waitForFunction(() => {
+            const matrix = new DOMMatrix(getComputedStyle(document.querySelector('.iso-camera')).transform);
+            return Math.abs(matrix.a - 500 / 346.4) < 0.0001;
+          });
+          assert.equal(await figure.getAttribute('data-layer'), id);
+          assert.equal(await figure.getAttribute('data-view'), 'layer');
+          assert.equal(await button.getAttribute('aria-pressed'), 'true');
+          assert.equal(await page.locator('.iso .is-selected').count(), 1);
+          const fit = await page.evaluate(() => {
+            const iso = document.querySelector('.iso');
+            const surface = document.querySelector('.iso .is-selected .iso-slab');
+            const box = surface.getBoundingClientRect();
+            const screen = iso.getBoundingClientRect();
+            return {
+              widthRatio: box.width / screen.width,
+              inside: box.left > screen.left && box.right < screen.right && box.top > screen.top && box.bottom < screen.bottom,
+              centred: Math.abs((box.left + box.right) / 2 - (screen.left + screen.right) / 2) < 1 && Math.abs((box.top + box.bottom) / 2 - (screen.top + screen.bottom) / 2) < 1,
+              parts: [...document.querySelectorAll('#system-layer-parts li')].map(el => el.textContent),
+              labelsHidden: [...document.querySelectorAll('.iso-float>text,.iso-dims,.iso-marks')].every(el => getComputedStyle(el).opacity === '0'),
+            };
+          });
+          assert.ok(fit.widthRatio > 0.82 && fit.widthRatio < 0.85, 'the selected surface is visibly enlarged');
+          assert.ok(fit.inside && fit.centred, 'the complete selected surface fits within the camera on this screen');
+          assert.ok(fit.labelsHidden, 'overview drafting labels do not overlap the focused surface');
+          assert.ok(fit.parts.length === 3 && fit.parts.every(Boolean), 'plain-language component labels accompany the view');
+          assert.equal(await overflow(page), 0);
+          if (name === 'desktop') await reset.click(); else await reset.tap();
+          await page.waitForFunction(() => {
+            const matrix = new DOMMatrix(getComputedStyle(document.querySelector('.iso-camera')).transform);
+            return Math.abs(matrix.a - 1) < 0.0001 && Math.abs(matrix.f) < 0.01;
+          });
+          assert.equal(await figure.getAttribute('data-view'), 'overview');
+          assert.equal(await button.getAttribute('aria-pressed'), 'false');
+          assert.deepEqual(await page.$$eval('.iso-plates>[data-depth]', els => els.map(el => el.dataset.depth)), ['1', '2', '3', '4', '5']);
+        }
+        assert.deepEqual(problems, []);
+      } finally { await close(); }
+    });
+  }
+
+  it('selects the visible face of every plate directly and toggles a focused plate back out', async () => {
+    const { page, problems, close } = await open('/#system-model');
+    try {
+      await page.getByRole('button', { name: 'Pause animation', exact: true }).click();
+      for (const id of ['1', '2', '3', '4', '5']) {
+        const face = page.locator(`.depth-${id} .iso-top`);
+        const box = await face.boundingBox();
+        // The front strip is exposed in the true painter order, unlike each slab's covered centre.
+        await face.click({ position: { x: box.width * (199.2 / 346.4), y: box.height * 0.95 } });
+        assert.equal(await page.locator('.system-figure').getAttribute('data-layer'), id);
+        await page.waitForFunction(() => new DOMMatrix(getComputedStyle(document.querySelector('.iso-camera')).transform).a > 1.443);
+        await page.locator(`.depth-${id}`).press('Enter');
+        assert.equal(await page.locator('.system-figure').getAttribute('data-view'), 'overview');
+        await page.waitForFunction(() => Math.abs(new DOMMatrix(getComputedStyle(document.querySelector('.iso-camera')).transform).a - 1) < 0.0001);
+      }
+      assert.deepEqual(problems, []);
+    } finally { await close(); }
+  });
+
+  it('keeps SVG keyboard focus through camera changes, cycles layers and supports Escape', async () => {
+    const { page, problems, close } = await open('/#system-model');
+    try {
+      const data = page.getByRole('button', { name: 'Inspect Data layer', exact: true });
+      await data.press('Enter');
+      assert.equal(await data.getAttribute('aria-pressed'), 'true');
+      assert.equal(await page.locator('.iso [tabindex="0"]').count(), 1, 'the drawing has one tab stop');
+      await data.press('ArrowRight');
+      assert.equal(await page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Inspect Models layer');
+      assert.equal(await page.locator('.system-figure').getAttribute('data-layer'), '2');
+      await page.getByRole('button', { name: 'Inspect Models layer', exact: true }).press('End');
+      assert.equal(await page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Inspect Evidence layer');
+      await page.getByRole('button', { name: 'Inspect Evidence layer', exact: true }).press('ArrowRight');
+      assert.equal(await page.locator('.system-figure').getAttribute('data-layer'), '1', 'arrow navigation wraps');
+      await page.waitForFunction(() => {
+        const camera = new DOMMatrix(getComputedStyle(document.querySelector('.iso-camera')).transform);
+        const slab = document.querySelector('.is-selected .iso-slab').getBoundingClientRect();
+        const frame = document.querySelector('.iso').getBoundingClientRect();
+        return camera.a > 1.443 && Math.abs((slab.top + slab.bottom) / 2 - (frame.top + frame.bottom) / 2) < 0.5;
+      });
+      await data.press('Escape');
+      assert.equal(await page.locator('.system-figure').getAttribute('data-view'), 'overview');
+      assert.equal(await page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Inspect Data layer');
+      assert.deepEqual(problems, []);
+    } finally { await close(); }
+  });
+
+  it('supports instant layer inspection under reduced motion and after a preference change', async () => {
+    const { page, problems, close } = await open('/#system-model', { reducedMotion: 'reduce', viewport: VIEWPORTS.mobile });
+    try {
+      await page.getByRole('button', { name: '03 Evaluation', exact: true }).click();
+      const focused = await page.$eval('.iso-camera', el => ({ matrix: new DOMMatrix(getComputedStyle(el).transform).a, transition: getComputedStyle(el).transitionDuration }));
+      assert.ok(focused.matrix > 1.44);
+      assert.equal(focused.transition, '0s');
+      assert.ok(await page.getByRole('button', { name: 'Motion reduced', exact: true }).isDisabled());
+      await page.emulateMedia({ reducedMotion: 'no-preference' });
+      await page.getByRole('button', { name: '05 Evidence', exact: true }).click();
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.waitForFunction(() => new DOMMatrix(getComputedStyle(document.querySelector('.iso-camera')).transform).a > 1.44);
+      assert.equal(await page.locator('.system-figure').getAttribute('data-layer'), '5');
+      await page.getByRole('button', { name: '05 Evidence', exact: true }).click();
+      assert.equal(await page.$eval('.iso-camera', el => getComputedStyle(el).transform), 'none');
+      assert.equal(await page.locator('.system-figure').getAttribute('data-view'), 'overview');
+      assert.deepEqual(problems, []);
+    } finally { await close(); }
   });
 });
 
@@ -404,7 +524,8 @@ describe('portfolio: motion, hero drawing and immediate reading', () => {
     const { page, close } = await open('/');
     try {
       const iso = page.locator('.hero .iso');
-      assert.equal(await iso.getAttribute('role'), 'img');
+      assert.equal(await iso.getAttribute('role'), 'group', 'enhancement exposes the individual layer buttons');
+      assert.equal(await iso.getByRole('button').count(), 5);
       assert.ok((await page.locator('#iso-title').textContent()).length > 10);
       assert.equal(await page.locator('.iso-legend li').count(), 5, 'the legend lists the five layers');
       const caption = (await page.locator('.hero-figcaption').textContent()).toLowerCase();
