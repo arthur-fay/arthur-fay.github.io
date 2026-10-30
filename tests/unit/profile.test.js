@@ -243,11 +243,16 @@ for (const theme of ['dark', 'light']) {
         }
       }
     });
-    it('the contact card keeps its copy, role chips and outline button readable on the accent', () => {
-      const accent = opaque('var(--accent)', t, bg);
-      expect('contact copy', 'color-mix(in srgb,var(--on-accent) 85%,transparent)', accent, 4.5);
-      expect('role chips and outline button text', 'var(--on-accent)', accent, 4.5);
-      expect('outline button border', 'color-mix(in srgb,var(--on-accent) 55%,transparent)', accent, 3);
+    it('the contact card keeps its role chips and outline button clear on the themed gradient', () => {
+      const contact = { ...t, ...tokensFromBlock(css, '.contact-section .contact-card'), ...(theme === 'light' ? tokensFromBlock(css, 'html[data-theme="light"] .contact-section .contact-card') : {}) };
+      for (const stop of ['--contact-start', '--contact-middle', '--contact-end']) {
+        const gradient = opaque(`var(${stop})`, contact);
+        for (const token of ['--contact-chip', '--contact-outline', '--contact-hover']) {
+          const background = opaque(`var(${token})`, contact, gradient);
+          assert.ok(contrast(opaque('var(--on-accent)', contact), background) >= 4.5, `${theme}: text on ${token} / ${stop}`);
+          assert.ok(contrast(opaque('var(--contact-control)', contact), background) >= 3, `${theme}: control border on ${token} / ${stop}`);
+        }
+      }
     });
   });
 }

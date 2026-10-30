@@ -35,13 +35,21 @@ describe('coloured feature panels', () => {
       }
     });
   }
-  it('keeps contact text and its primary action readable across every gradient stop', () => {
-    const tokens = { ...root, ...tokensFromBlock(css, '.contact-section .contact-card') };
-    for (const stop of ['--contact-start', '--contact-middle', '--contact-end']) {
-      assert.ok(contrast(opaque('var(--on-accent)', tokens), opaque(`var(${stop})`, tokens)) >= 7);
-    }
-    assert.ok(contrast(opaque('var(--contact-button-text)', tokens), opaque('var(--contact-button)', tokens)) >= 7);
-  });
+  for (const theme of ['dark', 'light']) {
+    it(`${theme}: keeps contact text, labels and primary actions readable across every gradient stop`, () => {
+      const tokens = { ...root, ...tokensFromBlock(css, '.contact-section .contact-card'), ...(theme === 'light' ? tokensFromBlock(css, 'html[data-theme="light"] .contact-section .contact-card') : {}) };
+      for (const stop of ['--contact-start', '--contact-middle', '--contact-end']) {
+        const background = opaque(`var(${stop})`, tokens);
+        for (const ink of ['--on-accent', '--contact-copy', '--contact-muted']) {
+          assert.ok(contrast(opaque(`var(${ink})`, tokens), background) >= 7, `${ink} on ${stop}`);
+        }
+        assert.ok(contrast(opaque('var(--contact-focus)', tokens), background) >= 3, `focus ring on ${stop}`);
+      }
+      for (const state of ['--contact-button', '--contact-button-hover']) {
+        assert.ok(contrast(opaque('var(--contact-button-text)', tokens), opaque(`var(${state})`, tokens)) >= 7, state);
+      }
+    });
+  }
   for (const theme of ['dark', 'light']) {
     it(`${theme}: all four project inks stay readable on the strongest shared header tint`, () => {
       const tokens = { ...root, ...(theme === 'light' ? tokensFromBlock(css, 'html[data-theme="light"]') : {}) };
