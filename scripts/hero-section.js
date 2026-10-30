@@ -124,7 +124,7 @@ export function renderHeroSection() {
   return '<svg class="iso" viewBox="0 0 600 560" role="img" aria-labelledby="iso-title iso-desc" focusable="false">'
     + '<title id="iso-title">Isometric section drawing of a layered system</title>'
     + '<desc id="iso-desc">Five stacked plates labelled data, models, evaluation, interface and evidence, connected by a vertical flow line. A conceptual drawing, not a live system.</desc>'
-    + DEFS + frame() + body + dimensions() + MARKS + '</svg>';
+    + DEFS + '<g class="iso-camera">' + frame() + '<g class="iso-plates">' + body + '</g>' + dimensions() + MARKS + '</g></svg>';
 }
 
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {

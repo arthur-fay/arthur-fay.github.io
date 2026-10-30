@@ -209,24 +209,36 @@
     sections.forEach((section) => spy.observe(section));
   }
 
-  /* Interactive system model: continuous CSS motion, a pause control and inspectable layers. */
+  /* Interactive system model: a bounded SVG camera, direct layer inspection and optional ambient motion. */
   const hero = document.querySelector('.hero');
   const iso = hero && hero.querySelector('.iso');
   const systemFigure = hero && hero.querySelector('.system-figure');
   const motionButton = document.getElementById('system-motion');
   if (systemFigure && iso && motionButton) {
     const explorer = document.getElementById('system-explorer');
+    const inspector = document.getElementById('system-inspector');
+    const viewport = systemFigure.querySelector('.system-viewport');
     const layerButtons = [...systemFigure.querySelectorAll('[data-system-layer]')];
     const layerTitle = document.getElementById('system-layer-title');
     const layerCopy = document.getElementById('system-layer-copy');
     const relatedWork = document.getElementById('system-related-work');
+    const viewbar = document.getElementById('system-viewbar');
+    const viewLabel = document.getElementById('system-view-label');
+    const viewHint = document.getElementById('system-view-hint');
+    const resetButton = document.getElementById('system-reset');
+    const partsList = document.getElementById('system-layer-parts');
+    const camera = iso.querySelector('.iso-camera');
+    const scene = iso.querySelector('.iso-plates');
+    const plates = [...iso.querySelectorAll('[data-depth]')];
     const layers = {
-      '1': ['01 / Data', 'Versioned inputs, seeded scenarios and integrity checks give each experiment a reproducible starting point.', '#plate-commerce'],
-      '2': ['02 / Models', 'Forecasting models, graph searches and detection rules turn inputs into outputs that can be inspected.', '#plate-atlas'],
-      '3': ['03 / Evaluation', 'Backtests, calibration checks, precision and recall expose what worked and what did not validate.', '#atlas-detail'],
-      '4': ['04 / Interface', 'APIs, dashboards and keyboard-operable browser labs make the underlying behavior explorable.', '#plate-pathfinding'],
-      '5': ['05 / Evidence', 'Source code, automated tests, documentation and release gates let a reviewer check the work.', '#hiring'],
+      '1': ['01 / Data', 'Start with trustworthy inputs. Versioned files, seeded scenarios and integrity checks make each experiment repeatable.', '#plate-commerce', ['Versioned inputs', 'Seeded scenarios', 'Integrity checks']],
+      '2': ['02 / Models', 'Turn inputs into results. Forecasting models, route searches and detection rules are inspectable in the project source.', '#plate-atlas', ['Forecasting', 'Pathfinding', 'Detection rules']],
+      '3': ['03 / Evaluation', 'Check the results before trusting them. Backtests, calibration checks, precision and recall make errors and limitations visible.', '#atlas-detail', ['Backtests', 'Calibration', 'Precision / recall']],
+      '4': ['04 / Interface', 'Make the system usable. APIs, dashboards and keyboard-operable browser labs let people explore the underlying behavior.', '#plate-pathfinding', ['REST APIs', 'Dashboards', 'Browser labs']],
+      '5': ['05 / Evidence', 'Show how the work can be verified. Source code, automated tests, documentation and release gates support a careful review.', '#hiring', ['Source code', 'Automated tests', 'Release gates']],
     };
+    let selectedLayer = null;
+    let keyboardLayer = '1';
     let userPaused = false;
     let inView = true;
     try { userPaused = window.localStorage.getItem('af-system-motion') === 'paused'; } catch (_) { /* optional preference */ }
@@ -242,23 +254,115 @@
       if (!running) { iso.style.setProperty('--px', '0'); iso.style.setProperty('--py', '0'); }
     };
     systemFigure.classList.add('is-enhanced');
+    systemFigure.dataset.view = 'overview';
     explorer.hidden = false;
+    inspector.hidden = false;
+    viewbar.hidden = false;
+    // The static SVG is one image. Enhanced, it is a labelled group with keyboard-operable plates.
+    iso.setAttribute('role', 'group');
+    iso.setAttribute('aria-describedby', 'system-view-hint');
     updateMotion();
     motionButton.addEventListener('click', () => {
       userPaused = !userPaused;
       try { window.localStorage.setItem('af-system-motion', userPaused ? 'paused' : 'playing'); } catch (_) { /* optional preference */ }
       updateMotion();
     });
-    layerButtons.forEach((button) => button.addEventListener('click', () => {
-      const id = button.dataset.systemLayer;
+    const selectLayer = (id) => {
       const detail = layers[id];
-      if (!detail) return;
-      layerButtons.forEach((other) => other.setAttribute('aria-pressed', String(other === button)));
-      iso.querySelectorAll('[data-depth]').forEach((plate) => plate.classList.toggle('is-selected', plate.dataset.depth === id));
-      layerTitle.textContent = detail[0];
-      layerCopy.textContent = detail[1];
-      relatedWork.setAttribute('href', detail[2]);
-    }));
+      const focusedPlate = plates.find((plate) => plate === document.activeElement);
+      selectedLayer = detail ? id : null;
+      if (detail) keyboardLayer = id;
+      systemFigure.classList.add('is-built');
+      systemFigure.dataset.view = detail ? 'layer' : 'overview';
+      systemFigure.dataset.layer = selectedLayer || '';
+      iso.style.setProperty('--px', '0');
+      iso.style.setProperty('--py', '0');
+      layerButtons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.systemLayer === selectedLayer)));
+      plates.forEach((plate) => {
+        const active = plate.dataset.depth === selectedLayer;
+        plate.classList.toggle('is-selected', active);
+        plate.setAttribute('aria-pressed', String(active));
+        plate.setAttribute('tabindex', plate.dataset.depth === keyboardLayer ? '0' : '-1');
+        // Restore the original painter order before bringing the focused plate to the foreground.
+        scene.appendChild(plate);
+      });
+      if (detail) {
+        const plate = plates.find((item) => item.dataset.depth === id);
+        const bounds = plate.querySelector('.iso-slab').getBBox();
+        // Fit the actual slab, leaving a 50-unit margin on either side. The camera never crops it.
+        const scale = Math.min(1.5, 500 / bounds.width, 360 / bounds.height);
+        const x = 300 - (bounds.x + bounds.width / 2) * scale;
+        const y = 280 - (bounds.y + bounds.height / 2) * scale;
+        camera.style.transform = `translate(${x.toFixed(3)}px, ${y.toFixed(3)}px) scale(${scale.toFixed(5)})`;
+        scene.appendChild(plate);
+        layerTitle.textContent = detail[0];
+        layerCopy.textContent = detail[1];
+        [...partsList.children].forEach((part, index) => { part.textContent = detail[3][index]; });
+        relatedWork.setAttribute('href', detail[2]);
+      } else {
+        camera.style.transform = 'none';
+        layerTitle.textContent = 'Five layers. One system.';
+        layerCopy.textContent = 'Click a plate or choose a layer to zoom in and inspect its role. Switch layers to explore, or return to the full system.';
+        relatedWork.setAttribute('href', '#systems');
+      }
+      partsList.hidden = !detail;
+      viewLabel.textContent = detail ? detail[0] : 'Full system';
+      viewHint.textContent = detail ? 'Select again to zoom out' : 'Click or tap a layer to zoom';
+      resetButton.setAttribute('aria-pressed', String(!detail));
+      // Moving an SVG group in the painter order must not lose keyboard focus.
+      if (focusedPlate) focusedPlate.focus({ preventScroll: true });
+    };
+    const frameSelection = () => {
+      // Keep the controls and the focused surface together, even when a phone has scrolled down to a button.
+      const box = viewport.getBoundingClientRect();
+      const safeTop = (parseFloat(getComputedStyle(root).getPropertyValue('--header-h')) || 72) + 16;
+      const safeBottom = window.innerHeight - 16;
+      const bottom = box.top + box.height * (selectedLayer ? 0.8 : 1);
+      let top = viewbar.getBoundingClientRect().top;
+      if (bottom - top > safeBottom - safeTop) top = explorer.getBoundingClientRect().top;
+      const delta = top < safeTop ? top - safeTop : (bottom > safeBottom ? Math.min(top - safeTop, bottom - safeBottom) : 0);
+      if (Math.abs(delta) > 1) window.scrollBy({ top: delta, behavior: reduceMotion.matches ? 'auto' : 'smooth' });
+    };
+    const toggleLayer = (id) => {
+      selectLayer(selectedLayer === id ? null : id);
+      frameSelection();
+    };
+    layerButtons.forEach((button) => button.addEventListener('click', () => toggleLayer(button.dataset.systemLayer)));
+    resetButton.addEventListener('click', () => { selectLayer(null); frameSelection(); });
+    plates.forEach((plate, index) => {
+      const id = plate.dataset.depth;
+      plate.setAttribute('role', 'button');
+      plate.setAttribute('aria-label', `Inspect ${layers[id][0].split(' / ')[1]} layer`);
+      plate.setAttribute('aria-controls', 'system-layer-detail');
+      plate.setAttribute('aria-pressed', 'false');
+      plate.setAttribute('tabindex', id === keyboardLayer ? '0' : '-1');
+      plate.addEventListener('click', () => toggleLayer(id));
+      plate.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          toggleLayer(id);
+          return;
+        }
+        const keys = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 };
+        let target;
+        if (keys[event.key]) target = plates[(index + keys[event.key] + plates.length) % plates.length];
+        else if (event.key === 'Home') target = plates[0];
+        else if (event.key === 'End') target = plates[plates.length - 1];
+        if (target) {
+          event.preventDefault();
+          selectLayer(target.dataset.depth);
+          target.focus({ preventScroll: true });
+          frameSelection();
+        }
+      });
+    });
+    systemFigure.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && selectedLayer) {
+        event.preventDefault();
+        selectLayer(null);
+        frameSelection();
+      }
+    });
     iso.addEventListener('animationend', (event) => {
       if (event.animationName === 'iso-draw' && event.target.classList.contains('iso-dim')) systemFigure.classList.add('is-built');
     });
@@ -276,9 +380,14 @@
   if (hero && iso && finePointer.matches && !reduceMotion.matches) {
     let frame = false;
     let next = [0, 0];
-    const apply = () => { iso.style.setProperty('--px', next[0].toFixed(2)); iso.style.setProperty('--py', next[1].toFixed(2)); frame = false; };
+    const apply = () => {
+      if (reduceMotion.matches || (systemFigure && (systemFigure.dataset.motion !== 'playing' || systemFigure.dataset.view === 'layer'))) next = [0, 0];
+      iso.style.setProperty('--px', next[0].toFixed(2));
+      iso.style.setProperty('--py', next[1].toFixed(2));
+      frame = false;
+    };
     hero.addEventListener('pointermove', (event) => {
-      if (systemFigure && systemFigure.dataset.motion !== 'playing') return;
+      if (reduceMotion.matches || (systemFigure && (systemFigure.dataset.motion !== 'playing' || systemFigure.dataset.view === 'layer'))) return;
       const rect = hero.getBoundingClientRect();
       next = [((event.clientX - rect.left) / rect.width - 0.5) * 2, ((event.clientY - rect.top) / rect.height - 0.5) * 2];
       if (!frame) { frame = true; requestAnimationFrame(apply); }
