@@ -947,7 +947,9 @@ body .lab-table caption,body .evidence-table th{font-size:.8125rem;letter-spacin
    The system drawing and contact panel use their own high-contrast inks in
    both page themes; body type and the reading scale above are unchanged.
    -------------------------------------------------------------------------- */
-.hero .system-figure{--bg:#0c1933;--bg2:#112342;--surface:#13294b;--surface2:#1b3762;--text:#f1f6ff;--muted:#d2dff1;--fine:#c1d1e9;--line:#304d76;--line2:#698bb7;--accent:#a5ccff;--accent-dark:#c1dcff;--on-accent:#0c1933;--cyan:#7ce5dd;--violet:#c4b4ff;--warm:#f3cf8e;--plate:#244568;--plate-hi:#42688f;--plate-side:#112d4b;--plate-edge:#a0c1e4;--node-top:#507799;--node-l:#193957;--node-r:#2a5277;--glow-alpha:.18;--shade-alpha:.5;color-scheme:dark;color:var(--text);background:var(--bg);border-color:var(--line2);border-top:3px solid var(--cyan);border-radius:8px;box-shadow:0 22px 58px #07173140}
+.hero .system-figure{--bg:#0c1933;--bg2:#112342;--surface:#13294b;--surface2:#1b3762;--text:#f1f6ff;--muted:#d2dff1;--fine:#c1d1e9;--line:#304d76;--line2:#698bb7;--accent:#a5ccff;--accent-dark:#c1dcff;--on-accent:#0c1933;--cyan:#7ce5dd;--violet:#c4b4ff;--warm:#f3cf8e;--plate:#244568;--plate-hi:#42688f;--plate-side:#112d4b;--plate-edge:#a0c1e4;--node-top:#4c7396;--node-l:#193957;--node-r:#2a5277;--glow-alpha:.18;--shade-alpha:.5;--system-shadow:0 22px 58px #07173140;--system-shadow-small:0 14px 32px #07173126;color-scheme:dark;color:var(--text);background:var(--bg);border-color:var(--line2);border-top:3px solid var(--cyan);border-radius:8px;box-shadow:var(--system-shadow)}
+/* The same diagram uses paper surfaces and darker inks when the page is light. */
+html[data-theme="light"] .hero .system-figure{--bg:#ffffff;--bg2:#f1f5fc;--surface:#f8fbff;--surface2:#e9f0fa;--text:#13233d;--muted:#344660;--fine:#3d4f69;--line:#ccd9ea;--line2:#748aaa;--accent:#2454b8;--accent-dark:#1c4193;--on-accent:#ffffff;--cyan:#126772;--violet:#7043a9;--warm:#845610;--grid:#e1e9f4;--hatch:#bdcde2;--plate:#b9cfe6;--plate-hi:#dce7f5;--plate-side:#9eb5d1;--plate-edge:#425b7e;--node-top:#ffffff;--node-l:#9bb4d2;--node-r:#bfd1e8;--glow-alpha:.07;--shade-alpha:.14;--system-shadow:0 18px 42px #173e7d14;--system-shadow-small:0 12px 28px #173e7d12;color-scheme:light}
 .contact-section .contact-card{--accent:#b8dcff;--on-accent:#f1f6ff;--contact-start:#0c1d3c;--contact-middle:#1c3a78;--contact-end:#143e59;--contact-button:#d0ebff;--contact-button-text:#102445;background:linear-gradient(120deg,var(--contact-start),var(--contact-middle) 62%,var(--contact-end));color:var(--on-accent);border:1px solid #638ac2;border-top:4px solid #7ce5dd;box-shadow:0 20px 52px #0b24552b}
 
 .hero{background:radial-gradient(ellipse at 95% 15%,color-mix(in srgb,var(--accent) 18%,transparent),transparent 64%),radial-gradient(ellipse at 55% 100%,color-mix(in srgb,var(--cyan) 9%,transparent),transparent 64%),var(--bg)}
@@ -1066,7 +1068,7 @@ body .lab-table caption,body .evidence-table th{font-size:.8125rem;letter-spacin
 .contact-section .contact-card .channel-kind{color:#d0e3ff}
 .site-footer{border-top:2px solid var(--accent)}
 @media(min-width:981px){.plate-grid{background:linear-gradient(90deg,var(--project-panel) 0 41.6667%,var(--surface) 41.6667% 100%)}}
-@media(max-width:780px){.hero .system-figure{box-shadow:0 14px 32px #07173126}}
+@media(max-width:780px){.hero .system-figure{box-shadow:var(--system-shadow-small)}}
 
 /* Recruiter walkthroughs: visible information flow and a real reported summary.
    Explanations stay in HTML, including on phones where small SVG labels hide. */
