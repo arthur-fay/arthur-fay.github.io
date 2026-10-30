@@ -320,6 +320,55 @@ describe('portfolio: the section cut', () => {
   });
 });
 
+describe('portfolio: system panel follows the page theme', () => {
+  for (const viewport of [VIEWPORTS.desktop, VIEWPORTS.mobile]) {
+    it(`${viewport.width}px: switches the box, drawing and controls between light and dark without losing a focused layer`, async () => {
+      const { page, problems, close } = await open('/#system-model', { viewport, colorScheme: 'dark', reducedMotion: 'reduce' });
+      try {
+        await page.getByRole('button', { name: '03 Evaluation', exact: true }).click();
+        const inspect = () => page.evaluate(() => {
+          const figure = document.querySelector('.system-figure');
+          const style = getComputedStyle(figure);
+          const rgb = value => value.match(/[\d.]+/g).slice(0, 3).map(Number);
+          const lightness = value => rgb(value).reduce((sum, n) => sum + n, 0) / 3;
+          return {
+            theme: document.documentElement.dataset.theme,
+            scheme: style.colorScheme,
+            background: lightness(style.backgroundColor),
+            text: lightness(style.color),
+            viewportBackground: lightness(getComputedStyle(document.querySelector('.system-viewport')).backgroundColor),
+            plate: getComputedStyle(document.querySelector('.depth-3 .iso-top')).fill,
+            layerButton: getComputedStyle(document.querySelector('[data-system-layer="3"]')).backgroundColor,
+            layer: figure.dataset.layer,
+            camera: getComputedStyle(document.querySelector('.iso-camera')).transform,
+          };
+        });
+        const dark = await inspect();
+        assert.equal(dark.scheme, 'dark');
+        assert.ok(dark.background < 60 && dark.text > 210 && dark.viewportBackground < 60);
+        await page.getByRole('button', { name: 'Switch to light theme', exact: true }).click();
+        const light = await inspect();
+        assert.equal(light.theme, 'light');
+        assert.equal(light.scheme, 'light');
+        assert.ok(light.background > 240 && light.text < 80 && light.viewportBackground > 240, 'paper panel and dark inks match the light page');
+        assert.notEqual(light.plate, dark.plate, 'the drawing changes palette with its sheet');
+        assert.notEqual(light.layerButton, dark.layerButton, 'the controls change palette too');
+        assert.equal(light.layer, '3');
+        assert.equal(light.camera, dark.camera, 'theme changes preserve the camera position');
+        assert.equal(await page.getByRole('button', { name: '03 Evaluation', exact: true }).getAttribute('aria-pressed'), 'true');
+        await page.getByRole('button', { name: 'Switch to dark theme', exact: true }).click();
+        const restored = await inspect();
+        assert.equal(restored.scheme, 'dark');
+        assert.equal(restored.plate, dark.plate);
+        assert.equal(restored.layerButton, dark.layerButton);
+        assert.equal(restored.camera, dark.camera);
+        assert.equal(await overflow(page), 0);
+        assert.deepEqual(problems, []);
+      } finally { await close(); }
+    });
+  }
+});
+
 describe('portfolio: zoomable system layers', () => {
   for (const [name, viewport] of Object.entries({ desktop: VIEWPORTS.desktop, mobile: VIEWPORTS.mobile, narrow: VIEWPORTS.narrow })) {
     it(`${name}: every layer zooms into a complete, centred surface and returns to the full system`, async () => {

@@ -75,10 +75,10 @@ describe('hero system section drawing', () => {
 
 for (const theme of ['dark', 'light']) {
   describe(`${theme} theme: hero drawing contrast`, () => {
-    const t = { ...tokensFromBlock(css, ':root') };
-    if (theme === 'light') Object.assign(t, tokensFromBlock(css, 'html[data-theme="light"]'));
+    const t = { ...tokensFromBlock(css, ':root'), ...tokensFromBlock(css, '.hero .system-figure') };
+    if (theme === 'light') Object.assign(t, tokensFromBlock(css, 'html[data-theme="light"] .hero .system-figure'));
     const bg = opaque('var(--bg)', t);
-    const sheet = opaque('color-mix(in srgb,var(--surface) 90%,transparent)', t, bg); // .hero-figure background
+    const sheet = bg; // The themed .system-figure overrides the ordinary hero-figure background.
     const plate = opaque('var(--plate)', t, sheet);
     const plateHi = opaque('var(--plate-hi)', t, sheet);
     const expect = (label, fg, over, minimum) => {
@@ -96,6 +96,13 @@ for (const theme of ['dark', 'light']) {
       assert.ok(contrast(plateHi, plate) >= 1.2, `${theme}: top vs bottom plate ${contrast(plateHi, plate).toFixed(2)}`);
       assert.ok(contrast(plate, sheet) >= 1.15, `${theme}: bottom plate vs sheet ${contrast(plate, sheet).toFixed(2)}`);
       assert.ok(contrast(plateHi, sheet) >= 1.2, `${theme}: top plate vs sheet ${contrast(plateHi, sheet).toFixed(2)}`);
+    });
+
+    it('keeps all five layer edges distinct from their own plate faces (3:1)', () => {
+      for (const [index, ink] of ['--cyan', '--accent', '--violet', '--accent', '--warm'].entries()) {
+        const face = opaque(`color-mix(in srgb,var(--plate-hi) ${index * 25}%,var(--plate))`, t, sheet);
+        expect(`layer ${index + 1} edge`, `var(${ink})`, face, 3);
+      }
     });
 
     it('blocks, the spine and the stores are legible on the plates', () => {

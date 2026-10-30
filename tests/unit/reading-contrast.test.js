@@ -22,17 +22,19 @@ for (const theme of ['dark', 'light']) {
 
 describe('coloured feature panels', () => {
   const root = tokensFromBlock(css, ':root');
-  it('keeps the system panel reading inks above 7:1 and accent labels above 4.5:1', () => {
-    const tokens = { ...root, ...tokensFromBlock(css, '.hero .system-figure') };
-    for (const surface of ['--bg', '--bg2', '--surface', '--surface2']) {
-      const background = opaque(`var(${surface})`, tokens);
-      for (const ink of ['--text', '--muted', '--fine', '--accent', '--cyan', '--violet', '--warm']) {
-        const minimum = ['--text', '--muted', '--fine'].includes(ink) ? 7 : 4.5;
-        const ratio = contrast(opaque(`var(${ink})`, tokens), background);
-        assert.ok(ratio >= minimum, `${ink} on ${surface}: ${ratio.toFixed(2)} < ${minimum}`);
+  for (const theme of ['dark', 'light']) {
+    it(`${theme}: keeps the system panel reading inks above 7:1 and accent labels above 4.5:1`, () => {
+      const tokens = { ...root, ...tokensFromBlock(css, '.hero .system-figure'), ...(theme === 'light' ? tokensFromBlock(css, 'html[data-theme="light"] .hero .system-figure') : {}) };
+      for (const surface of ['--bg', '--bg2', '--surface', '--surface2']) {
+        const background = opaque(`var(${surface})`, tokens);
+        for (const ink of ['--text', '--muted', '--fine', '--accent', '--cyan', '--violet', '--warm']) {
+          const minimum = ['--text', '--muted', '--fine'].includes(ink) ? 7 : 4.5;
+          const ratio = contrast(opaque(`var(${ink})`, tokens), background);
+          assert.ok(ratio >= minimum, `${ink} on ${surface}: ${ratio.toFixed(2)} < ${minimum}`);
+        }
       }
-    }
-  });
+    });
+  }
   it('keeps contact text and its primary action readable across every gradient stop', () => {
     const tokens = { ...root, ...tokensFromBlock(css, '.contact-section .contact-card') };
     for (const stop of ['--contact-start', '--contact-middle', '--contact-end']) {
