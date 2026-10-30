@@ -326,23 +326,30 @@ describe('portfolio: system panel follows the page theme', () => {
       const { page, problems, close } = await open('/#system-model', { viewport, colorScheme: 'dark', reducedMotion: 'reduce' });
       try {
         await page.getByRole('button', { name: '03 Evaluation', exact: true }).click();
-        const inspect = () => page.evaluate(() => {
-          const figure = document.querySelector('.system-figure');
-          const style = getComputedStyle(figure);
-          const rgb = value => value.match(/[\d.]+/g).slice(0, 3).map(Number);
-          const lightness = value => rgb(value).reduce((sum, n) => sum + n, 0) / 3;
-          return {
-            theme: document.documentElement.dataset.theme,
-            scheme: style.colorScheme,
-            background: lightness(style.backgroundColor),
-            text: lightness(style.color),
-            viewportBackground: lightness(getComputedStyle(document.querySelector('.system-viewport')).backgroundColor),
-            plate: getComputedStyle(document.querySelector('.depth-3 .iso-top')).fill,
-            layerButton: getComputedStyle(document.querySelector('[data-system-layer="3"]')).backgroundColor,
-            layer: figure.dataset.layer,
-            camera: getComputedStyle(document.querySelector('.iso-camera')).transform,
-          };
-        });
+        const inspect = async () => {
+          // Even the site's 0.01ms reduced-motion transitions can be pending for
+          // one compositor frame. Compare settled palettes, not interpolation samples.
+          await page.locator('.system-figure').evaluate(el => Promise.all(el.getAnimations({ subtree: true })
+            .filter(animation => animation instanceof CSSTransition)
+            .map(animation => animation.finished.catch(() => {}))));
+          return page.evaluate(() => {
+            const figure = document.querySelector('.system-figure');
+            const style = getComputedStyle(figure);
+            const rgb = value => value.match(/[\d.]+/g).slice(0, 3).map(Number);
+            const lightness = value => rgb(value).reduce((sum, n) => sum + n, 0) / 3;
+            return {
+              theme: document.documentElement.dataset.theme,
+              scheme: style.colorScheme,
+              background: lightness(style.backgroundColor),
+              text: lightness(style.color),
+              viewportBackground: lightness(getComputedStyle(document.querySelector('.system-viewport')).backgroundColor),
+              plate: getComputedStyle(document.querySelector('.depth-3 .iso-top')).fill,
+              layerButton: getComputedStyle(document.querySelector('[data-system-layer="3"]')).backgroundColor,
+              layer: figure.dataset.layer,
+              camera: getComputedStyle(document.querySelector('.iso-camera')).transform,
+            };
+          });
+        };
         const dark = await inspect();
         assert.equal(dark.scheme, 'dark');
         assert.ok(dark.background < 60 && dark.text > 210 && dark.viewportBackground < 60);
