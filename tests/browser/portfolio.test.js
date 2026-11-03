@@ -621,6 +621,7 @@ describe('portfolio: motion, hero drawing and immediate reading', () => {
     it(`draws the system section (${colorScheme}) as five shaded plates with hatched cut faces, solid blocks and a spine`, async () => {
       const { page, close } = await open('/', { colorScheme, reducedMotion: 'reduce' });
       try {
+        await page.locator('.iso').evaluate(svg => svg.scrollIntoView({ block: 'center', behavior: 'instant' }));
         const stats = await page.evaluate(() => {
           const q = (selector) => document.querySelectorAll(`.iso ${selector}`);
           const luminance = (paint) => {
@@ -801,7 +802,7 @@ describe('portfolio: desktop-first hero hierarchy', () => {
 });
 
 describe('portfolio: recruiter path and evidence-based claims', () => {
-  it('leads from the hero straight to the four plates and keeps the section-cut explorer', async () => {
+  it('leads from the hero straight to the five plates and keeps the section-cut explorer', async () => {
     const { page, close } = await open('/');
     try {
       const primary = page.locator('.hero .hero-buttons .button-primary');
@@ -837,7 +838,7 @@ describe('portfolio: recruiter path and evidence-based claims', () => {
       assert.ok(about.includes('project repositories') && about.includes('résumé-reported'), 'the about note distinguishes published engineering evidence from the self-reported professional record');
       assert.deepEqual(await page.$$eval('.hero-titleblock dt', (dts) => dts.map((dt) => dt.textContent.trim())), ['Role', 'Stack', 'Education', 'Verify']);
       assert.deepEqual(await page.$$eval('.about-fields li', (items) => items.map((li) => li.textContent.replace(/^\d+/, '').trim())), ['Backend services & REST APIs', 'Database engineering & SQL', 'Frontend development & accessible interfaces', 'Automated testing & CI/CD', 'Forecasting research & analytics', 'Interactive engineering labs']);
-      assert.equal(await page.locator('.hero-index a').count(), 4);
+      assert.equal(await page.locator('.hero-index a').count(), 5);
       const hero = (await page.locator('.hero-copy').innerText()).toLowerCase();
       assert.ok(hero.includes('software engineer'), 'the hero names the kind of engineer');
       for (const term of ['python', 'typescript/react', 'fastapi', 'postgresql', 'rest apis', 'ci/cd']) assert.ok(hero.includes(term), `the hero names ${term}`);
