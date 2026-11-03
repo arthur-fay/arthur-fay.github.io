@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1020" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; base-uri 'self'; form-action 'none'" />
+  <meta name="description" content="Explore NYC asking rents, concessions, and neighborhood opportunity scores in Arthur Fay’s interactive Power BI case study." />
+  <title>NYC Rental Market Analytics | Arthur Fay</title>
+  <link rel="canonical" href="https://arthur-fay.github.io/lab/nyc-rentals/" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css?v=74242e11e660" />
+  <link rel="stylesheet" href="/lab/nyc-rentals/lab.css" />
+  <script defer src="/script.js?v=ebf3939013e5"></script>
+  <script type="module" src="/lab/nyc-rentals/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="reading-progress" id="reading-progress" aria-hidden="true"></div>
+  <header class="rental-header">
+    <div class="container rental-header-inner">
+      <a class="rental-back" href="/#plate-rentals"><span aria-hidden="true">←</span> Arthur Fay / Portfolio</a>
+      <nav aria-label="Case study sections"><a href="#market">Market</a><a href="#rankings">Rankings</a><a href="#method">Method</a></nav>
+      <button class="rental-theme" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button>
+    </div>
+  </header>
+  <main class="container rental-main" id="main">
+    <section class="rental-hero" aria-labelledby="rental-title">
+      <div>
+        <p class="rental-kicker">Plate 05 / Power BI case study</p>
+        <h1 id="rental-title">NYC Rental<br />Market <em>Analytics</em></h1>
+        <p>Track asking and effective rents across 16 monthly snapshots, compare all five boroughs, and inspect the components behind 94 neighborhood scores.</p>
+        <div class="rental-actions">
+          <a class="button button-primary" href="#market">Explore the data <span aria-hidden="true">↓</span></a>
+          <a class="button" href="https://github.com/arthur-fay/nyc-rental-market-analytics">Power BI files on GitHub <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+      <aside class="rental-brief" aria-label="May 2026 findings">
+        <p class="rental-kicker">Market brief / May 2026</p>
+        <div><strong>$4,050</strong><span>Citywide median asking rent</span></div>
+        <div><strong>21.1%</strong><span>Bronx concession rate, highest among boroughs</span></div>
+        <p>Manhattan led asking rents at $4,795. Concessions tell a different story from headline rent.</p>
+      </aside>
+    </section>
+    <section class="rental-section" id="market" aria-labelledby="market-title">
+      <p class="rental-kicker">01 / Monthly market monitor</p>
+      <h2 id="market-title">Follow the rent, then check the concessions.</h2>
+      <div class="rental-controls">
+        <label>Snapshot month <select id="market-month"></select></label>
+        <label>Trend geography <select id="market-scope"></select></label>
+        <label>Measure <select id="market-metric"><option value="rent">Asking and effective rent</option><option value="listings">Listing volume</option><option value="concessions">Concession rate</option></select></label>
+      </div>
+      <noscript><p>Enable JavaScript to explore the charts and rankings. The original report and data are available in the GitHub repository above.</p></noscript>
+      <dl id="market-kpis" class="rental-kpis" aria-label="Selected geography and month"></dl>
+      <div class="rental-market-grid">
+        <figure class="rental-panel rental-trend">
+          <figcaption><h3 id="trend-title">Monthly trend</h3><p id="trend-legend"></p></figcaption>
+          <svg id="trend-chart" viewBox="0 0 540 252" role="img" aria-labelledby="trend-title trend-readout"></svg>
+          <p id="trend-readout" class="rental-readout" aria-live="polite"></p>
+          <details class="rental-details">
+            <summary>View monthly data</summary>
+            <div class="rental-scroll" tabindex="0" role="region" aria-label="Monthly trend data">
+              <table class="rental-table"><thead><tr><th scope="col">Month</th><th scope="col">Asking</th><th scope="col">Effective</th><th scope="col">Listings</th><th scope="col">Concessions</th></tr></thead><tbody id="trend-rows"></tbody></table>
+            </div>
+          </details>
+        </figure>
+        <figure class="rental-panel rental-comparison">
+          <figcaption><h3>Borough comparison</h3><p id="comparison-context"></p></figcaption>
+          <ul id="borough-bars" class="rental-bars"></ul>
+          <p class="rental-note" id="borough-note"></p>
+        </figure>
+      </div>
+    </section>
+    <section class="rental-section" id="rankings" aria-labelledby="rank-title">
+      <p class="rental-kicker">02 / Opportunity rankings · May 2026</p>
+      <h2 id="rank-title">Open up the composite score.</h2>
+      <p>Filter the published scoring snapshot, then select a neighborhood to see its four component scores.</p>
+      <div class="rental-controls rental-ranking-controls">
+        <label>Borough <select id="rank-borough"></select></label>
+        <label>Score tier <select id="rank-tier"><option value="">All tiers</option><option>Strong</option><option>Moderate</option><option>Watch</option><option>Weak</option></select></label>
+        <label>Sort by <select id="rank-sort"><option value="score">Highest score</option><option value="listings">Most listings</option><option value="asking">Lowest asking rent</option></select></label>
+        <label>Neighborhood <input id="rank-search" type="search" placeholder="Search by name" /></label>
+      </div>
+      <p id="rank-status" class="rental-note" role="status"></p>
+      <div class="rental-ranking-grid">
+        <div class="rental-panel">
+          <div class="rental-scroll" tabindex="0" role="region" aria-label="Neighborhood ranking results">
+            <table class="rental-table rental-ranks"><caption class="sr-only">Neighborhood rankings, May 2026</caption><thead><tr><th scope="col">Neighborhood</th><th scope="col">Score</th><th scope="col">Listings</th><th scope="col">Asking rent</th></tr></thead><tbody id="rank-rows"></tbody></table>
+          </div>
+          <div class="rental-pagination"><button id="rank-prev" type="button">← Previous</button><span id="rank-page"></span><button id="rank-next" type="button">Next →</button></div>
+        </div>
+        <aside class="rental-panel rental-profile" id="rank-profile" aria-label="Selected neighborhood" aria-live="polite"></aside>
+      </div>
+    </section>
+    <section class="rental-section rental-method" id="method" aria-labelledby="method-title">
+      <p class="rental-kicker">03 / Method and coverage</p>
+      <h2 id="method-title">What the numbers measure</h2>
+      <div class="rental-method-grid">
+        <article class="rental-panel"><h3>Monthly market</h3><p>The site reads published citywide and borough aggregates. Asking and effective rent are separate medians. Concession rate is the share of listings with concessions. The February 2025 to May 2026 series describes the project’s listing sample.</p></article>
+        <article class="rental-panel"><h3>Neighborhood coverage</h3><p>The May ranking uses the project’s supplied affordability, rent momentum, inventory momentum and pricing power scores. Staten Island is in market comparisons and has no scored neighborhoods. Its May borough snapshot contains 20 listings.</p></article>
+        <article class="rental-panel"><h3>Reproduce the report</h3><p>Data source is FirstMover NYC Open Data, as attributed in the project. The GitHub package includes the Power BI report, source CSVs and refresh instructions. The web lab uses aggregate tables and renders them in your browser.</p><a class="text-link" href="https://github.com/arthur-fay/nyc-rental-market-analytics">Open the project repository ↗</a></article>
+      </div>
+    </section>
+  </main>
+  <footer class="container rental-footer"><a href="/#plate-rentals">← Back to portfolio</a><span>Arthur Fay · The Architect Lab</span></footer>
+</body>
+</html>

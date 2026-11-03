@@ -147,8 +147,8 @@ describe('portfolio: role evidence links remain usable after filtering', () => {
       assert.equal(await page.locator('#plate-commerce').isVisible(), true);
       assert.equal(await page.locator('[data-filter="all"]').getAttribute('aria-pressed'), 'true');
       assert.equal(await page.locator('[data-filter="engineering"]').getAttribute('aria-pressed'), 'false');
-      assert.equal(await page.locator('.project:visible').count(), 4);
-      assert.equal(await page.locator('#filter-status').textContent(), 'Showing 4 projects.');
+      assert.equal(await page.locator('.project:visible').count(), 5);
+      assert.equal(await page.locator('#filter-status').textContent(), 'Showing 5 projects.');
       const top = await page.$eval('#plate-commerce', el => el.getBoundingClientRect().top);
       assert.ok(top >= 0 && top <= 120, `the revealed plate is below the header (top=${top})`);
     } finally { await close(); }
@@ -173,13 +173,13 @@ describe('portfolio: role evidence links remain usable after filtering', () => {
       await page.evaluate(() => { window.location.hash = '#security-title'; });
       await page.waitForFunction(() => !document.getElementById('plate-security').hidden);
       assert.equal(await page.locator('[data-filter="all"]').getAttribute('aria-pressed'), 'true');
-      assert.equal(await page.locator('#filter-status').textContent(), 'Showing 4 projects.');
+      assert.equal(await page.locator('#filter-status').textContent(), 'Showing 5 projects.');
       // A later unrelated fragment must not clear a filter the visitor chose.
       await page.locator('[data-filter="analytics"]').click();
       await page.evaluate(() => { window.location.hash = '#experience'; });
       await page.waitForFunction(() => window.location.hash === '#experience');
       assert.equal(await page.locator('[data-filter="analytics"]').getAttribute('aria-pressed'), 'true');
-      assert.equal(await page.locator('.project:visible').count(), 1);
+      assert.equal(await page.locator('.project:visible').count(), 2);
     } finally { await close(); }
   });
 });
@@ -306,7 +306,7 @@ describe('portfolio: the section cut', () => {
       assert.deepEqual(await page.$$eval('.cut-panel h3', (hs) => hs.map((h) => h.firstChild.textContent.trim())), ['ATLAS', 'E-Commerce Analytics', 'Pathfinding Lab', 'Security Lab']);
       const hidden = await page.$$eval('[data-reveal]', (els) => els.filter((el) => getComputedStyle(el).opacity !== '1' || getComputedStyle(el).visibility === 'hidden').length);
       assert.equal(hidden, 0, 'reveal styling never hides content without JS');
-      assert.equal(await page.locator('.project').count(), 4);
+      assert.equal(await page.locator('.project').count(), 5);
       assert.ok(await page.locator('#system-explorer').isHidden(), 'interactive controls stay hidden without JavaScript');
       assert.ok(await page.locator('#system-inspector').isHidden());
       assert.ok(await page.locator('#system-viewbar').isHidden());
@@ -809,12 +809,12 @@ describe('portfolio: recruiter path and evidence-based claims', () => {
       assert.match((await primary.textContent()).replace(/\s+/g, ' ').trim(), /^View projects/);
       assert.equal(await page.locator('.hero .hero-buttons a[href="#systems"]').count(), 1, 'the section cut keeps its hero entry point');
       assert.equal(await page.locator('.hero .hero-buttons a[href="https://github.com/arthur-fay"]').count(), 1);
-      assert.deepEqual(await page.$$eval('.hero-index a', (links) => links.map((a) => a.getAttribute('href'))), ['#plate-atlas', '#plate-commerce', '#plate-pathfinding', '#plate-security']);
+      assert.deepEqual(await page.$$eval('.hero-index a', (links) => links.map((a) => a.getAttribute('href'))), ['#plate-atlas', '#plate-commerce', '#plate-pathfinding', '#plate-security', '#plate-rentals']);
       await primary.click();
       await page.waitForFunction(() => window.location.hash === '#work');
       const workTop = await page.$eval('#work', (el) => el.getBoundingClientRect().top);
       assert.ok(workTop >= 0 && workTop <= 120, `the projects section sits just below the sticky header (top=${workTop})`);
-      assert.equal(await page.locator('.project:visible').count(), 4, 'all four case studies are shown');
+      assert.equal(await page.locator('.project:visible').count(), 5, 'all five case studies are shown');
       for (const plate of PROJECTS) {
         await page.locator(`.hero-index a[href="#plate-${plate}"]`).click();
         await page.waitForFunction((id) => window.location.hash === `#${id}`, `plate-${plate}`);

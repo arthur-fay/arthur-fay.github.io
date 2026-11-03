@@ -33,7 +33,7 @@ describe('recruiter credibility and contact', () => {
     assert.doesNotMatch(hero, /tests and continuous integration for every project/i);
     const about = unescape(region('id="about"', '</section>'));
     assert.match(about, /Employment and education are résumé-reported/);
-    assert.match(about, /three interactive browser labs/);
+    assert.match(about, /four interactive browser labs/);
   });
 
   it('does not invent Colab notebook implementation steps for the Power BI project', () => {

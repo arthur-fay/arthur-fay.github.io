@@ -9,7 +9,7 @@ import re
 
 ROOT = Path(__file__).resolve().parents[1]
 PAGES = ("index.html", "404.html", "lab/pathfinding/index.html",
-         "lab/security-events/index.html", "lab/ecommerce/index.html")
+         "lab/security-events/index.html", "lab/ecommerce/index.html", "lab/nyc-rentals/index.html")
 
 
 def main() -> None:

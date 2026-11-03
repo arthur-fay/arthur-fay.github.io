@@ -1122,3 +1122,8 @@ html[data-theme="light"] .contact-section .contact-card{--accent:#234fc1;--on-ac
 @media (min-width:1680px){
   .container{max-width:1400px}
 }
+
+/* NYC rental case study */
+#plate-rentals{--accent:var(--cyan)}
+.rental-plate-art{display:block}
+.rental-plate-art .art-line{stroke:var(--text);stroke-width:1.45}

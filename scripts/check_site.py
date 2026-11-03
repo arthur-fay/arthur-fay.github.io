@@ -22,6 +22,7 @@ SITE = "https://arthur-fay.github.io"
 LAB_DIR = "lab/pathfinding"
 SEC_DIR = "lab/security-events"
 ECO_DIR = "lab/ecommerce"
+RENTAL_DIR = "lab/nyc-rentals"
 REQUIRED = {
     "index.html", "404.html", "404.css", "styles.css", "script.js", "project-previews.js",
     "favicon.svg", "robots.txt", "sitemap.xml", ".nojekyll", "package.json",
@@ -233,7 +234,7 @@ def main() -> None:
             "Completed · Aug 2024", "Borough of Manhattan Community College", "August 2024", "Independent work",
             "Backend Software Engineer I", "Data Analyst", "21st Ave Pharmacy", "Blue Sky Trading",
             "Arthur Fay — Software Engineer · The Architect Lab", "Python, TypeScript/React, FastAPI, PostgreSQL",
-            "No NYC-derived charts or datasets are hosted on this portfolio.",
+            "ATLAS charts and datasets remain in its source repository.",
             "Grid-based algorithm simulation, not a validated real-world robotics navigation system",
             "https://github.com/arthur-fay/demand-forecasting-model",
             "https://github.com/arthur-fay/customer-revenue-analytics",
@@ -241,14 +242,14 @@ def main() -> None:
         ),
         f"{SITE}/",
     )
-    assert index.projects == 4, f"index.html: expected 4 project cards, found {index.projects}"
+    assert index.projects == 5, f"index.html: expected 5 project cards, found {index.projects}"
     index_html = (ROOT / "index.html").read_text(encoding="utf-8")
     folded_index = index_html.casefold()
     for phrase in FORBIDDEN_HOMEPAGE_PHRASES:
         assert phrase not in folded_index, f"index.html: unsupported or negative wording must stay out: {phrase}"
     hero_index = re.search(r'<ul class="hero-index"[^>]*>(.*?)</ul>', folded_index, re.S)
     assert hero_index, "index.html: the hero must carry the plate index"
-    for plate in ("plate-atlas", "plate-commerce", "plate-pathfinding", "plate-security"):
+    for plate in ("plate-atlas", "plate-commerce", "plate-pathfinding", "plate-security", "plate-rentals"):
         assert f'href="#{plate}"' in hero_index.group(1), f"index.html: the hero's plate index must link directly to #{plate}"
     assert 'class="button button-primary" href="#work"' in folded_index, "index.html: the hero's primary call to action must lead to the projects"
     assert 'href="#experience"' in folded_index and 'href="#education"' in folded_index, "index.html: the hero must lead to the experience and education record"
@@ -358,9 +359,11 @@ def main() -> None:
     for display in ("99K", "R$15.84M", "96K", "R$159.33", "97.02%", "91.88%"):
         assert f'">{display}<small>' in eco_html, f"analytics lab: published KPI {display} missing from its tile"
 
-    for stylesheet in ("styles.css", "404.css", f"{LAB_DIR}/lab.css", f"{SEC_DIR}/lab.css", f"{ECO_DIR}/lab.css"):
+    check_page(f"{RENTAL_DIR}/index.html", {"main", "market", "rankings", "method", "trend-chart", "rank-profile"},
+               ("FirstMover NYC Open Data", "Staten Island"), f"{SITE}/{RENTAL_DIR}/")
+    for stylesheet in ("styles.css", "404.css", f"{LAB_DIR}/lab.css", f"{SEC_DIR}/lab.css", f"{ECO_DIR}/lab.css", f"{RENTAL_DIR}/lab.css"):
         check_css(stylesheet)
-    for script in ("script.js", "project-previews.js", f"{LAB_DIR}/app.js", f"{LAB_DIR}/pathfinding.js", f"{SEC_DIR}/app.js", f"{SEC_DIR}/detection.js", f"{ECO_DIR}/app.js", f"{ECO_DIR}/model.js"):
+    for script in ("script.js", "project-previews.js", f"{LAB_DIR}/app.js", f"{LAB_DIR}/pathfinding.js", f"{SEC_DIR}/app.js", f"{SEC_DIR}/detection.js", f"{ECO_DIR}/app.js", f"{ECO_DIR}/model.js", f"{RENTAL_DIR}/app.js", f"{RENTAL_DIR}/model.js", f"{RENTAL_DIR}/data.js"):
         check_javascript(script)
     app = (ROOT / LAB_DIR / "app.js").read_text(encoding="utf-8")
     assert "from './pathfinding.js'" in app, "app.js must import the pure algorithm module"
@@ -387,7 +390,7 @@ def main() -> None:
     assert not package.get("dependencies") and not package.get("devDependencies"), "the site must stay dependency-free"
 
     sitemap = (ROOT / "sitemap.xml").read_text(encoding="utf-8")
-    assert f"<loc>{SITE}/</loc>" in sitemap and f"<loc>{SITE}/{LAB_DIR}/</loc>" in sitemap and f"<loc>{SITE}/{SEC_DIR}/</loc>" in sitemap and f"<loc>{SITE}/{ECO_DIR}/</loc>" in sitemap, "sitemap must list all four pages"
+    assert f"<loc>{SITE}/</loc>" in sitemap and f"<loc>{SITE}/{LAB_DIR}/</loc>" in sitemap and f"<loc>{SITE}/{SEC_DIR}/</loc>" in sitemap and f"<loc>{SITE}/{ECO_DIR}/</loc>" in sitemap and f"<loc>{SITE}/{RENTAL_DIR}/</loc>" in sitemap, "sitemap must list all five pages"
     assert f"{SITE}/sitemap.xml" in (ROOT / "robots.txt").read_text(encoding="utf-8")
     # The 404 page is served directly by GitHub Pages, so audit it separately:
     # no canonical is appropriate for an error response and no JS is required.

@@ -689,7 +689,7 @@ describe('analytics lab: themes, motion and navigation', () => {
     }
   });
 
-  it('is reachable from the homepage: plate 02, the section cut and the footer link to it, and the Interactive filter shows three projects', async () => {
+  it('is reachable from the homepage: plate 02, the section cut and the footer link to it, and the Interactive filter shows four projects', async () => {
     const { page, problems, close } = await open('/');
     try {
       const plateLink = page.locator('.project-commerce .project-links a[href="/lab/ecommerce/"]');
@@ -697,12 +697,12 @@ describe('analytics lab: themes, motion and navigation', () => {
       assert.match((await plateLink.textContent()).replace(/\s+/g, ' ').trim(), /^Open the interactive analytics lab/);
       assert.equal(await count(page, '#cut-commerce a[href="/lab/ecommerce/"]'), 1);
       assert.equal(await count(page, '.site-footer a[href="/lab/ecommerce/"]'), 1);
-      assert.equal(await page.locator('.ledger .stat-number').nth(1).textContent(), '03');
+      assert.equal(await page.locator('.ledger .stat-number').nth(1).textContent(), '04');
       await page.locator('[data-filter="interactive"]').click();
-      assert.equal(await count(page, '.project:not([hidden])'), 3);
+      assert.equal(await count(page, '.project:not([hidden])'), 4);
       assert.ok(await page.locator('.project-commerce').isVisible());
       await page.locator('[data-filter="analytics"]').click();
-      assert.equal(await count(page, '.project:not([hidden])'), 1);
+      assert.equal(await count(page, '.project:not([hidden])'), 2);
       await page.locator('[data-filter="all"]').click();
       await plateLink.click();
       await page.waitForURL(`**${LAB}`);
