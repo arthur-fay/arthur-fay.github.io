@@ -229,11 +229,10 @@ def main() -> None:
         {"main", "work", "experience", "education", "about", "approach", "contact", "atlas-detail", "pathfinding-title", "security-title"},
         (
             "forecasting gains are not established", "failed calibration", "hypothetical",
-            # The record follows the latest résumé (22 October 2026): both degrees with their dates, the bachelor's
-            # in progress and never completed, both job titles, and the résumé headline as the public identity.
+            # The record lists the current employer, both degrees with their dates, and independent work.
             "In progress · expected Jan 2027", "expected January 2027", "Capella University",
             "Completed · Aug 2024", "Borough of Manhattan Community College", "August 2024", "Independent work",
-            "Backend Software Engineer I", "Data Analyst", "21st Ave Pharmacy", "Blue Sky Trading",
+            "Software Engineer", "Data Analyst", "21st Ave Pharmacy", "Blue Sky Proprietary Trading Company",
             "Arthur Fay — Software Engineer · The Architect Lab", "Python, TypeScript/React, FastAPI, PostgreSQL",
             "ATLAS charts and datasets remain in its source repository.",
             "Grid-based algorithm simulation, not a validated real-world robotics navigation system",
@@ -254,7 +253,9 @@ def main() -> None:
         assert f'href="#{plate}"' in hero_index.group(1), f"index.html: the hero's plate index must link directly to #{plate}"
     assert 'class="button button-primary" href="#hiring"' in folded_index, "index.html: the hero's primary call to action must lead to the work guide"
     assert 'href="#experience"' in folded_index and 'href="#education"' in folded_index, "index.html: the hero must lead to the experience and education record"
-    for outdated in ("Pharmacy Technician", "Backend Software Engineer · The Architect Lab", "B.S. Computer Science, completed", "Python Backend Developer"):
+    for outdated in ("Pharmacy Technician", "Backend Software Engineer · The Architect Lab", "B.S. Computer Science, completed",
+                     "Python Backend Developer", "Blue Sky Trading", "Backend Software Engineer I",
+                     "multi-warehouse wholesale distributor", "warehouse ERP"):
         assert outdated.casefold() not in folded_index, f"index.html: superseded by the latest résumé: {outdated!r}"
     # Employer descriptions carry no operational volumes or product counts, even when the résumé does.
     record = re.search(r'id="experience".*?</section>', index_html, re.S)

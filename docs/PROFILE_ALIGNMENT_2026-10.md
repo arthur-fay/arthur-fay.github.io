@@ -1,5 +1,7 @@
 # Professional profile and résumé alignment (October 2026)
 
+The [current professional profile](../README.md#professional-profile) supersedes this record for employment information.
+
 **Repository:** `arthur-fay/arthur-fay.github.io` · **Branch:** `claude/arthur-fay-portfolio-upgrade-35axio` · **Status:** review branch; nothing is published until the owner merges.
 
 This document records what the owner's résumé (provided on 21 October 2026) claims, what the three public repositories evidence, what changed on the homepage to present the professional record, what was measured, and which decisions remain the owner's. It follows the rule of the rest of the site: nothing is claimed that was not checked, and the owner's employment and education facts are stated as provided, not embellished.
@@ -21,7 +23,7 @@ Classification key: **Supported** (repository evidence), **User-provided** (empl
 
 | # | Résumé claim | Classification | Evidence and notes |
 | --- | --- | --- | --- |
-| 1 | Backend Software Engineer I, Blue Sky Trading, New York, NY, March 2026 to present; REST APIs and PostgreSQL schemas, SQL feeding Excel and Power BI, automated tests, Git/GitHub | **User-provided** | Stated on the site as provided. The résumé's operational specifics (daily incident volumes, named warehouse workflows, vendor audiences) are employer material and were **left off the site**; the owner should confirm they may appear on a résumé. |
+| 1 | Current employment | **Superseded** | See the [current professional profile](../README.md#professional-profile). |
 | 2 | Pharmacy Technician — Inventory Analysis & Data Processing, 21st Ave Pharmacy & Medical Supply Inc., March 2020 to December 2025 | **User-provided** | Stated as provided; the site mentions no patient data and no transaction volume. "Pharmacy Technician" should match the employer's records; the descriptor after the dash is the owner's. |
 | 3 | Capella University, B.S. Computer Science, expected 2027; Borough of Manhattan Community College (CUNY), A.S. Computer Science, August 2024 | **User-provided** | The bachelor's degree is shown as **in progress, expected 2027** in the hero title block, the record and the about copy; a unit test and the checker fail if that wording changes. |
 | 4 | ATLAS: "a reproducible forecasting system over 12.3M NYC 311 requests (2023–2026)" | **Qualified** | `docs/DATA_CARD.md`: 12,331,111 requests created over 1,277 days (2023-01-01 to 2026-06-30). ATLAS models **daily counts**; 12.3M is their sum, not a row count processed. The site says "daily NYC 311 request counts … (1,277 days, 12.3M requests)". |

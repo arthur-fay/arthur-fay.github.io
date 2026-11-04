@@ -1,5 +1,7 @@
 # Résumé refresh — October 2026
 
+The [current professional profile](../README.md#professional-profile) supersedes this record for employment information.
+
 **Status:** Review branch; the current published site remains on `main` until the owner authorizes merging.
 
 ## New source and reconciliation
@@ -9,7 +11,7 @@ The owner provided a one-page revised PDF résumé on 21 October 2026. The priva
 | Topic | Updated résumé says | Public portfolio treatment |
 | --- | --- | --- |
 | Identity | Backend Software Engineer, Python/FastAPI/PostgreSQL/SQL and data analytics | Updated hero summary: backend REST APIs, tests, CI/CD and independently evidenced systems |
-| Experience | Blue Sky Trading, Backend Software Engineer I, March 2026–present; pharmacy technician and inventory analysis at 21st Ave Pharmacy & Medical Supply, March 2020–December 2025 | Existing résumé-level descriptions retained without operational counts, equipment workflow specifics, patient data or proprietary records; abbreviated employer name follows the newer résumé |
+| Experience | October résumé entries | The [current professional profile](../README.md#professional-profile) records the corrected employment information. |
 | Regulated operations | Five-plus years processing HIPAA-regulated data | Added a concise five-plus-years description without identifying patients, throughput or an internal system |
 | ATLAS | 1,277-day snapshot, 12.3M requests, seven models/822 origins, 14 API operations, tested React 19 client and container-tested Ubuntu deployment | Independent-work description expanded; earlier portfolio's correct statistical limitations and release-gate language remain. The résumé's bare 28%/11% result requires context: the advantage was not robustly statistically established, 95% prediction intervals failed calibration and optimization assumptions are hypothetical |
 | E-Commerce | Power BI dimensional model over reported 99K orders; DAX and an interactive browser lab | The model, hypothetical simulator and lab remain linked |
