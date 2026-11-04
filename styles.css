@@ -1127,3 +1127,8 @@ html[data-theme="light"] .contact-section .contact-card{--accent:#234fc1;--on-ac
 #plate-rentals{--accent:var(--cyan)}
 .rental-plate-art{display:block}
 .rental-plate-art .art-line{stroke:var(--text);stroke-width:1.45}
+#plate-rentals .project-entry{align-items:center;gap:12px}
+#plate-rentals .project-entry-link{align-items:center;min-height:48px;padding:8px 12px;border:1px solid var(--accent);border-radius:8px;background:color-mix(in srgb,var(--accent) 11%,var(--surface));text-decoration:none}
+#plate-rentals .project-entry-link:hover{background:color-mix(in srgb,var(--accent) 20%,var(--surface))}
+#plate-rentals .project-entry-link svg{width:22px;height:22px;flex:none;color:var(--accent)}
+@media(max-width:520px){#plate-rentals .project-entry-link{width:100%}}

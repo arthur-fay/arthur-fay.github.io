@@ -9,19 +9,25 @@
   <title>NYC Rental Market Analytics | Arthur Fay</title>
   <link rel="canonical" href="https://arthur-fay.github.io/lab/nyc-rentals/" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="/styles.css?v=74242e11e660" />
-  <link rel="stylesheet" href="/lab/nyc-rentals/lab.css" />
+  <link rel="stylesheet" href="/styles.css?v=0954733849ac" />
+  <link rel="stylesheet" href="/lab/nyc-rentals/lab.css?v=8bc11fdca021" />
   <script defer src="/script.js?v=ebf3939013e5"></script>
-  <script type="module" src="/lab/nyc-rentals/app.js"></script>
+  <script type="module" src="/lab/nyc-rentals/app.js?v=3346d41e98f8"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <div class="reading-progress" id="reading-progress" aria-hidden="true"></div>
   <header class="rental-header">
     <div class="container rental-header-inner">
-      <a class="rental-back" href="/#plate-rentals"><span aria-hidden="true">←</span> Arthur Fay / Portfolio</a>
+      <a class="rental-back" href="/#plate-rentals">
+        <svg class="rental-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 11 12 4l9 7M5 10v10h14V10M8 16l3-3 2 2 3-4"/></svg>
+        <span>Arthur Fay <small>Back to portfolio</small></span>
+      </a>
       <nav aria-label="Case study sections"><a href="#market">Market</a><a href="#rankings">Rankings</a><a href="#method">Method</a></nav>
-      <button class="rental-theme" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button>
+      <button class="rental-theme" id="theme-toggle" type="button" aria-label="Toggle color theme">
+        <svg class="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg>
+        <svg class="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.2 14.1A8.5 8.5 0 0 1 9.9 3.8a8.5 8.5 0 1 0 10.3 10.3Z"/></svg>
+      </button>
     </div>
   </header>
   <main class="container rental-main" id="main">
@@ -54,9 +60,18 @@
       <dl id="market-kpis" class="rental-kpis" aria-label="Selected geography and month"></dl>
       <div class="rental-market-grid">
         <figure class="rental-panel rental-trend">
-          <figcaption><h3 id="trend-title">Monthly trend</h3><p id="trend-legend"></p></figcaption>
+          <figcaption><h3 id="trend-title">Monthly trend</h3><p id="trend-legend" class="rental-legend"></p></figcaption>
+          <p id="trend-help" class="rental-chart-help" hidden>Tap or drag across the chart to explore a month.</p>
           <svg id="trend-chart" viewBox="0 0 540 252" role="img" aria-labelledby="trend-title trend-readout"></svg>
-          <p id="trend-readout" class="rental-readout" aria-live="polite"></p>
+          <div class="rental-timeline" id="trend-controls" hidden>
+            <div class="rental-timeline-heading"><label for="trend-month">Explore month</label><span id="trend-month-label"></span></div>
+            <div class="rental-timeline-inputs">
+              <button id="trend-prev" type="button" aria-label="Previous month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m14 6-6 6 6 6"/></svg></button>
+              <input id="trend-month" type="range" min="0" step="1" aria-describedby="trend-readout" />
+              <button id="trend-next" type="button" aria-label="Next month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m10 6 6 6-6 6"/></svg></button>
+            </div>
+          </div>
+          <p id="trend-readout" class="rental-readout" role="status"></p>
           <details class="rental-details">
             <summary>View monthly data</summary>
             <div class="rental-scroll" tabindex="0" role="region" aria-label="Monthly trend data">
@@ -65,7 +80,7 @@
           </details>
         </figure>
         <figure class="rental-panel rental-comparison">
-          <figcaption><h3>Borough comparison</h3><p id="comparison-context"></p></figcaption>
+          <figcaption><h3>Borough comparison</h3><p id="comparison-context"></p><p class="rental-chart-help">Choose a borough to see its trend.</p></figcaption>
           <ul id="borough-bars" class="rental-bars"></ul>
           <p class="rental-note" id="borough-note"></p>
         </figure>

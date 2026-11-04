@@ -1,10 +1,16 @@
 .rental-header{border-bottom:1px solid var(--line);background:var(--bg)}
 .rental-header-inner{min-height:68px;display:flex;justify-content:space-between;align-items:center;gap:16px}
-.rental-header nav,.rental-actions{display:flex;flex-wrap:wrap;gap:12px 22px}
+.rental-header nav,.rental-actions{display:flex;flex-wrap:wrap;gap:8px}
 .rental-header a,.rental-footer a{color:var(--accent);font-weight:650}
-.rental-header nav a{color:var(--fine);font-size:.9rem}
-.rental-theme,.rental-pagination button,.rental-ranks button{border:1px solid var(--line2);background:var(--surface);cursor:pointer}
-.rental-theme{min-width:44px;min-height:44px;border-radius:50%}
+.rental-back{display:inline-flex;align-items:center;gap:10px;min-height:48px;line-height:1.2}
+.rental-back small{display:block;color:var(--fine);font-size:.75rem;font-weight:500;margin-top:3px}
+.rental-mark{width:42px;height:42px;padding:8px;flex:none;color:var(--cyan);background:var(--surface2);border:1px solid var(--line2);border-radius:10px}
+.rental-header nav a{display:grid;place-items:center;min-height:44px;padding-inline:14px;border-radius:8px;color:var(--fine);font-size:.9rem}
+.rental-header nav a:hover{background:var(--surface2);color:var(--text)}
+.rental-theme,.rental-pagination button,.rental-ranks button,.rental-timeline button{border:1px solid var(--line2);background:var(--surface);color:var(--text);cursor:pointer}
+.rental-theme,.rental-timeline button{width:46px;min-height:46px;display:grid;place-items:center;border-radius:8px;padding:0}
+.rental-theme svg,.rental-timeline button svg{width:20px;height:20px}
+.rental-actions .button{border-radius:8px}
 .rental-main{padding-bottom:60px}
 .rental-hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(270px,.85fr);gap:clamp(24px,6vw,86px);align-items:center;padding:clamp(42px,7vw,94px) 0}
 .rental-kicker{margin:0 0 12px;color:var(--cyan);font:600 .78rem/1.5 var(--font-mono);letter-spacing:.12em;text-transform:uppercase}
@@ -21,11 +27,13 @@
 .rental-section{padding:clamp(30px,5vw,60px) 0;border-top:1px solid var(--line2);scroll-margin-top:20px}
 .rental-section h2{font-size:clamp(2rem,4.5vw,4rem);margin:0 0 20px}
 .rental-section>p:not(.rental-kicker){color:var(--muted)}
-.rental-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:22px 0 16px}
+.rental-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:22px 0 16px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--bg2)}
 .rental-ranking-controls{grid-template-columns:repeat(4,minmax(0,1fr))}
-.rental-controls label{display:grid;min-width:0;gap:4px;color:var(--muted);font-size:.84rem;font-weight:650}
-.rental-controls :is(select,input){background:var(--surface);border:1px solid var(--line2);border-radius:8px;color:var(--text);min-height:46px;padding:8px 12px;font:inherit;width:100%}
-.rental-controls :is(select,input):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.rental-controls label{display:grid;min-width:0;gap:6px;color:var(--muted);font-size:.88rem;font-weight:650}
+.rental-controls :is(select,input){background:var(--surface);border:1px solid var(--line2);border-radius:8px;color:var(--text);min-height:50px;padding:8px 12px;font:inherit;font-size:1rem;width:100%;min-width:0}
+.rental-controls select{cursor:pointer}
+.rental-controls :is(select,input):hover,.rental-header button:hover,.rental-main button:not(:disabled):hover{border-color:var(--accent)}
+.rental-controls :is(select,input):focus-visible,.rental-timeline :is(button,input):focus-visible,.rental-bar-button:focus-visible,.rental-details summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .rental-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}
 .rental-kpis>div{padding:clamp(12px,2vw,22px)}
 .rental-kpis dt{color:var(--muted);font-size:.84rem;margin-bottom:6px}
@@ -35,24 +43,43 @@
 .rental-panel{padding:clamp(14px,2.1vw,27px);margin:0}
 .rental-panel h3{margin:0;font:400 clamp(1.35rem,2.3vw,2rem)/1.15 var(--font-display)}
 .rental-panel figcaption p,.rental-panel .rental-note{margin:7px 0 14px}
-#trend-chart{width:100%;margin:10px 0;background:var(--bg2);border-radius:9px}
-#trend-chart text{fill:var(--fine);font:14px var(--font-mono)}
+.rental-legend{display:flex;flex-wrap:wrap;gap:4px 16px}
+.rental-legend span{display:inline-flex;align-items:center;gap:8px}
+.rental-legend span::before{content:"";width:18px;border-top:2px solid var(--accent)}
+.rental-legend .rental-legend-alt::before{border-top-style:dashed;border-color:var(--cyan)}
+.rental-chart-help,.rental-panel figcaption .rental-chart-help{color:var(--muted);font-size:.84rem;margin:8px 0}
+#trend-chart{display:block;width:100%;height:auto;margin:10px 0 0;background:var(--bg2);border-radius:9px;touch-action:pan-y pinch-zoom;user-select:none;cursor:ew-resize}
+#trend-chart text{fill:var(--fine);font:12px var(--font-mono)}
 .rental-chart-grid{stroke:var(--line2);stroke-width:1}
-.rental-chart-cursor{stroke:var(--fine);stroke-dasharray:3 4}
+.rental-chart-cursor{stroke:var(--fine);stroke-width:1.25;stroke-dasharray:3 4}
+.rental-chart-selection{transition:transform .14s ease-out}
 .rental-series{fill:none;stroke:var(--accent);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
-.rental-series-alt{stroke:var(--cyan);stroke-dasharray:6 5}
-.rental-point{fill:var(--surface);stroke:var(--accent);stroke-width:2.5}
+.rental-series-alt{stroke:var(--cyan);stroke-dasharray:6 5;stroke-width:2.5}
+.rental-point{fill:var(--surface);stroke:var(--accent);stroke-width:2.5;transition:cy .14s ease-out}
 .rental-point-alt{stroke:var(--cyan)}
-.rental-details summary{cursor:pointer;color:var(--accent);font-size:.92rem;font-weight:650}
+#trend-chart.is-scrubbing{cursor:grabbing}
+.is-scrubbing :is(.rental-chart-selection,.rental-point){transition:none}
+.rental-timeline{margin-top:10px;padding:10px 12px 6px;border:1px solid var(--line);border-radius:10px;background:var(--bg2)}
+.rental-timeline-heading{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 8px;align-items:baseline;color:var(--muted);font-size:.88rem;font-weight:650}
+#trend-month-label{color:var(--cyan);font-variant-numeric:tabular-nums}
+.rental-timeline-inputs{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;margin-top:5px}
+.rental-timeline input{width:100%;min-width:0;height:46px;margin:0;accent-color:var(--cyan);cursor:ew-resize;touch-action:pan-y}
+.rental-timeline button:disabled,.rental-pagination button:disabled{opacity:.55;cursor:default}
+.rental-readout{margin:12px 0 4px;font-variant-numeric:tabular-nums}
+.rental-details summary{cursor:pointer;color:var(--accent);font-size:.92rem;font-weight:650;min-height:44px;padding:9px 0}
 .rental-scroll{overflow:auto;max-width:100%}
 .rental-table{width:100%;border-collapse:collapse;font-size:.86rem;font-variant-numeric:tabular-nums;white-space:nowrap}
 .rental-table th,.rental-table td{text-align:right;padding:9px 7px;border-bottom:1px solid var(--line)}
 .rental-table th:first-child,.rental-table td:first-child{text-align:left}
 .rental-table th{color:var(--fine);font-weight:650}
-.rental-ranks button{color:var(--accent);text-align:left;min-height:42px;border-radius:6px;padding:4px 9px;line-height:1.3;white-space:normal}
+.rental-ranks button{color:var(--accent);text-align:left;min-height:46px;border-radius:8px;padding:6px 10px;line-height:1.3;white-space:normal}
 .rental-ranks button[aria-pressed=true]{border-color:var(--accent);background:var(--surface2)}
 .rental-bars,.rental-components{list-style:none;padding:0;margin:0;display:grid;gap:12px}
-.rental-bars li>div,.rental-components li>div,.rental-profile-facts{display:flex;justify-content:space-between;gap:12px;align-items:baseline;font-size:.88rem}
+.rental-bars{gap:6px}
+.rental-bar-button{width:100%;min-height:48px;padding:8px 10px;display:grid;gap:6px;border:1px solid var(--line);border-radius:8px;background:var(--bg2);color:var(--text);text-align:left;cursor:pointer}
+.rental-bar-button[aria-pressed=true]{border-color:var(--cyan);background:var(--surface2)}
+.rental-bar-button[aria-pressed=true] rect{fill:var(--cyan)}
+.rental-bar-button>div,.rental-components li>div,.rental-profile-facts{display:flex;justify-content:space-between;gap:12px;align-items:baseline;font-size:.88rem}
 .rental-bars svg,.rental-components svg{width:100%;height:8px;border-radius:10px;background:var(--surface2)}
 .rental-bars rect{fill:var(--accent)}
 .rental-components rect{fill:var(--cyan)}
@@ -61,9 +88,8 @@
 .rental-profile-facts{flex-wrap:wrap;border-block:1px solid var(--line);padding:10px 0;margin:12px 0}
 .rental-pagination{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:12px;font-size:.84rem}
 .rental-pagination button{border-radius:6px;padding:6px 10px;min-height:44px}
-.rental-pagination button:disabled{opacity:.55;cursor:default}
 .rental-method-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
 .rental-footer{border-top:1px solid var(--line2);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:20px 0;color:var(--fine);font-size:.86rem}
 @media(max-width:800px){.rental-hero,.rental-market-grid,.rental-ranking-grid{grid-template-columns:1fr}.rental-method-grid{grid-template-columns:1fr}.rental-ranking-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:520px){.rental-header-inner{flex-wrap:wrap;padding-block:10px;gap:6px}.rental-header nav{order:3;width:100%;justify-content:space-between}.rental-controls,.rental-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.rental-ranks th,.rental-ranks td{padding-inline:5px}.rental-actions .button{min-height:44px;padding-inline:12px}}
-@media(max-width:520px){.rental-controls:not(.rental-ranking-controls) label:last-child{grid-column:1/-1}}
+@media(max-width:520px){.rental-header-inner{flex-wrap:wrap;padding-block:10px;gap:6px}.rental-header nav{order:3;width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.rental-header nav a{padding-inline:4px;background:var(--bg2)}.rental-controls:not(.rental-ranking-controls){grid-template-columns:1fr}.rental-controls{padding:10px}.rental-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.rental-ranks th,.rental-ranks td{padding-inline:5px}.rental-actions .button{width:100%;padding-inline:12px}#trend-chart text{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.rental-chart-selection,.rental-point{transition:none!important}}

@@ -1,6 +1,6 @@
 """Give shared CSS/JS content-derived URLs so updated HTML bypasses old caches.
 
-Run after editing styles.css, script.js or the pathfinding stylesheet. The offline checker rejects stale
+Run after editing a versioned stylesheet or script. The offline checker rejects stale
 versions, including the references in lab pages and the custom 404 page.
 """
 from pathlib import Path
@@ -14,7 +14,8 @@ PAGES = ("index.html", "404.html", "lab/pathfinding/index.html",
 
 def main() -> None:
     versions = {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()[:12]
-                for name in ("styles.css", "script.js", "project-previews.js", "lab/pathfinding/lab.css")}
+                for name in ("styles.css", "script.js", "project-previews.js", "lab/pathfinding/lab.css",
+                             "lab/nyc-rentals/lab.css", "lab/nyc-rentals/app.js")}
     for page in PAGES:
         file = ROOT / page
         html = file.read_text(encoding="utf-8")
@@ -25,6 +26,8 @@ def main() -> None:
                 expected = 1 if page == "index.html" else 0
             elif name == "lab/pathfinding/lab.css":
                 expected = 1 if page == "lab/pathfinding/index.html" else 0
+            elif name.startswith("lab/nyc-rentals/"):
+                expected = 1 if page == "lab/nyc-rentals/index.html" else 0
             else:
                 expected = 0 if page == "404.html" and name == "script.js" else 1
             assert count == expected, f"{page}: expected {expected} reference(s) to {name}, found {count}"
