@@ -152,7 +152,7 @@ def check_local_asset(url: str, label: str) -> None:
     assert not parts.scheme and not parts.netloc and parts.path.startswith("/") and not parts.fragment, f"{label}: external or malformed runtime asset: {url}"
     file = (ROOT / parts.path.lstrip("/")).resolve()
     assert file.is_relative_to(ROOT.resolve()) and file.is_file(), f"{label}: missing local asset: {url}"
-    if parts.path in ("/styles.css", "/script.js", "/project-previews.js", "/lab/pathfinding/lab.css",
+    if parts.path in ("/styles.css", "/script.js", "/favicon.svg", "/project-previews.js", "/lab/pathfinding/lab.css",
                        f"/{RENTAL_DIR}/lab.css", f"/{RENTAL_DIR}/app.js"):
         version = hashlib.sha256(file.read_bytes()).hexdigest()[:12]
         assert parts.query == f"v={version}", f"{label}: stale shared asset URL {url}; run npm run version:assets"
