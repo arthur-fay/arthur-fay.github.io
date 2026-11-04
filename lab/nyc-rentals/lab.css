@@ -48,12 +48,11 @@
 .rental-legend span::before{content:"";width:18px;border-top:2px solid var(--accent)}
 .rental-legend .rental-legend-alt::before{border-top-style:dashed;border-color:var(--cyan)}
 .rental-chart-help,.rental-panel figcaption .rental-chart-help{color:var(--muted);font-size:.84rem;margin:8px 0}
-#trend-chart{display:block;width:100%;height:auto;margin:10px 0 0;background:var(--bg2);border-radius:9px;touch-action:pan-y pinch-zoom;user-select:none;cursor:ew-resize}
+#trend-chart{display:block;width:100%;height:auto;margin:10px 0 0;background:var(--bg2);border-radius:9px;touch-action:pinch-zoom;user-select:none;cursor:ew-resize}
 #trend-chart text{fill:var(--fine);font:12px var(--font-mono)}
 .rental-chart-grid{stroke:var(--line2);stroke-width:1}
 .rental-chart-cursor{stroke:var(--fine);stroke-width:1.25;stroke-dasharray:3 4}
 .rental-chart-selection,.rental-chart-tooltip{transition:transform .14s ease-out}
-.rental-series-hit{fill:none;stroke:transparent;stroke-width:24;stroke-linecap:round;pointer-events:stroke;touch-action:none}
 .rental-series,.rental-month-dot,.rental-chart-selection{pointer-events:none}
 .rental-series{fill:none;stroke:var(--accent);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
 .rental-series-alt{stroke:var(--cyan);stroke-dasharray:6 5;stroke-width:2.5}

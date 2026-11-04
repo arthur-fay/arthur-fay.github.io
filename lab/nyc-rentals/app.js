@@ -79,8 +79,7 @@ function drawTrend(rows, keys, width) {
   });
   keys.forEach((key, i) => {
     const points = rows.map((row, j) => x(j) + ',' + y(row[key])).join(' ');
-    nodes.push(svg('polyline', { points, class: 'rental-series-hit', 'aria-hidden': 'true' }),
-      svg('polyline', { points, class: i ? 'rental-series rental-series-alt' : 'rental-series' }));
+    nodes.push(svg('polyline', { points, class: i ? 'rental-series rental-series-alt' : 'rental-series' }));
     rows.forEach((row, j) => {
       nodes.push(svg('circle', { cx: x(j), cy: y(row[key]), r: 2, class: i ? 'rental-month-dot rental-month-dot-alt' : 'rental-month-dot' }));
     });
@@ -203,7 +202,7 @@ comparison.addEventListener('click', (event) => {
 renderMarket();
 new ResizeObserver(() => renderTrend(trend.rows, trend.keys, Number(slider.value))).observe(chart);
 
-let drag;
+let dragId = null;
 function selectPointer(event) {
   const matrix = chart.getScreenCTM();
   if (!matrix) return;
@@ -215,25 +214,21 @@ function selectPointer(event) {
 
 chart.addEventListener('pointerdown', (event) => {
   if (!event.isPrimary || event.button !== 0) return;
-  const onSeries = event.target.classList.contains('rental-series-hit');
-  drag = { id: event.pointerId, startX: event.clientX, startY: event.clientY, started: event.pointerType !== 'touch' || onSeries };
+  dragId = event.pointerId;
   chart.setPointerCapture(event.pointerId);
   chart.classList.add('is-scrubbing');
-  if (drag.started) selectPointer(event);
-});
-chart.addEventListener('pointermove', (event) => {
-  if (drag?.id !== event.pointerId) return;
-  if (!drag.started && Math.abs(event.clientX - drag.startX) < Math.max(5, Math.abs(event.clientY - drag.startY))) return;
-  drag.started = true;
   selectPointer(event);
 });
+chart.addEventListener('pointermove', (event) => {
+  if (dragId === event.pointerId) selectPointer(event);
+});
 function finishDrag(event) {
-  if (drag?.id !== event.pointerId) return;
-  drag = undefined;
+  if (dragId !== event.pointerId) return;
+  dragId = null;
   chart.classList.remove('is-scrubbing');
 }
 chart.addEventListener('pointerup', (event) => {
-  if (drag?.id !== event.pointerId) return;
+  if (dragId !== event.pointerId) return;
   selectPointer(event);
   finishDrag(event);
 });
