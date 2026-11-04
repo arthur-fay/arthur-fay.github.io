@@ -52,6 +52,12 @@ test('the rental case study is discoverable and its controls work on desktop and
         for (const [i, point] of points.entries()) {
           if (i && touchSession) {
             await touchSession.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [point] });
+            // Touch moves can be delivered to the page on the next animation frame.
+            await page.waitForFunction(value => document.querySelector('#market-month').value === value, city[i].month, { timeout: 2000 })
+              .catch(async (error) => {
+                const dragging = await chart.evaluate(node => node.classList.contains('is-scrubbing'));
+                throw new Error(`Touch did not reach ${city[i].month}; selected ${await month.inputValue()}; drag active ${dragging}`, { cause: error });
+              });
           } else if (i) {
             await page.mouse.move(point.x, point.y);
           }
