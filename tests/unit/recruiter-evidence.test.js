@@ -23,8 +23,9 @@ describe('recruiter credibility and contact', () => {
     assert.match(contact, /public GitHub links here for source repositories, available tests and technical evidence/i);
     assert.doesNotMatch(contact, /start a discussion on any repository|shared on request|résumé you received/i);
     assert.match(contact, /Software Engineer/);
-    assert.match(contact, /Backend Software Engineer/);
-    assert.match(contact, /Full-Stack Engineer/);
+    assert.match(contact, /Frontend Development/);
+    assert.match(contact, /Backend Development/);
+    assert.match(contact, /Full-Stack Development/);
   });
 
   it('makes clear where professional history comes from and avoids claiming universal CI', () => {

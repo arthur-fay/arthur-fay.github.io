@@ -118,8 +118,8 @@ describe('the professional record', () => {
     const fields = [...block('about').matchAll(/<li><span class="field-index"[^>]*>\d\d<\/span>([^<]+)<\/li>/g)].map((m) => m[1].replace(/&amp;/g, '&'));
     assert.deepEqual(fields, ['Backend services & REST APIs', 'Database engineering & SQL', 'Frontend development & accessible interfaces', 'Automated testing & CI/CD', 'Forecasting research & analytics', 'Interactive engineering labs']);
     const roles = block('contact').match(/<ul class="contact-roles"[^>]*>([\s\S]*?)<\/ul>/)[1];
-    assert.deepEqual([...roles.matchAll(/<li>([^<]+)<\/li>/g)].map((m) => m[1].replace(/&amp;/g, '&')), ['Software Engineer', 'Backend Software Engineer', 'Full-Stack Engineer · Python & React', 'API / Database Engineer']);
-    assert.match(text(block('contact')), /open to backend\/API, TypeScript\/React full-stack and PostgreSQL engineering roles/);
+    assert.deepEqual([...roles.matchAll(/<li>([^<]+)<\/li>/g)].map((m) => m[1]), ['Software Engineer', 'Frontend Development', 'Backend Development', 'Full-Stack Development']);
+    assert.match(text(block('contact')), /open to software engineering roles building web applications, APIs and data tools/);
     assert.match(text(index.match(/<footer class="site-footer">[\s\S]*?<\/footer>/)[0]), /Portfolio of a software engineer/);
   });
 

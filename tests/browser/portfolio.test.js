@@ -1088,7 +1088,7 @@ describe('portfolio: experience, education, contact and privacy', () => {
   it('offers recruiters email and LinkedIn while keeping GitHub as technical evidence', async () => {
     const { page, close } = await open('/');
     try {
-      assert.deepEqual(await page.locator('.contact-roles li').allTextContents(), ['Software Engineer', 'Backend Software Engineer', 'Full-Stack Engineer · Python & React', 'API / Database Engineer']);
+      assert.deepEqual(await page.locator('.contact-roles li').allTextContents(), ['Software Engineer', 'Frontend Development', 'Backend Development', 'Full-Stack Development']);
       assert.equal(await page.getByRole('link', { name: 'Email Arthur', exact: true }).getAttribute('href'), 'mailto:arthur.fay74@gmail.com');
       const linkedin = page.getByRole('link', { name: 'Connect on LinkedIn', exact: true });
       assert.equal(await linkedin.getAttribute('href'), 'https://www.linkedin.com/in/arthur-fay/');

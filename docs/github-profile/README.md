@@ -1,6 +1,6 @@
 # Arthur Fay
 
-**Software Engineer · Backend & Full-Stack · New York, NY**
+**Software Engineer · Frontend, Backend & Data Analytics · New York, NY**
 
 I work across software engineering and data analytics at Blue Sky Proprietary Trading Company. My independent projects show how I test database behavior, build browser interfaces and explain technical tradeoffs.
 
@@ -26,4 +26,4 @@ All four labs run in your browser. The Inventory API runs locally with synthetic
 - **B.S. Computer Science, Capella University** · In progress, expected January 2027.
 - **A.S. Computer Science, Borough of Manhattan Community College (CUNY)** · August 2024.
 
-Open to software engineering roles in backend APIs, full-stack development and database engineering.
+Open to software engineering roles across frontend, backend and full-stack development.
