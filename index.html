@@ -22,9 +22,9 @@
   <meta name="twitter:image" content="https://arthur-fay.github.io/social-card.png" />
   <link rel="canonical" href="https://arthur-fay.github.io/" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="stylesheet" href="/styles.css?v=0fa009914ac0" />
+  <link rel="stylesheet" href="/styles.css?v=e5bc63b4f9d4" />
   <script type="module" src="/project-previews.js?v=5dd8efbe3412"></script>
-  <script defer src="/script.js?v=ebf3939013e5"></script>
+  <script defer src="/script.js?v=95b24d318901"></script>
   <title>Arthur Fay — Software Engineer · The Architect Lab · Python, TypeScript/React, FastAPI &amp; PostgreSQL</title>
 </head>
 <body>
@@ -143,7 +143,7 @@
 
       <section class="section container cut-section" id="systems" aria-labelledby="systems-title">
         <div class="section-heading" data-reveal>
-          <div><p class="section-index">01 / The section cut</p><h2 id="systems-title">Four systems, <em>cut open.</em></h2></div>
+          <div><p class="section-index">01 / The section cut</p><h2 id="systems-title">Five systems, <em>cut open.</em></h2></div>
           <p class="section-intro">Select a project to see how it is built, layer by layer: from the interface people touch, down through the models and the data, to the verification holding it up.</p>
         </div>
         <div class="cut" id="section-cut" data-selected="atlas" data-reveal="late">
@@ -152,12 +152,13 @@
             <button class="cut-tab" role="tab" id="tab-commerce" type="button" aria-selected="false" aria-controls="cut-commerce" tabindex="-1" data-cut="commerce"><span class="cut-tab-num">02</span><span class="cut-tab-name">E-Commerce Analytics</span><span class="cut-tab-kind">Business intelligence</span></button>
             <button class="cut-tab" role="tab" id="tab-pathfinding" type="button" aria-selected="false" aria-controls="cut-pathfinding" tabindex="-1" data-cut="pathfinding"><span class="cut-tab-num">03</span><span class="cut-tab-name">Pathfinding Lab</span><span class="cut-tab-kind">Interactive simulation</span></button>
             <button class="cut-tab" role="tab" id="tab-security" type="button" aria-selected="false" aria-controls="cut-security" tabindex="-1" data-cut="security"><span class="cut-tab-num">04</span><span class="cut-tab-name">Security Lab</span><span class="cut-tab-kind">Defensive simulation</span></button>
+            <button class="cut-tab" role="tab" id="tab-rentals" type="button" aria-selected="false" aria-controls="cut-rentals" tabindex="-1" data-cut="rentals"><span class="cut-tab-num">05</span><span class="cut-tab-name">NYC Rental Market Analytics</span><span class="cut-tab-kind">Housing analytics</span></button>
           </div>
           <div class="cut-stage frame">
             <section class="cut-panel is-active" role="tabpanel" id="cut-atlas" aria-labelledby="tab-atlas">
               <header class="cut-head">
                 <h3>ATLAS <small>Decision Intelligence &amp; Forecasting Research · reproducible research software on frozen NYC 311 data</small></h3>
-                <dl class="cut-meta"><dt>Section</dt><dd>A–A′</dd><dt>Plate</dt><dd>01 of 04</dd><dt>Status</dt><dd>v1.0 release candidate</dd></dl>
+                <dl class="cut-meta"><dt>Section</dt><dd>A–A′</dd><dt>Plate</dt><dd>01 of 05</dd><dt>Status</dt><dd>v1.0 release candidate</dd></dl>
               </header>
               <ol class="strata" aria-label="ATLAS layers, top to bottom">
                 <li class="stratum"><span class="stratum-index">L6</span><h4>Interface</h4><p>A React 19 and TypeScript dashboard whose client types are generated from the API contract: keyboard-operable SVG charts, component tests, end-to-end browser tests in Chromium, Firefox and WebKit, axe-core checks against the WCAG 2.2 AA rules, and an initial JavaScript bundle of 85 KB (gzip) held under a CI size budget. A static, read-only build for GitHub Pages is prepared but <strong>not published</strong>; the project's publication gate governs it.</p><ul class="stratum-tech" aria-label="Technologies"><li>React 19</li><li>TypeScript</li><li>Vite</li><li>D3</li><li>Playwright</li><li>axe-core</li></ul></li>
@@ -175,7 +176,7 @@
             <section class="cut-panel" role="tabpanel" id="cut-commerce" aria-labelledby="tab-commerce">
               <header class="cut-head">
                 <h3>E-Commerce Analytics <small>Executive Analytics Dashboard · business intelligence project</small></h3>
-                <dl class="cut-meta"><dt>Section</dt><dd>B–B′</dd><dt>Plate</dt><dd>02 of 04</dd><dt>Status</dt><dd>Public repository</dd></dl>
+                <dl class="cut-meta"><dt>Section</dt><dd>B–B′</dd><dt>Plate</dt><dd>02 of 05</dd><dt>Status</dt><dd>Public repository</dd></dl>
               </header>
               <ol class="strata" aria-label="E-Commerce Analytics layers, top to bottom">
                 <li class="stratum"><span class="stratum-index">L6</span><h4>Executive dashboard</h4><p>An interactive Power BI report for business leaders: orders, revenue, customers and average order value, delivery and on-time delivery, monthly revenue trends and product categories, with year-range and order-status slicers.</p><ul class="stratum-tech" aria-label="Technologies"><li>Power BI</li></ul></li>
@@ -193,7 +194,7 @@
             <section class="cut-panel" role="tabpanel" id="cut-pathfinding" aria-labelledby="tab-pathfinding">
               <header class="cut-head">
                 <h3>Pathfinding Lab <small>Interactive Robotics &amp; Pathfinding Lab · grid-search simulation</small></h3>
-                <dl class="cut-meta"><dt>Section</dt><dd>C–C′</dd><dt>Plate</dt><dd>03 of 04</dd><dt>Status</dt><dd>Live in this site</dd></dl>
+                <dl class="cut-meta"><dt>Section</dt><dd>C–C′</dd><dt>Plate</dt><dd>03 of 05</dd><dt>Status</dt><dd>Live in this site</dd></dl>
               </header>
               <ol class="strata" aria-label="Pathfinding Lab layers, top to bottom">
                 <li class="stratum"><span class="stratum-index">L6</span><h4>Interface</h4><p>A keyboard-navigable ARIA grid with drawing tools, draggable markers, run, pause, step and stop controls and a live status region.</p><ul class="stratum-tech" aria-label="Technologies"><li>HTML</li><li>ARIA grid</li><li>CSS</li></ul></li>
@@ -211,7 +212,7 @@
             <section class="cut-panel" role="tabpanel" id="cut-security" aria-labelledby="tab-security">
               <header class="cut-head">
                 <h3>Security Lab <small>Security Event Detection &amp; Investigation Lab · synthetic-only simulator</small></h3>
-                <dl class="cut-meta"><dt>Section</dt><dd>D–D′</dd><dt>Plate</dt><dd>04 of 04</dd><dt>Status</dt><dd>Live in this site</dd></dl>
+                <dl class="cut-meta"><dt>Section</dt><dd>D–D′</dd><dt>Plate</dt><dd>04 of 05</dd><dt>Status</dt><dd>Live in this site</dd></dl>
               </header>
               <ol class="strata" aria-label="Security Lab layers, top to bottom">
                 <li class="stratum"><span class="stratum-index">L6</span><h4>Interface</h4><p>An SVG timeline with playback, an alerts list, an investigation view behind every alert, a paginated event table and a threshold comparison.</p><ul class="stratum-tech" aria-label="Technologies"><li>SVG</li><li>HTML</li><li>CSS</li></ul></li>
@@ -226,13 +227,31 @@
                 <p class="cut-foot-note">Synthetic events only, computed locally. Not a production SIEM.</p>
               </footer>
             </section>
+            <section class="cut-panel" role="tabpanel" id="cut-rentals" aria-labelledby="tab-rentals">
+              <header class="cut-head">
+                <h3>NYC Rental Market Analytics <small>Power BI report and interactive housing market lab</small></h3>
+                <dl class="cut-meta"><dt>Section</dt><dd>E–E′</dd><dt>Plate</dt><dd>05 of 05</dd><dt>Status</dt><dd>Live in this site</dd></dl>
+              </header>
+              <ol class="strata" aria-label="NYC Rental Market Analytics layers, top to bottom">
+                <li class="stratum"><span class="stratum-index">L6</span><h4>Market monitor</h4><p>A responsive SVG chart with a month readout that follows mouse and touch drags. A keyboard slider and month buttons update the same values, and selecting a borough changes the trend.</p><ul class="stratum-tech" aria-label="Technologies"><li>SVG</li><li>JavaScript</li><li>Pointer Events</li></ul></li>
+                <li class="stratum"><span class="stratum-index">L5</span><h4>Power BI report</h4><p>The Executive Overview compares asking rents, effective rents and concessions. The Neighborhood Opportunities page presents the May 2026 ranking. The source package includes the report, CSVs and refresh instructions.</p><ul class="stratum-tech" aria-label="Technologies"><li>Power BI</li><li>Power Query</li></ul></li>
+                <li class="stratum"><span class="stratum-index">L4</span><h4>Score breakdown</h4><p>Search, filter and sort 94 published neighborhood scores for May 2026. Each profile shows the four supplied components: affordability, rent momentum, inventory momentum and pricing power.</p><ul class="stratum-tech" aria-label="Technologies"><li>Composite scores</li><li>JavaScript filters</li></ul></li>
+                <li class="stratum"><span class="stratum-index">L3</span><h4>Monthly data</h4><p>Published aggregates cover 16 monthly snapshots from February 2025 through May 2026. The lab reads citywide and borough medians, listing counts and concession rates from those tables.</p><ul class="stratum-tech" aria-label="Technologies"><li>Monthly snapshots</li><li>Aggregate tables</li></ul></li>
+                <li class="stratum"><span class="stratum-index">L2</span><h4>Coverage</h4><p>Market comparisons include all five boroughs. The ranking covers four boroughs. Staten Island has no scored neighborhoods, and its May borough snapshot contains 20 listings.</p><ul class="stratum-tech" aria-label="Technologies"><li>Coverage notes</li><li>Sample sizes</li></ul></li>
+                <li class="stratum"><span class="stratum-index">L1</span><h4>Verification</h4><p>Unit tests check data coverage and neighborhood filtering. Browser tests follow all 16 months with mouse and touch and verify the displayed rents against the published data.</p><ul class="stratum-tech" aria-label="Technologies"><li>Node test runner</li><li>Playwright</li></ul></li>
+              </ol>
+              <footer class="cut-foot">
+                <div class="cut-foot-links"><a class="text-link" href="/lab/nyc-rentals/">Open the rental lab <span aria-hidden="true">→</span></a><a class="text-link quiet-link" href="#plate-rentals">Read plate 05 <span aria-hidden="true">↓</span></a><a class="text-link quiet-link" href="https://github.com/arthur-fay/nyc-rental-market-analytics" target="_blank" rel="noopener noreferrer">Source on GitHub <span aria-hidden="true">↗</span></a></div>
+                <p class="cut-foot-note">The report credits FirstMover NYC Open Data. The figures describe the project's listing sample.</p>
+              </footer>
+            </section>
           </div>
         </div>
       </section>
 
       <section class="section container work-section" id="work" aria-labelledby="work-title">
         <div class="section-heading" data-reveal>
-          <div><p class="section-index">02 / Selected work</p><h2 id="work-title">Four plates, <em>drawn from real repositories.</em></h2></div>
+          <div><p class="section-index">02 / Selected work</p><h2 id="work-title">Five plates, <em>drawn from real repositories.</em></h2></div>
           <p class="section-intro">Each plate is a case study: the problem, the architecture, the evidence you can inspect, and the limits stated plainly. No invented results, screenshots or metrics.</p>
         </div>
         <section class="hiring-guide" id="hiring" aria-labelledby="hiring-title">
@@ -661,7 +680,7 @@
             <p>I'm <strong>Arthur Fay</strong>, a software engineer in New York. At Blue Sky Trading, as a Backend Software Engineer I, I build Python REST APIs and PostgreSQL schemas for operational and inventory applications, design the data models and SQL behind them, and develop internal web applications in Python and Java that integrate with the company's ERP; before that I spent more than five years as a data analyst working with HIPAA-regulated pharmacy data.</p>
             <p>Independently I build software end to end, from a contract-tested FastAPI research platform with a React 19 and TypeScript dashboard to analytics models and interactive engineering labs with their own test suites.</p>
             <p>I am pursuing a B.S. in Computer Science at Capella University (expected January 2027), after an A.S. in Computer Science from Borough of Manhattan Community College (CUNY, August 2024), and I am most interested in the part between an idea and a dependable, inspectable implementation.</p>
-            <p><strong>The Architect Lab</strong> is where the independent work is drawn up. Each project is released with its source code, the evidence behind it and a plain statement of what it does not claim: ATLAS keeps its failed calibration in the record, and the three labs run entirely in your browser so every number can be checked on the spot.</p>
+            <p><strong>The Architect Lab</strong> is where the independent work is drawn up. Each project is released with its source code, the evidence behind it and a plain statement of what it does not claim: ATLAS keeps its failed calibration in the record, and the four labs run entirely in your browser so every number can be checked on the spot.</p>
             <ul class="about-fields" aria-label="Fields of work">
               <li><span class="field-index" aria-hidden="true">01</span>Backend services &amp; REST APIs</li>
               <li><span class="field-index" aria-hidden="true">02</span>Database engineering &amp; SQL</li>
