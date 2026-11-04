@@ -35,45 +35,76 @@ function options(select, values) {
 const month = get('market-month');
 const scope = get('market-scope');
 const metric = get('market-metric');
+const chart = get('trend-chart');
+const slider = get('trend-month');
+const previous = get('trend-prev');
+const next = get('trend-next');
+const comparison = get('borough-bars');
 const names = Object.keys(boroughs).sort();
 options(month, city.map(({ month: value }) => [value, monthLabel(value)]).reverse());
 options(scope, [['city', 'NYC citywide'], ...names.map((name) => [name, name])]);
+slider.max = String(city.length - 1);
+get('trend-controls').hidden = false;
+get('trend-help').hidden = false;
+let trend;
 
-function drawTrend(rows, keys, selected) {
-  const chart = get('trend-chart');
+function drawTrend(rows, keys, width) {
   const points = rows.flatMap((row) => keys.map((key) => row[key]));
   const step = keys[0] === 'concessions' ? 2.5 : keys[0] === 'listings' ? Math.max(1, 10 ** Math.floor(Math.log10(Math.max(...points)) - 1)) : 250;
   const low = keys[0] === 'asking' ? Math.max(0, Math.floor((Math.min(...points) - step / 2) / step) * step) : 0;
   const interval = Math.max(step, Math.ceil((Math.max(...points) + step / 2 - low) / (4 * step)) * step);
   const high = low + 4 * interval;
-  const x = (i) => 76 + i * 432 / (rows.length - 1);
-  const y = (value) => 208 - 180 * (value - low) / (high - low);
+  const compact = width < 410;
+  const left = compact ? 61 : 76;
+  const right = width - 18;
+  const top = 23;
+  const bottom = compact ? 172 : 222;
+  const x = (i) => left + i * (right - left) / (rows.length - 1);
+  const y = (value) => bottom - (bottom - top) * (value - low) / (high - low);
   const nodes = [];
   for (let i = 0; i <= 4; i++) {
     const value = low + i * interval;
-    nodes.push(svg('line', { x1: 76, x2: 508, y1: y(value), y2: y(value), class: 'rental-chart-grid' }),
-      svg('text', { x: 67, y: y(value) + 4, 'text-anchor': 'end' }, format[keys[0]](value)));
+    nodes.push(svg('line', { x1: left, x2: right, y1: y(value), y2: y(value), class: 'rental-chart-grid' }),
+      svg('text', { x: left - 8, y: y(value) + 4, 'text-anchor': 'end' }, format[keys[0]](value)));
   }
-  [0, 5, 10, rows.length - 1].forEach((i) => {
-    nodes.push(svg('text', { x: x(i), y: 234, 'text-anchor': 'middle' }, monthLabel(rows[i].month)));
+  const last = rows.length - 1;
+  const ticks = compact ? [0, 7, last] : [0, 5, 10, last];
+  ticks.forEach((i) => {
+    const label = monthLabel(rows[i].month);
+    nodes.push(svg('text', { x: x(i), y: bottom + 24, 'text-anchor': i === last ? 'end' : 'middle' }, compact ? label.replace(/ 20(\d{2})$/, " ’$1") : label));
   });
-  nodes.push(svg('line', { x1: x(selected), x2: x(selected), y1: 28, y2: 208, class: 'rental-chart-cursor' }));
-  keys.forEach((key, i) => {
-    nodes.push(svg('polyline', {
+  nodes.push(...keys.map((key, i) => svg('polyline', {
       points: rows.map((row, j) => x(j) + ',' + y(row[key])).join(' '),
       class: i ? 'rental-series rental-series-alt' : 'rental-series',
-    }), svg('circle', { cx: x(selected), cy: y(rows[selected][key]), r: 5, class: i ? 'rental-point rental-point-alt' : 'rental-point' }));
-  });
-  chart.replaceChildren(...nodes);
+  })));
+  const guide = svg('g', { class: 'rental-chart-selection' });
+  const dots = keys.map((_, i) => svg('circle', { cx: 0, r: 5, class: i ? 'rental-point rental-point-alt' : 'rental-point' }));
+  guide.append(svg('line', { x1: 0, x2: 0, y1: top, y2: bottom, class: 'rental-chart-cursor' }), ...dots);
+  chart.setAttribute('viewBox', `0 0 ${width} ${bottom + 36}`);
+  chart.replaceChildren(...nodes, guide);
+  trend = { rows, keys, width, x, y, guide, dots };
 }
 
-function bar(label, text, ratio) {
+function renderTrend(rows, keys, index) {
+  const width = Math.max(240, chart.clientWidth || 540);
+  if (!trend || trend.rows !== rows || trend.keys[0] !== keys[0] || trend.width !== width) drawTrend(rows, keys, width);
+  trend.guide.setAttribute('transform', `translate(${trend.x(index)} 0)`);
+  trend.dots.forEach((dot, i) => dot.setAttribute('cy', trend.y(rows[index][keys[i]])));
+}
+
+function bar(label, text, ratio, selectable = false) {
   const row = element('li');
+  const content = selectable ? element('button', undefined, 'rental-bar-button') : row;
+  if (selectable) {
+    content.type = 'button';
+    content.value = label;
+    row.append(content);
+  }
   const heading = element('div');
   heading.append(element('span', label), element('strong', text));
   const chart = svg('svg', { viewBox: '0 0 100 8', preserveAspectRatio: 'none', 'aria-hidden': 'true' });
   chart.append(svg('rect', { width: Math.min(100, Math.max(0, ratio * 100)), height: 8 }));
-  row.append(heading, chart);
+  content.append(heading, chart);
   return row;
 }
 
@@ -88,6 +119,10 @@ function tableRow(values, rowHeader = false) {
   return tr;
 }
 
+let tableScope;
+let comparisonMonth;
+let comparisonMeasure;
+
 function renderMarket() {
   const rows = scope.value === 'city' ? city : boroughs[scope.value];
   const index = city.findIndex((row) => row.month === month.value);
@@ -100,19 +135,83 @@ function renderMarket() {
     return tile;
   }));
   get('trend-title').textContent = scope.selectedOptions[0].text + ' trend';
-  get('trend-legend').textContent = keys.length === 2 ? 'Solid line · Asking rent    /    Dashed line · Effective rent' : labels[primary];
+  get('trend-legend').replaceChildren(...keys.map((key, i) => element('span', labels[key], i ? 'rental-legend-alt' : 'rental-legend-main')));
   get('trend-readout').textContent = monthLabel(row.month) + ' · ' + keys.map((key) => labels[key] + ' ' + format[key](row[key])).join(' · ');
-  drawTrend(rows, keys, index);
-  get('trend-rows').replaceChildren(...rows.map((entry) => tableRow([monthLabel(entry.month), ...Object.keys(labels).map((key) => format[key](entry[key]))], true)));
+  slider.value = String(index);
+  slider.setAttribute('aria-valuetext', monthLabel(row.month));
+  get('trend-month-label').textContent = monthLabel(row.month);
+  previous.disabled = index === 0;
+  next.disabled = index === city.length - 1;
+  renderTrend(rows, keys, index);
+  if (rows !== tableScope) {
+    get('trend-rows').replaceChildren(...rows.map((entry) => tableRow([monthLabel(entry.month), ...Object.keys(labels).map((key) => format[key](entry[key]))], true)));
+    tableScope = rows;
+  }
 
-  const compared = names.map((name) => [name, boroughs[name][index][primary]]).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-  get('comparison-context').textContent = monthLabel(row.month) + ' · ' + labels[primary];
-  get('borough-bars').replaceChildren(...compared.map(([name, value]) => bar(name, format[primary](value), value / (compared[0][1] || 1))));
-  get('borough-note').textContent = 'Staten Island sample: ' + number.format(boroughs['Staten Island'][index].listings) + ' listings. Small samples can make monthly comparisons volatile.';
+  if (index !== comparisonMonth || primary !== comparisonMeasure) {
+    const compared = names.map((name) => [name, boroughs[name][index][primary]]).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    get('comparison-context').textContent = monthLabel(row.month) + ' · ' + labels[primary];
+    comparison.replaceChildren(...compared.map(([name, value]) => bar(name, format[primary](value), value / (compared[0][1] || 1), true)));
+    get('borough-note').textContent = 'Staten Island sample: ' + number.format(boroughs['Staten Island'][index].listings) + ' listings. Small samples can make monthly comparisons volatile.';
+    comparisonMonth = index;
+    comparisonMeasure = primary;
+  }
+  for (const button of comparison.querySelectorAll('button')) {
+    button.setAttribute('aria-pressed', String(button.value === scope.value));
+  }
+}
+
+function selectMonth(index) {
+  const value = city[Math.max(0, Math.min(city.length - 1, index))].month;
+  if (month.value === value) return;
+  month.value = value;
+  renderMarket();
 }
 
 [month, scope, metric].forEach((input) => input.addEventListener('change', renderMarket));
+slider.addEventListener('input', () => selectMonth(Number(slider.value)));
+previous.addEventListener('click', () => selectMonth(Number(slider.value) - 1));
+next.addEventListener('click', () => selectMonth(Number(slider.value) + 1));
+comparison.addEventListener('click', (event) => {
+  const button = event.target.closest('button');
+  if (!button) return;
+  scope.value = button.value;
+  renderMarket();
+});
 renderMarket();
+new ResizeObserver(() => renderTrend(trend.rows, trend.keys, Number(slider.value))).observe(chart);
+
+let drag;
+function selectPointer(event) {
+  const matrix = chart.getScreenCTM();
+  if (!matrix) return;
+  const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
+  const last = city.length - 1;
+  const fraction = (point.x - trend.x(0)) / (trend.x(last) - trend.x(0));
+  selectMonth(Math.round(fraction * last));
+}
+
+chart.addEventListener('pointerdown', (event) => {
+  if (!event.isPrimary || event.button !== 0) return;
+  drag = { id: event.pointerId, startX: event.clientX, started: event.pointerType !== 'touch' };
+  chart.setPointerCapture(event.pointerId);
+  chart.classList.add('is-scrubbing');
+  if (drag.started) selectPointer(event);
+});
+chart.addEventListener('pointermove', (event) => {
+  if (drag?.id !== event.pointerId) return;
+  if (!drag.started && Math.abs(event.clientX - drag.startX) < 7) return;
+  drag.started = true;
+  selectPointer(event);
+});
+chart.addEventListener('pointerup', (event) => {
+  if (drag?.id === event.pointerId) selectPointer(event);
+});
+chart.addEventListener('lostpointercapture', (event) => {
+  if (drag?.id !== event.pointerId) return;
+  drag = undefined;
+  chart.classList.remove('is-scrubbing');
+});
 
 const rankBorough = get('rank-borough');
 const rankTier = get('rank-tier');
