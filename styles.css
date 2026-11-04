@@ -64,22 +64,21 @@ em.ink,.hero h1 em,.section-heading h2 em,.case-study-main h2 em,.about-heading 
 .text-link::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:1px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform var(--fast) var(--ease)}
 .text-link:hover::after,.text-link:focus-visible::after{transform:scaleX(1)}
 
-/* Role-based evidence index: a compact review guide above the project plates. */
-.hiring-guide{border-block:1px solid var(--line2);margin:0 0 36px;padding:26px 0 20px;scroll-margin-top:16px}
+/* First review stop for source, tests and browser demos. */
+.hiring-guide{border-bottom:1px solid var(--line2);padding-block:clamp(24px,4vw,48px)}
 .hiring-heading{display:flex;align-items:end;justify-content:space-between;gap:16px 40px;margin-bottom:20px}
 .hiring-heading .section-index{margin:0 0 6px}
-.hiring-heading h3{font-family:var(--font-display);font-size:clamp(26px,3vw,36px);font-weight:400;line-height:1.2;margin:0;letter-spacing:-.02em}
+.hiring-heading h2{font-family:var(--font-display);font-size:clamp(26px,3vw,36px);font-weight:400;line-height:1.2;margin:0;letter-spacing:-.02em}
 .hiring-heading>p{color:var(--muted);font-size:14px;max-width:40ch;margin:0}
 .role-paths{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;padding:0;margin:0}
 .role-paths>li{display:grid;grid-template-columns:30px minmax(0,1fr);gap:12px;padding:20px 18px;border:1px solid var(--line);border-top:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 4%,var(--surface));min-width:0;border-radius:4px}
 .role-path-index{font-family:var(--font-mono);font-size:11px;color:var(--accent);padding-top:4px}
-.role-paths h4{font-size:16px;line-height:1.4;margin:0 0 8px;font-weight:650}
+.role-paths h3{font-size:16px;line-height:1.4;margin:0 0 8px;font-weight:650}
 .role-paths p{font-size:14px;line-height:1.65;color:var(--muted);margin:0 0 10px;max-width:56ch}
 .role-links{display:flex;flex-wrap:wrap;gap:2px 18px}
 .role-links a{display:inline-flex;align-items:center;gap:6px;min-height:44px;color:var(--accent);font-size:13px;font-weight:600;text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--line2)}
 .role-links a:hover,.role-links a:focus-visible{ text-decoration-color:currentColor }
-.hiring-note{font-size:13px;line-height:1.7;color:var(--muted);margin:4px 0 0;max-width:100ch}
-.hiring-note a{color:var(--text);text-decoration:underline;text-underline-offset:3px}
+.hiring-guide>.role-links{margin-top:14px}
 @media(max-width:700px){.hiring-heading{display:block}.hiring-heading>p{margin-top:12px}.role-paths{grid-template-columns:minmax(0,1fr)}.role-paths>li{padding:18px 14px}.role-links{gap:0 16px}}
 .text-link span{font-weight:400}
 .quiet-link{color:var(--text)}
@@ -865,10 +864,10 @@ html[data-theme="light"] .sec-art-r2{stroke:#8d3d99}
 .nav-index{font-size:.75rem;letter-spacing:.03em}
 .wordmark-name{font-size:19px}
 .site-header{background:color-mix(in srgb,var(--bg) 97%,transparent)}
-.hero-figcaption,.plate-figure figcaption,.cut-foot .cut-foot-note,.case-footer p,.record-note,.about-note,.hiring-note,.footer-note{font-size:.9375rem;line-height:1.75}
+.hero-figcaption,.plate-figure figcaption,.cut-foot .cut-foot-note,.case-footer p,.record-note,.about-note,.footer-note{font-size:.9375rem;line-height:1.75}
 .plate-figure figcaption b{font-size:.8125rem;letter-spacing:.04em}
 .hiring-heading>p,.role-paths p,.role-links a,.stat-description,.project-disclosure,.project-subtitle,.record-body h3 small,.edu-entry p,.about-fields li,.stack-group-text dd,.footer-block dd,.footer-inner>span,.footer-inner>a:last-child{font-size:1rem;line-height:1.7}
-.role-paths h4{font-size:1.125rem;line-height:1.5}
+.role-paths h3{font-size:1.125rem;line-height:1.5}
 .role-path-index{font-size:.8125rem}
 .role-links{gap:4px 20px}
 .stat-description b,.filter-button,.filters-label,.cut-meta,.tag-list span,.record-tech li,.stratum-tech li,.stack-group dd span,.about-tags li{font-size:.8125rem;line-height:1.6;letter-spacing:.035em}
@@ -1038,7 +1037,7 @@ html[data-theme="light"] .contact-section .contact-card{--accent:#234fc1;--on-ac
 .cut-head{background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
 .role-paths>li{background:color-mix(in srgb,var(--accent) 8%,var(--surface));border-color:color-mix(in srgb,var(--accent) 30%,var(--line));border-top-color:var(--accent)}
 .role-path-index{color:var(--accent);font-weight:700}
-.role-paths h4{color:var(--text)}
+.role-paths h3{color:var(--text)}
 .project{--project-panel:color-mix(in srgb,var(--accent) 8%,var(--bg2));border-color:color-mix(in srgb,var(--accent) 30%,var(--line));border-top-color:var(--accent);border-radius:7px;box-shadow:0 10px 28px color-mix(in srgb,var(--accent) 4%,transparent)}
 .plate-head{background:color-mix(in srgb,var(--accent) 12%,var(--surface));border-bottom-color:color-mix(in srgb,var(--accent) 30%,var(--line))}
 .plate-figure{background:var(--project-panel)}

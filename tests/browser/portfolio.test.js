@@ -801,7 +801,7 @@ describe('portfolio: desktop-first hero hierarchy', () => {
         const strap = await page.locator('.hero-roleline').innerText();
         assert.match(strap, /software engineer/i, 'the role label remains visible even with uppercase styling');
         assert.doesNotMatch(strap, /^\/$/m, 'the decorative divider does not occupy its own line');
-        assert.equal(await page.locator('.hero-buttons a[href="#work"]').count(), 1);
+        assert.equal(await page.locator('.hero-buttons a[href="#hiring"]').count(), 1);
         assert.equal(await page.locator('.hero-buttons a[href="#experience"]').count(), 1);
         assert.ok((await overflow(page)) <= 1);
         assert.deepEqual(await clipped(page), []);
@@ -812,16 +812,23 @@ describe('portfolio: desktop-first hero hierarchy', () => {
 });
 
 describe('portfolio: recruiter path and evidence-based claims', () => {
-  it('leads from the hero straight to the five plates and keeps the section-cut explorer', async () => {
+  it('leads from the hero to hiring evidence and then the five case studies', async () => {
     const { page, close } = await open('/');
     try {
       const primary = page.locator('.hero .hero-buttons .button-primary');
-      assert.equal(await primary.getAttribute('href'), '#work');
-      assert.match((await primary.textContent()).replace(/\s+/g, ' ').trim(), /^View projects/);
+      assert.equal(await primary.getAttribute('href'), '#hiring');
+      assert.match((await primary.textContent()).replace(/\s+/g, ' ').trim(), /^Start with my work/);
       assert.equal(await page.locator('.hero .hero-buttons a[href="#systems"]').count(), 1, 'the section cut keeps its hero entry point');
       assert.equal(await page.locator('.hero .hero-buttons a[href="https://github.com/arthur-fay"]').count(), 1);
       assert.deepEqual(await page.$$eval('.hero-index a', (links) => links.map((a) => a.getAttribute('href'))), ['#plate-atlas', '#plate-commerce', '#plate-pathfinding', '#plate-security', '#plate-rentals']);
       await primary.click();
+      await page.waitForFunction(() => window.location.hash === '#hiring');
+      const guideTop = await page.$eval('#hiring', (el) => el.getBoundingClientRect().top);
+      assert.ok(guideTop >= 0 && guideTop <= 120, 'the guide starts below the sticky header');
+      assert.equal(await page.locator('#inventory-proof a').count(), 3);
+      assert.equal(await page.locator('#hiring a[href="/lab/pathfinding/"]').count(), 1);
+      assert.equal(await page.locator('#hiring a[href="/lab/nyc-rentals/"]').count(), 1);
+      await page.locator('#hiring a[href="#work"]').click();
       await page.waitForFunction(() => window.location.hash === '#work');
       const workTop = await page.$eval('#work', (el) => el.getBoundingClientRect().top);
       assert.ok(workTop >= 0 && workTop <= 120, `the projects section sits just below the sticky header (top=${workTop})`);

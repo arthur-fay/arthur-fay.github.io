@@ -111,7 +111,7 @@ describe('the professional record', () => {
     const heroCopy = text(index.match(/<p class="hero-description">[\s\S]*?<\/p>/)[0]);
     assert.match(heroCopy, /^At Blue Sky Trading, I build Python REST APIs, PostgreSQL schemas and ERP-integrated internal applications\s*\./);
     assert.match(heroCopy, /ATLAS/);
-    assert.match(heroCopy, /source code, evidence and limits/);
+    assert.match(heroCopy, /My independent work includes a PostgreSQL inventory API tested under concurrent requests/);
     assert.ok(heroCopy.split(/\s+/).length <= 65, 'the desktop summary is concise enough to scan');
     const about = text(block('about'));
     assert.match(about, /A software engineer, building to be inspected\./);
