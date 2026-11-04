@@ -46,10 +46,11 @@ describe('recruiter credibility and contact', () => {
     assert.match(plate, /hypothetical scenarios/i);
   });
 
-  it('preserves existing evidence destinations and the four project entries', () => {
+  it('preserves evidence destinations and all five project entries', () => {
     for (const href of [
       'href="#plate-atlas"', 'href="#plate-commerce"',
       'href="#plate-pathfinding"', 'href="#plate-security"',
+      'href="#plate-rentals"', 'href="/lab/nyc-rentals/"',
       'href="/lab/ecommerce/"', 'href="/lab/pathfinding/"', 'href="/lab/security-events/"',
       'demand-forecasting-model/blob/main/docs/API.md',
       'inventory-reservations-api#run-locally',

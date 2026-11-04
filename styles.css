@@ -1124,7 +1124,7 @@ html[data-theme="light"] .contact-section .contact-card{--accent:#234fc1;--on-ac
 }
 
 /* NYC rental case study */
-#plate-rentals{--accent:var(--cyan)}
+#tab-rentals,#cut-rentals,#plate-rentals,.hero-index li:nth-child(5){--accent:var(--cyan)}
 .rental-demo{aspect-ratio:auto;padding:clamp(12px,1.6vw,22px);border:1px solid var(--line2);border-radius:12px;background:linear-gradient(155deg,color-mix(in srgb,var(--accent) 8%,var(--surface)),var(--bg) 60%)}
 .rental-demo-heading{display:flex;align-items:center;gap:10px;line-height:1.3}
 .rental-demo-heading strong{display:block;color:var(--text);font-size:1.05rem}

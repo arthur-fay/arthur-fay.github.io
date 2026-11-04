@@ -29,7 +29,7 @@ const VIEWPORTS = {
   desktop: { width: 1280, height: 800 },
   wide: { width: 1920, height: 1080 },
 };
-const PROJECTS = ['atlas', 'commerce', 'pathfinding', 'security'];
+const PROJECTS = ['atlas', 'commerce', 'pathfinding', 'security', 'rentals'];
 
 const READING_COPY = '.hero-description,.project-description,.plate-facts dd,.stratum p,.record-points li,.case-block p,.principle p,.about-copy>p';
 
@@ -228,6 +228,8 @@ describe('portfolio: layout integrity at every viewport and in both themes', () 
       const metrics = await tabs.evaluate((el) => ({ scrollWidth: el.scrollWidth, clientWidth: el.clientWidth, overflowX: getComputedStyle(el).overflowX }));
       assert.ok(metrics.scrollWidth > metrics.clientWidth, 'the tab strip scrolls horizontally');
       assert.equal(metrics.overflowX, 'auto');
+      await page.locator('#tab-rentals').click();
+      assert.ok(await page.locator('#cut-rentals').isVisible(), 'the fifth tab opens on a phone');
       assert.equal(await overflow(page), 0);
     } finally {
       await close();
@@ -236,15 +238,18 @@ describe('portfolio: layout integrity at every viewport and in both themes', () 
 });
 
 describe('portfolio: the section cut', () => {
-  it('wires four tabs to four panels, each describing six layers with technologies and links', async () => {
+  it('wires five numbered tabs to five panels with architecture layers and links', async () => {
     const { page, problems, close } = await open('/');
     try {
-      assert.equal(await page.locator('[role="tablist"] [role="tab"]').count(), 4);
-      for (const key of PROJECTS) {
+      assert.equal(await page.locator('#section-cut [role="tab"]').count(), 5);
+      assert.equal(await page.locator('#section-cut [role="tabpanel"]').count(), 5);
+      assert.match(await page.locator('#systems-title').innerText(), /^Five systems/);
+      for (const [i, key] of PROJECTS.entries()) {
         const tab = page.locator(`#tab-${key}`);
         assert.equal(await tab.getAttribute('aria-controls'), `cut-${key}`);
         const panel = page.locator(`#cut-${key}`);
         assert.equal(await panel.getAttribute('aria-labelledby'), `tab-${key}`);
+        assert.equal(await panel.locator('.cut-meta dd').nth(1).textContent(), `0${i + 1} of 05`);
         assert.equal(await panel.locator('.stratum').count(), 6, `${key} has six layers`);
         assert.equal(await panel.locator('.stratum h4').count(), 6);
         assert.ok((await panel.locator('.stratum-tech li').count()) >= 6, `${key} names its technologies`);
@@ -280,19 +285,21 @@ describe('portfolio: the section cut', () => {
       await page.keyboard.press('ArrowRight');
       assert.equal(await selected(page), 'security');
       await page.keyboard.press('ArrowDown');
-      assert.equal(await selected(page), 'atlas', 'arrows wrap around');
+      assert.equal(await selected(page), 'rentals');
+      await page.keyboard.press('ArrowDown');
+      assert.equal(await selected(page), 'atlas', 'arrows wrap around from the fifth tab');
       await page.keyboard.press('End');
-      assert.equal(await selected(page), 'security');
+      assert.equal(await selected(page), 'rentals');
       await page.keyboard.press('Home');
       assert.equal(await selected(page), 'atlas');
       const stops = await page.$$eval('[role="tab"]', (tabs) => tabs.map((t) => t.getAttribute('tabindex')));
-      assert.deepEqual(stops, ['0', '-1', '-1', '-1'], 'exactly one tab is in the tab order');
-      await page.goto(`${server.baseUrl}/#cut-commerce`, { waitUntil: 'load' });
-      assert.equal(await selected(page), 'commerce', 'a panel id in the hash selects that project');
-      assert.ok(await page.locator('#cut-commerce').isVisible());
-      await page.locator('#cut-commerce a[href="#plate-commerce"]').click();
-      await page.waitForFunction(() => window.location.hash === '#plate-commerce');
-      assert.ok(await page.locator('#plate-commerce').isVisible());
+      assert.deepEqual(stops, ['0', '-1', '-1', '-1', '-1'], 'exactly one tab is in the tab order');
+      await page.goto(`${server.baseUrl}/#cut-rentals`, { waitUntil: 'load' });
+      assert.equal(await selected(page), 'rentals', 'a panel id in the hash selects that project');
+      assert.ok(await page.locator('#cut-rentals').isVisible());
+      await page.locator('#cut-rentals a[href="#plate-rentals"]').click();
+      await page.waitForFunction(() => window.location.hash === '#plate-rentals');
+      assert.ok(await page.locator('#plate-rentals').isVisible());
     } finally {
       await close();
     }
@@ -302,8 +309,8 @@ describe('portfolio: the section cut', () => {
     const { page, close } = await open('/', { javaScriptEnabled: false });
     try {
       assert.ok(await page.locator('.cut-tabs').isHidden(), 'inert tab buttons are not shown');
-      assert.equal(await page.locator('.cut-panel:visible').count(), 4);
-      assert.deepEqual(await page.$$eval('.cut-panel h3', (hs) => hs.map((h) => h.firstChild.textContent.trim())), ['ATLAS', 'E-Commerce Analytics', 'Pathfinding Lab', 'Security Lab']);
+      assert.equal(await page.locator('.cut-panel:visible').count(), 5);
+      assert.deepEqual(await page.$$eval('.cut-panel h3', (hs) => hs.map((h) => h.firstChild.textContent.trim())), ['ATLAS', 'E-Commerce Analytics', 'Pathfinding Lab', 'Security Lab', 'NYC Rental Market Analytics']);
       const hidden = await page.$$eval('[data-reveal]', (els) => els.filter((el) => getComputedStyle(el).opacity !== '1' || getComputedStyle(el).visibility === 'hidden').length);
       assert.equal(hidden, 0, 'reveal styling never hides content without JS');
       assert.equal(await page.locator('.project').count(), 5);
@@ -916,7 +923,7 @@ describe('portfolio: experience, education, contact and privacy', () => {
       assert.deepEqual(await page.$$eval('#experience .record-kind', (els) => els.map((el) => el.textContent.trim())), ['Employment', 'Employment', 'Independent work']);
       assert.deepEqual(await page.$$eval('#experience .record-dates', (els) => els.map((el) => el.textContent.trim())), ['Mar 2026 — Present', 'Mar 2020 — Dec 2025', 'Jul 2026 — Present']);
       assert.deepEqual(await page.$$eval('#experience .record-body h3', (hs) => hs.map((h) => h.firstChild.textContent.trim())), ['Backend Software Engineer I', 'Data Analyst', 'Software & analytics projects']);
-      // The independent-work entry links to the four plates; the employment entries link nowhere (no employer systems are referenced).
+      // The independent-work entry links to the plates; the employment entries link nowhere.
       assert.deepEqual(await page.$$eval('#experience .record-entry-independent a', (as) => as.map((a) => a.getAttribute('href'))), ['#plate-atlas', '#plate-commerce', '#plate-pathfinding', '#plate-security']);
       assert.equal(await page.locator('#experience .record-entry:not(.record-entry-independent) a').count(), 0);
       const education = page.locator('#education');

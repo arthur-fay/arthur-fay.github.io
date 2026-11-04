@@ -135,7 +135,7 @@
     updateProgress();
   }
 
-  /* Section cut: an accessible tab interface over the four project panels (arrow keys, Home/End). */
+  /* Section cut: an accessible tab interface over the project panels (arrow keys, Home/End). */
   const cut = document.getElementById('section-cut');
   if (cut) {
     const tabs = [...cut.querySelectorAll('[role="tab"]')];
