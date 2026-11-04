@@ -67,19 +67,17 @@ describe('the professional record', () => {
     for (const where of [entries[0], hero, about]) assert.doesNotMatch(where, /B\.S\.[^.]*\b(completed|graduated|earned|holds)\b/i, 'the bachelor\'s degree is never presented as completed');
   });
 
-  it('states both job titles, employers and dates as on the latest résumé', () => {
+  it('states the confirmed job titles, employers and dates', () => {
     const record = block('experience');
     const titles = [...record.matchAll(/<h3 id="record-[a-z]+">([^<]+)<small>/g)].map((m) => m[1].trim());
-    assert.deepEqual(titles, ['Backend Software Engineer I', 'Data Analyst', 'Software & analytics projects'].map((t) => t.replace('&', '&amp;')));
+    assert.deepEqual(titles, ['Software Engineer', 'Data Analyst', 'Software & analytics projects'].map((t) => t.replace('&', '&amp;')));
     const dates = [...record.matchAll(/<span class="record-dates">([^<]+)<\/span>/g)].map((m) => m[1]);
     assert.deepEqual(dates, ['Mar 2026 — Present', 'Mar 2020 — Dec 2025', 'Jul 2026 — Present']);
     const t = text(record);
-    assert.match(t, /Backend Software Engineer I Blue Sky Trading · New York, NY/);
+    assert.match(t, /Software Engineer Blue Sky Proprietary Trading Company/);
+    assert.match(t, /Work across software development and data analytics at a funded futures trading company/);
     assert.match(t, /Data Analyst 21st Ave Pharmacy & Medical Supply · New York, NY/);
     assert.doesNotMatch(index, /Pharmacy Technician/, 'the former public title is superseded');
-    for (const competency of ['Python REST APIs and PostgreSQL schemas', 'operational event and incident data model', 'ranks failure types by their downtime impact', 'Python and Java', 'inventory management', 'ERP system through its APIs', 'automated tests and CI on every change']) {
-      assert.ok(t.includes(competency), `the engineering role states: ${competency}`);
-    }
     for (const competency of ['detection rules', 'inventory shortages, delayed orders and unresolved exceptions', 'ranked them by severity', 'HIPAA', 'audit-ready']) {
       assert.ok(t.includes(competency), `the analyst role states: ${competency}`);
     }
@@ -88,7 +86,7 @@ describe('the professional record', () => {
   it('keeps the hero title block consistent with the record and the résumé headline', () => {
     const hero = heroTitleBlock();
     const record = text(block('experience'));
-    for (const fact of ['Backend Software Engineer I', 'Blue Sky Trading', 'New York, NY', 'Capella University', 'August 2024', 'January 2027']) {
+    for (const fact of ['Software Engineer', 'Blue Sky Proprietary Trading Company', 'Capella University', 'August 2024', 'January 2027']) {
       assert.ok(hero.includes(fact) && record.includes(fact), `${fact} appears in the hero and the record`);
     }
     assert.match(hero, /since March 2026/);
@@ -109,13 +107,13 @@ describe('the professional record', () => {
     const hero = index.match(/<div class="hero-copy">([\s\S]*?)<\/div>\s*<figure class="hero-figure/)[1];
     assert.ok(hero.indexOf('class="hero-roleline"') < hero.indexOf('id="hero-title"'), 'role is immediately visible before the editorial headline');
     const heroCopy = text(index.match(/<p class="hero-description">[\s\S]*?<\/p>/)[0]);
-    assert.match(heroCopy, /^At Blue Sky Trading, I build Python REST APIs, PostgreSQL schemas and ERP-integrated internal applications\s*\./);
+    assert.match(heroCopy, /^I work across software engineering and data analytics at Blue Sky Proprietary Trading Company\./);
     assert.match(heroCopy, /ATLAS/);
     assert.match(heroCopy, /My independent work includes a PostgreSQL inventory API tested under concurrent requests/);
     assert.ok(heroCopy.split(/\s+/).length <= 65, 'the desktop summary is concise enough to scan');
     const about = text(block('about'));
     assert.match(about, /A software engineer, building to be inspected\./);
-    assert.match(about, /a software engineer in New York\. At Blue Sky Trading, as a Backend Software Engineer I,/);
+    assert.match(about, /a software engineer in New York\. My role at Blue Sky Proprietary Trading Company combines software development and analytics\./);
     assert.match(about, /more than five years as a data analyst working with HIPAA-regulated pharmacy data/);
     const fields = [...block('about').matchAll(/<li><span class="field-index"[^>]*>\d\d<\/span>([^<]+)<\/li>/g)].map((m) => m[1].replace(/&amp;/g, '&'));
     assert.deepEqual(fields, ['Backend services & REST APIs', 'Database engineering & SQL', 'Frontend development & accessible interfaces', 'Automated testing & CI/CD', 'Forecasting research & analytics', 'Interactive engineering labs']);
@@ -125,7 +123,7 @@ describe('the professional record', () => {
     assert.match(text(index.match(/<footer class="site-footer">[\s\S]*?<\/footer>/)[0]), /Portfolio of a software engineer/);
   });
 
-  it('groups the skills as the résumé does and says where each technology was used', () => {
+  it('groups the skills as the résumé does and points to project evidence', () => {
     const stack = index.match(/<section class="record-card" aria-labelledby="stack-title">[\s\S]*?<\/section>/)[0];
     const groups = [...stack.matchAll(/<dt>([^<]+)<\/dt>/g)].map((m) => m[1].replace(/&amp;/g, '&'));
     assert.deepEqual(groups, ['Programming', 'Backend & data', 'Frontend', 'Testing & quality', 'Infrastructure & CI/CD', 'Practices']);
@@ -140,7 +138,7 @@ describe('the professional record', () => {
     assert.deepEqual(chips, Object.values(expected).flat());
     const practices = text(stack.match(/<dt>Practices<\/dt><dd>([\s\S]*?)<\/dd>/)[1]);
     assert.equal(practices, 'Technical documentation (architecture, runbooks), reproducible software, code review, automated testing, and AI-assisted development gated by human review, tests and CI.');
-    assert.match(text(stack), /no years of experience per technology are claimed/);
+    assert.match(text(stack), /The Inventory API demonstrates SQLAlchemy, Alembic and Docker Compose/);
     assert.doesNotMatch(stack, /Excel|Google Sheets|Tableau|Power Query/, 'tools the latest résumé no longer lists stay off the stack card');
     assert.doesNotMatch(index, /\bAI\b(?!-assisted development)/, 'the only mention of AI on the page is the résumé\'s development practice');
   });

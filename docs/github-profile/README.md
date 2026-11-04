@@ -2,7 +2,7 @@
 
 **Software Engineer · Backend & Full-Stack · New York, NY**
 
-I build Python APIs, PostgreSQL data models and ERP integrations for warehouse operations at Blue Sky Trading. My independent projects show how I test database behavior, build browser interfaces and explain technical tradeoffs.
+I work across software engineering and data analytics at Blue Sky Proprietary Trading Company. My independent projects show how I test database behavior, build browser interfaces and explain technical tradeoffs.
 
 **[Portfolio](https://arthur-fay.github.io/)** · **[Start with my work](https://arthur-fay.github.io/#hiring)** · **[Experience & education](https://arthur-fay.github.io/#experience)** · **[LinkedIn](https://www.linkedin.com/in/arthur-fay/)** · **[Email](mailto:arthur.fay74@gmail.com)**
 
@@ -21,7 +21,7 @@ All four labs run in your browser. The Inventory API runs locally with synthetic
 
 ## Experience & education
 
-- **Backend Software Engineer I, Blue Sky Trading** · March 2026–present. Python REST APIs, PostgreSQL schemas and Python/Java internal applications that integrate with warehouse ERP systems.
+- **Software Engineer, Blue Sky Proprietary Trading Company** · March 2026–present. Software development and data analytics for a funded futures trading company.
 - **Data Analyst, 21st Ave Pharmacy & Medical Supply** · March 2020–December 2025. Inventory exceptions, severity-based prioritization and data integrity for HIPAA-regulated records.
 - **B.S. Computer Science, Capella University** · In progress, expected January 2027.
 - **A.S. Computer Science, Borough of Manhattan Community College (CUNY)** · August 2024.

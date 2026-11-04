@@ -859,7 +859,7 @@ describe('portfolio: recruiter path and evidence-based claims', () => {
       const hero = (await page.locator('.hero-copy').innerText()).toLowerCase();
       assert.ok(hero.includes('software engineer'), 'the hero names the kind of engineer');
       for (const term of ['python', 'typescript/react', 'fastapi', 'postgresql', 'rest apis', 'ci/cd']) assert.ok(hero.includes(term), `the hero names ${term}`);
-      assert.ok(hero.includes('backend software engineer i'), 'the title block keeps the actual job title');
+      assert.ok(hero.includes('blue sky proprietary trading company'), 'the title block identifies the current employer');
     } finally {
       await close();
     }
@@ -929,7 +929,7 @@ describe('portfolio: experience, education, contact and privacy', () => {
       assert.ok(await page.locator('#experience').isVisible());
       assert.deepEqual(await page.$$eval('#experience .record-kind', (els) => els.map((el) => el.textContent.trim())), ['Employment', 'Employment', 'Independent work']);
       assert.deepEqual(await page.$$eval('#experience .record-dates', (els) => els.map((el) => el.textContent.trim())), ['Mar 2026 — Present', 'Mar 2020 — Dec 2025', 'Jul 2026 — Present']);
-      assert.deepEqual(await page.$$eval('#experience .record-body h3', (hs) => hs.map((h) => h.firstChild.textContent.trim())), ['Backend Software Engineer I', 'Data Analyst', 'Software & analytics projects']);
+      assert.deepEqual(await page.$$eval('#experience .record-body h3', (hs) => hs.map((h) => h.firstChild.textContent.trim())), ['Software Engineer', 'Data Analyst', 'Software & analytics projects']);
       // Independent work links to the API evidence and case studies. Employment contains only public role descriptions.
       assert.deepEqual(await page.$$eval('#experience .record-entry-independent a', (as) => as.map((a) => a.getAttribute('href'))), ['#inventory-proof', '#plate-atlas', '#plate-pathfinding', '#plate-security', '#plate-commerce', '#plate-rentals']);
       assert.equal(await page.locator('#experience .record-entry:not(.record-entry-independent) a').count(), 0);
@@ -1025,7 +1025,7 @@ describe('portfolio: experience, education, contact and privacy', () => {
             return found;
           });
           assert.deepEqual(outside, [], `${width}px ${colorScheme}: every technology tag stays inside its card`);
-          assert.ok((await page.locator('#experience .record-tech li').count()) >= 15, 'the record carries its technology tags');
+          assert.deepEqual(await page.locator('#record-bst + .record-points + .record-tech li').allTextContents(), ['Software development', 'Data analytics']);
           assert.deepEqual(problems, []);
         } finally {
           await close();
@@ -1040,7 +1040,7 @@ describe('portfolio: experience, education, contact and privacy', () => {
       assert.equal(await page.title(), 'Arthur Fay — Software Engineer · The Architect Lab · Python, TypeScript/React, FastAPI & PostgreSQL');
       assert.equal(await page.locator('meta[property="og:title"]').getAttribute('content'), 'Arthur Fay — Software Engineer · The Architect Lab');
       assert.match(await page.locator('meta[name="description"]').getAttribute('content'), /^Arthur Fay is a software engineer in New York working in Python, TypeScript\/React, FastAPI, PostgreSQL, REST APIs and CI\/CD\./);
-      assert.deepEqual(await page.$$eval('.hero-titleblock dd', (dds) => dds.slice(0, 3).map((dd) => dd.firstChild.textContent.trim())), ['Backend Software Engineer I', 'Python · TypeScript/React · FastAPI · PostgreSQL', 'B.S. Computer Science, in progress']);
+      assert.deepEqual(await page.$$eval('.hero-titleblock dd', (dds) => dds.slice(0, 3).map((dd) => dd.firstChild.textContent.trim())), ['Software Engineer', 'Python · TypeScript/React · FastAPI · PostgreSQL', 'B.S. Computer Science, in progress']);
       assert.deepEqual(await page.$$eval('.stack-group dt', (dts) => dts.map((dt) => dt.textContent)), ['Programming', 'Backend & data', 'Frontend', 'Testing & quality', 'Infrastructure & CI/CD', 'Practices']);
     } finally {
       await close();
