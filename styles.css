@@ -1125,8 +1125,34 @@ html[data-theme="light"] .contact-section .contact-card{--accent:#234fc1;--on-ac
 
 /* NYC rental case study */
 #plate-rentals{--accent:var(--cyan)}
-.rental-plate-art{display:block}
-.rental-plate-art .art-line{stroke:var(--text);stroke-width:1.45}
+.rental-demo{aspect-ratio:auto;padding:clamp(12px,1.6vw,22px);border:1px solid var(--line2);border-radius:12px;background:linear-gradient(155deg,color-mix(in srgb,var(--accent) 8%,var(--surface)),var(--bg) 60%)}
+.rental-demo-heading{display:flex;align-items:center;gap:10px;line-height:1.3}
+.rental-demo-heading strong{display:block;color:var(--text);font-size:1.05rem}
+.rental-demo-heading small{display:block;margin-top:4px;color:var(--muted);font-size:.8rem}
+.plate-art .rental-demo-icon{position:static;width:40px;height:40px;padding:8px;flex:none;border:1px solid var(--line2);border-radius:9px;background:var(--surface);color:var(--accent)}
+.rental-demo-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:15px 0 13px}
+.rental-demo-choices button{min-height:44px;min-width:0;padding:5px 8px;border:1px solid var(--line2);border-radius:7px;background:var(--surface);color:var(--text);font-size:.84rem;font-weight:650;line-height:1.25;text-align:left;cursor:pointer}
+.rental-demo-choices button:hover,.rental-demo-choices button[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--surface))}
+.rental-demo-choices button[aria-pressed="true"]{color:var(--accent)}
+.rental-demo-profile{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
+.rental-demo-selection{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 10px}
+.rental-demo-selection strong{color:var(--text);font-size:1.03rem}
+.rental-demo-selection span,.rental-demo-caption{color:var(--muted);font-size:.8rem}
+.rental-demo-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:9px 0 12px}
+.rental-demo-stats>div{padding:7px 6px;border:1px solid var(--line);border-radius:6px;background:var(--bg2)}
+.rental-demo-stats dt{min-height:2.6em;color:var(--muted);font-size:.74rem;line-height:1.3}
+.rental-demo-stats dd{margin:3px 0 0;color:var(--accent);font:650 clamp(.95rem,1.7vw,1.35rem)/1.2 var(--font-body);font-variant-numeric:tabular-nums}
+.rental-demo-caption{margin:0 0 5px;font-weight:650}
+.rental-demo-components{display:grid;gap:6px;list-style:none;margin:0;padding:0}
+.rental-demo-components li{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:3px 8px;color:var(--text);font-size:.8rem;line-height:1.35}
+.rental-demo-components b{color:var(--muted);font-variant-numeric:tabular-nums}
+.rental-demo-components svg{position:static;grid-column:1/-1;width:100%;height:6px;background:var(--bg2);border-radius:4px}
+.rental-demo-components rect{fill:var(--accent);transition:width .32s var(--ease)}
+.plate-art .rental-demo-pointer{inset:0 auto auto 0;width:40px;height:40px;pointer-events:none;z-index:2;transform:translate3d(var(--rental-pointer-x,0),var(--rental-pointer-y,0),0);transition:transform .1s linear;overflow:visible;filter:drop-shadow(0 2px 3px #0007)}
+.rental-demo-pointer path{fill:var(--text);stroke:var(--bg);stroke-width:1.7;stroke-linejoin:round}
+.rental-demo-pointer circle{fill:none;stroke:var(--accent);stroke-width:2.5}
+[data-preview-state="paused"] .rental-demo :is(.rental-demo-pointer,rect){transition:none}
+#plate-rentals .preview-toolbar{border:1px solid var(--line2);border-radius:6px}
 #plate-rentals .project-entry{align-items:center;gap:12px}
 #plate-rentals .project-entry-link{align-items:center;min-height:48px;padding:8px 12px;border:1px solid var(--accent);border-radius:8px;background:color-mix(in srgb,var(--accent) 11%,var(--surface));text-decoration:none}
 #plate-rentals .project-entry-link:hover{background:color-mix(in srgb,var(--accent) 20%,var(--surface))}

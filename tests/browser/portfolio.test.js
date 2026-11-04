@@ -524,11 +524,14 @@ describe('portfolio: motion, hero drawing and immediate reading', () => {
       assert.ok(await page.locator('#system-motion').isDisabled(), 'reduced-motion preference keeps autoplay off');
       assert.equal(await page.$eval('.iso-float', (p) => getComputedStyle(p).transform), 'none');
       assert.equal(await page.$eval('.iso-packet', (p) => getComputedStyle(p).display), 'none');
-      assert.equal(await page.locator('[data-project-preview][data-preview-state="paused"]').count(), 4);
-      assert.equal(await page.locator('.preview-toggle:disabled').count(), 4);
-      assert.equal(await page.locator('.preview-next:disabled').count(), 2);
+      assert.equal(await page.locator('[data-project-preview][data-preview-state="paused"]').count(), 5);
+      assert.equal(await page.locator('.preview-toggle:disabled').count(), 5);
+      assert.equal(await page.locator('.preview-next:disabled').count(), 3);
       assert.equal(await page.$eval('.atlas-motion', el => getComputedStyle(el).display), 'none');
       assert.ok(await page.locator('.report-kpis').isVisible(), 'reduced motion retains the complete reported summary');
+      await page.getByRole('button', { name: 'Jackson Heights', exact: true }).press('Enter');
+      assert.equal(await page.locator('[data-rental-field="asking"]').innerText(), '$2,750');
+      assert.equal(await page.locator('.rental-demo-pointer').isVisible(), false);
       assert.deepEqual(problems, []);
     } finally {
       await close();
@@ -1140,6 +1143,26 @@ describe('portfolio: experience, education, contact and privacy', () => {
 });
 
 describe('portfolio: animated project previews', () => {
+  it('moves the rental pointer between neighborhoods and renders their published values', async () => {
+    const { page, problems, close } = await open('/#plate-rentals');
+    try {
+      const figure = page.locator('[data-project-preview="rentals"]');
+      await page.waitForFunction(() => document.querySelector('[data-project-preview="rentals"]').dataset.previewState === 'playing');
+      await page.getByRole('button', { name: 'Replay NYC rental preview', exact: true }).press('Enter');
+      const art = figure.locator('.rental-demo');
+      const pose = await art.evaluate(el => el.style.getPropertyValue('--rental-pointer-x'));
+      await page.waitForFunction(before => document.querySelector('.rental-demo').style.getPropertyValue('--rental-pointer-x') !== before, pose);
+      await page.waitForFunction(() => document.querySelector('[data-rental-field="name"]').textContent === 'East New York');
+      assert.equal(await figure.locator('[data-rental-field="asking"]').innerText(), '$2,721');
+      await page.getByRole('button', { name: 'Bay Ridge', exact: true }).click();
+      assert.equal(await figure.getAttribute('data-preview-state'), 'paused');
+      assert.equal(await figure.locator('[data-rental-field="asking"]').innerText(), '$2,800');
+      assert.equal(await figure.locator('[data-rental-field="listings"]').innerText(), '83');
+      assert.equal(await figure.locator('[data-rental-field="score"]').innerText(), '80.91');
+      assert.deepEqual(await figure.locator('.rental-demo-components rect').evaluateAll(elements => elements.map(el => el.getAttribute('width'))), ['85.64','97.87','18.09','93.09']);
+      assert.deepEqual(problems, []);
+    } finally { await close(); }
+  });
   it('moves ATLAS packets visibly and lets a reader inspect a chapter with the keyboard', async () => {
     const { page, problems, close } = await open('/#plate-atlas');
     try {

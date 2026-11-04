@@ -2,6 +2,7 @@
 import * as P from './lab/pathfinding/pathfinding.js';
 import * as D from './lab/security-events/detection.js';
 import { PUBLISHED, EXPORTED } from './lab/ecommerce/model.js';
+import { scores } from './lab/nyc-rentals/data.js';
 
 const round = (value) => Math.round(value * 10) / 10;
 const bounded = (value, max) => Math.min(max, Math.max(0, Math.floor(value)));
@@ -132,6 +133,52 @@ export function securityPreviewFrame(model, count, playhead) {
   };
 }
 
+function rentalWalkthrough(art) {
+  const buttons = [...art.querySelectorAll('.rental-demo-choices button')];
+  const profiles = buttons.map(button => scores.find(row => row.name === button.textContent));
+  const fields = [...art.querySelectorAll('[data-rental-field]')];
+  const bars = [...art.querySelectorAll('.rental-demo-components li')];
+  const pointer = art.querySelector('.rental-demo-pointer');
+  const ripple = pointer.querySelector('circle');
+  const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2, minimumFractionDigits: 0 });
+  let selected = -1;
+
+  function draw(progress) {
+    const position = unit(progress) * buttons.length;
+    const chapter = Math.min(buttons.length - 1, Math.floor(position));
+    const previous = (chapter + buttons.length - 1) % buttons.length;
+    const phase = position - chapter;
+    const travel = unit(phase / 0.2);
+    const active = travel < 1 ? previous : chapter;
+    const bounds = art.getBoundingClientRect();
+    const start = buttons[previous].getBoundingClientRect();
+    const end = buttons[chapter].getBoundingClientRect();
+    const eased = travel * travel * (3 - 2 * travel);
+    const x = (rect) => rect.left + rect.width * 0.72 - bounds.left - 13;
+    const y = (rect) => rect.top + rect.height / 2 - bounds.top - 11;
+    art.style.setProperty('--rental-pointer-x', `${round(x(start) + (x(end) - x(start)) * eased)}px`);
+    art.style.setProperty('--rental-pointer-y', `${round(y(start) + (y(end) - y(start)) * eased)}px`);
+    const pulse = unit((phase - 0.2) / 0.17);
+    ripple.setAttribute('r', String(5 + 7 * pulse));
+    ripple.setAttribute('opacity', String(phase < 0.2 ? 0 : 1 - pulse));
+    if (active !== selected) {
+      const row = profiles[active];
+      const values = { name: row.name, borough: row.borough, asking: money.format(row.asking),
+        listings: row.listings.toLocaleString('en-US'), score: row.score.toFixed(2) };
+      fields.forEach(field => { field.textContent = values[field.dataset.rentalField]; });
+      bars.forEach((bar, i) => {
+        bar.querySelector('b').textContent = row.components[i].toFixed(2);
+        bar.querySelector('rect').setAttribute('width', String(row.components[i]));
+      });
+      buttons.forEach((button, i) => button.setAttribute('aria-pressed', String(i === active)));
+      selected = active;
+    }
+    return selected;
+  }
+
+  return { buttons, pointer, draw };
+}
+
 function initializePreviews() {
   const figures = [...document.querySelectorAll('[data-project-preview]')];
   if (!figures.length) return;
@@ -152,6 +199,7 @@ function initializePreviews() {
     const next = figure.querySelector('.preview-next');
     const stage = figure.querySelector('.preview-stage');
     const project = figure.dataset.previewName;
+    const rental = kind === 'rentals' ? rentalWalkthrough(art) : null;
     const svg = art.querySelector('svg');
     const originalPaths = [...svg.querySelectorAll('path')].map((element) => [element, element.getAttribute('d')]);
     const nodes = kind === 'atlas' ? [...svg.querySelectorAll('rect[width="96"]')] : [];
@@ -222,7 +270,7 @@ function initializePreviews() {
     let previous = 0;
     let timer = null;
     let visible = false;
-    const duration = kind === 'atlas' ? 20000 : kind === 'commerce' ? 16000 : 10000;
+    const duration = kind === 'atlas' ? 20000 : kind === 'commerce' || rental ? 16000 : 10000;
 
     const draw = (progress) => {
       figure.style.setProperty('--preview-progress', progress.toFixed(4));
@@ -250,6 +298,8 @@ function initializePreviews() {
         figure.querySelector('.commerce-demo').dataset.chapter = String(frame.chapter);
         stage.textContent = 'Fixed reported figures · animated reveal';
         figure.dataset.previewPhase = String(frame.chapter);
+      } else if (rental) {
+        figure.dataset.previewPhase = String(rental.draw(progress));
       } else if (kind === 'pathfinding') {
         const count = Math.min(model.result.trace.length, Math.floor((progress / 0.65) * model.result.trace.length));
         const routeCount = progress < 0.65 ? 0 : Math.min(model.result.path.length, Math.ceil(((progress - 0.65) / 0.22) * model.result.path.length));
@@ -280,6 +330,7 @@ function initializePreviews() {
     const update = () => {
       const running = visible && !card.hidden && !document.hidden && !reduced.matches && !paused.has(kind);
       figure.dataset.previewState = running ? 'playing' : 'paused';
+      rental?.pointer.toggleAttribute('hidden', reduced.matches || !visible || card.hidden || (!running && !figure.dataset.previewPhase));
       figure.querySelector('.preview-loop').textContent = reduced.matches ? 'Still view' : running ? 'Playing' : 'Paused';
       toggle.disabled = reduced.matches;
       replay.disabled = reduced.matches;
@@ -311,14 +362,18 @@ function initializePreviews() {
     };
     toggle.addEventListener('click', () => { if (paused.has(kind)) paused.delete(kind); else paused.add(kind); save(); update(); });
     replay.addEventListener('click', () => { elapsed = 0; previous = performance.now(); paused.delete(kind); save(); draw(0); update(); });
-    next?.addEventListener('click', () => {
-      const chapter = (Math.floor(((elapsed % duration) / duration) * 4) + 1) % 4;
-      elapsed = (chapter * duration) / 4;
+    const seek = (chapter) => {
+      elapsed = ((chapter + (rental ? 0.25 : 0)) * duration) / 4;
       paused.add(kind);
       save();
       draw(elapsed / duration);
       update();
+    };
+    next?.addEventListener('click', () => {
+      const chapter = (Math.floor(((elapsed % duration) / duration) * 4) + 1) % 4;
+      seek(chapter);
     });
+    rental?.buttons.forEach((button, index) => button.addEventListener('click', () => seek(index)));
     figure.querySelectorAll('[data-preview-ui]').forEach((element) => { element.hidden = false; });
     figure.classList.add('is-preview-ready');
     players.set(figure, { update, setVisible: (value) => { visible = value; update(); } });

@@ -22,8 +22,8 @@
   <meta name="twitter:image" content="https://arthur-fay.github.io/social-card.png" />
   <link rel="canonical" href="https://arthur-fay.github.io/" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="stylesheet" href="/styles.css?v=0954733849ac" />
-  <script type="module" src="/project-previews.js?v=f9fc3c85550e"></script>
+  <link rel="stylesheet" href="/styles.css?v=0fa009914ac0" />
+  <script type="module" src="/project-previews.js?v=5dd8efbe3412"></script>
   <script defer src="/script.js?v=ebf3939013e5"></script>
   <title>Arthur Fay — Software Engineer · The Architect Lab · Python, TypeScript/React, FastAPI &amp; PostgreSQL</title>
 </head>
@@ -468,19 +468,42 @@
           <article class="project" id="plate-rentals" data-category="analytics interactive" aria-labelledby="rentals-title" data-reveal>
             <div class="plate-head"><span class="project-num">Plate 05 <span class="project-slash">/</span> Analytics</span><span class="project-label">NYC housing data · Power BI · Interactive exploration</span></div>
             <div class="plate-grid">
-              <figure class="plate-figure">
-                <a class="plate-art frame rental-plate-art" href="/lab/nyc-rentals/" aria-label="Open the NYC rental market lab">
-                  <svg viewBox="0 0 160 96" role="img" aria-label="Published NYC asking and effective rent trends, February 2025 through May 2026" focusable="false">
-                    <rect class="art-box" x="8" y="8" width="144" height="80" rx="4"/>
-                    <path class="art-grid" d="M16 25h127M16 40h127M16 55h127M16 70h127"/>
-                    <polyline class="art-flow" points="16.0,64.1 24.5,58.0 33.0,46.1 41.5,43.0 50.0,34.8 58.5,32.0 67.0,37.0 75.5,43.6 84.0,47.5 92.5,58.0 101.0,58.0 109.5,52.1 118.0,46.2 126.5,40.5 135.0,28.3 143.5,28.0"/>
-                    <polyline class="art-line" points="16.0,61.0 24.5,52.0 33.0,43.0 41.5,40.0 50.0,31.0 58.5,28.3 67.0,31.0 75.5,40.0 84.0,41.5 92.5,52.0 101.0,52.0 109.5,47.8 118.0,40.3 126.5,39.6 135.0,28.0 143.5,25.0"/>
-                    <text class="art-text-strong" x="16" y="19">NYC median rent</text>
-                    <text class="art-text-accent" x="143" y="19" text-anchor="end">$4,050</text>
-                    <text x="16" y="82">Feb 2025</text><text x="143" y="82" text-anchor="end">May 2026</text>
-                  </svg>
-                </a>
-                <figcaption><b>Fig. 05</b>Actual monthly medians from the project export. Solid line shows asking rent. Dashed line shows effective rent.</figcaption>
+              <figure class="plate-figure" data-project-preview="rentals" data-preview-name="NYC rental">
+                <div class="preview-heading" data-preview-ui hidden><span class="preview-indicator" aria-hidden="true"></span><span>Neighborhood walkthrough</span><span class="preview-loop">Animated preview</span></div>
+                <div class="plate-art rental-demo">
+                  <div class="rental-demo-heading">
+                    <svg class="rental-demo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 11 12 4l9 7M5 10v10h14V10M8 16l3-3 2 2 3-4"/></svg>
+                    <div><strong>Neighborhood explorer</strong><small>May 2026 report snapshot</small></div>
+                  </div>
+                  <div class="rental-demo-choices" role="group" aria-label="Preview neighborhoods" data-preview-ui hidden>
+                    <button type="button" aria-pressed="true">East New York</button>
+                    <button type="button" aria-pressed="false">Bay Ridge</button>
+                    <button type="button" aria-pressed="false">Jackson Heights</button>
+                    <button type="button" aria-pressed="false">Hudson Heights</button>
+                  </div>
+                  <div class="rental-demo-profile">
+                    <div class="rental-demo-selection"><strong data-rental-field="name">East New York</strong><span data-rental-field="borough">Brooklyn</span></div>
+                    <dl class="rental-demo-stats">
+                      <div><dt>Median asking rent</dt><dd data-rental-field="asking">$2,721</dd></div>
+                      <div><dt>Listings</dt><dd data-rental-field="listings">93</dd></div>
+                      <div><dt>Score / 100</dt><dd data-rental-field="score">84.66</dd></div>
+                    </dl>
+                    <p class="rental-demo-caption">Score components / 100</p>
+                    <ul class="rental-demo-components">
+                      <li><span>Affordability</span><b>88.30</b><svg viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true"><rect width="88.3" height="6"/></svg></li>
+                      <li><span>Rent momentum</span><b>74.47</b><svg viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true"><rect width="74.47" height="6"/></svg></li>
+                      <li><span>Inventory momentum</span><b>91.49</b><svg viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true"><rect width="91.49" height="6"/></svg></li>
+                      <li><span>Pricing power</span><b>93.09</b><svg viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true"><rect width="93.09" height="6"/></svg></li>
+                    </ul>
+                  </div>
+                  <svg class="rental-demo-pointer" viewBox="0 0 44 44" aria-hidden="true" focusable="false" hidden><circle cx="14" cy="12" r="6"/><path d="M14 12v22l6-5 5 10 5-3-5-10h8z"/></svg>
+                </div>
+                <div class="preview-toolbar" data-preview-ui hidden>
+                  <span class="preview-stage" aria-hidden="true">May 2026 snapshot</span>
+                  <div class="preview-actions"><button class="preview-toggle" type="button" aria-label="Pause NYC rental preview">Pause</button><button class="preview-replay" type="button" aria-label="Replay NYC rental preview">Replay</button><button class="preview-next" type="button" aria-label="Next NYC rental neighborhood">Next</button></div>
+                </div>
+                <div class="preview-progress" data-preview-ui aria-hidden="true" hidden><span></span></div>
+                <figcaption><b>Fig. 05</b>The animated pointer selects four neighborhoods from the published May 2026 snapshot. Choose a neighborhood to pause and inspect its figures.</figcaption>
               </figure>
               <div class="project-body">
                 <h3 id="rentals-title">NYC Rental Market Analytics<span class="project-subtitle">Power BI report and interactive market lab</span></h3>

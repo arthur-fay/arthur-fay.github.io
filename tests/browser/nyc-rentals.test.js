@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createRequire } from 'node:module';
 import { startServer } from './helpers/server.js';
+import { city } from '../../lab/nyc-rentals/data.js';
 
 const { chromium } = createRequire(import.meta.url)('playwright');
 
@@ -22,38 +23,48 @@ test('the rental case study is discoverable and its controls work on desktop and
         assert.match(await page.locator('#market-kpis').innerText(), /\$4,050/);
         const chart = page.locator('#trend-chart');
         await chart.scrollIntoViewIfNeeded();
-        const plot = await chart.evaluate((node) => {
-          const grid = node.querySelector('.rental-chart-grid');
+        const points = await chart.evaluate((node) => {
           const matrix = node.getScreenCTM();
-          const y = Number(grid.getAttribute('y1')) - 50;
-          const start = new DOMPoint(Number(grid.getAttribute('x1')), y).matrixTransform(matrix);
-          const end = new DOMPoint(Number(grid.getAttribute('x2')), y).matrixTransform(matrix);
-          return { start: start.x, end: end.x, y: start.y };
+          return Array.from(node.querySelector('.rental-series').points, (point) => {
+            const { x, y } = point.matrixTransform(matrix);
+            return { x, y };
+          });
         });
-        const chartX = (index) => plot.start + (plot.end - plot.start) * index / 15;
         const month = page.getByLabel('Snapshot month');
         if (touch) {
-          await page.touchscreen.tap(chartX(5), plot.y);
+          await page.touchscreen.tap(points[5].x, points[5].y);
         } else {
-          await page.mouse.click(chartX(5), plot.y);
+          await page.mouse.click(points[5].x, points[5].y);
         }
         assert.equal(await month.inputValue(), '2025-07');
         assert.match(await page.locator('#market-kpis').innerText(), /\$3,995/);
         assert.match(await page.locator('#comparison-context').innerText(), /Jul 2025/);
 
-        if (touch) {
-          const session = await page.context().newCDPSession(page);
-          await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: chartX(5), y: plot.y }] });
-          await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: chartX(10), y: plot.y }] });
-          assert.equal(await month.inputValue(), '2025-12');
-          await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-          await session.detach();
+        const touchSession = touch ? await page.context().newCDPSession(page) : null;
+        if (touchSession) {
+          await touchSession.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [points[0]] });
         } else {
-          await page.mouse.move(chartX(5), plot.y);
+          await page.mouse.move(points[0].x, points[0].y);
           await page.mouse.down();
-          await page.mouse.move(chartX(10), plot.y, { steps: 5 });
-          assert.equal(await month.inputValue(), '2025-12');
-          await page.mouse.move(plot.start - 35, plot.y);
+        }
+        const dates = new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+        const rent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2, minimumFractionDigits: 0 });
+        for (const [i, point] of points.entries()) {
+          if (i && touchSession) {
+            await touchSession.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [point] });
+          } else if (i) {
+            await page.mouse.move(point.x, point.y);
+          }
+          assert.equal(await month.inputValue(), city[i].month, `month ${i + 1} while dragging along the line`);
+          assert.equal(await chart.locator('.rental-tooltip-month').textContent(), dates.format(new Date(city[i].month + '-01T00:00:00Z')));
+          assert.deepEqual(await chart.locator('.rental-tooltip-value').allTextContents(), [rent.format(city[i].asking), rent.format(city[i].effective)]);
+        }
+        assert.equal(points.length, 16);
+        if (touchSession) {
+          await touchSession.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+          await touchSession.detach();
+        } else {
+          await page.mouse.move(points[0].x - 80, points[0].y);
           assert.equal(await month.inputValue(), '2025-02');
           await page.mouse.up();
         }
