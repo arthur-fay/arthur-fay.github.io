@@ -123,7 +123,7 @@ describe('the professional record', () => {
     assert.match(text(index.match(/<footer class="site-footer">[\s\S]*?<\/footer>/)[0]), /Portfolio of a software engineer/);
   });
 
-  it('groups the skills as the résumé does and says where each technology was used', () => {
+  it('groups the skills as the résumé does and points to project evidence', () => {
     const stack = index.match(/<section class="record-card" aria-labelledby="stack-title">[\s\S]*?<\/section>/)[0];
     const groups = [...stack.matchAll(/<dt>([^<]+)<\/dt>/g)].map((m) => m[1].replace(/&amp;/g, '&'));
     assert.deepEqual(groups, ['Programming', 'Backend & data', 'Frontend', 'Testing & quality', 'Infrastructure & CI/CD', 'Practices']);
@@ -138,7 +138,7 @@ describe('the professional record', () => {
     assert.deepEqual(chips, Object.values(expected).flat());
     const practices = text(stack.match(/<dt>Practices<\/dt><dd>([\s\S]*?)<\/dd>/)[1]);
     assert.equal(practices, 'Technical documentation (architecture, runbooks), reproducible software, code review, automated testing, and AI-assisted development gated by human review, tests and CI.');
-    assert.match(text(stack), /no years of experience per technology are claimed/);
+    assert.match(text(stack), /The Inventory API demonstrates SQLAlchemy, Alembic and Docker Compose/);
     assert.doesNotMatch(stack, /Excel|Google Sheets|Tableau|Power Query/, 'tools the latest résumé no longer lists stay off the stack card');
     assert.doesNotMatch(index, /\bAI\b(?!-assisted development)/, 'the only mention of AI on the page is the résumé\'s development practice');
   });
