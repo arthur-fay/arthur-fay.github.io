@@ -249,7 +249,7 @@ describe('portfolio: the section cut', () => {
         assert.equal(await tab.getAttribute('aria-controls'), `cut-${key}`);
         const panel = page.locator(`#cut-${key}`);
         assert.equal(await panel.getAttribute('aria-labelledby'), `tab-${key}`);
-        assert.equal(await panel.locator('.cut-meta dd').nth(1).innerText(), `0${i + 1} of 05`);
+        assert.equal(await panel.locator('.cut-meta dd').nth(1).textContent(), `0${i + 1} of 05`);
         assert.equal(await panel.locator('.stratum').count(), 6, `${key} has six layers`);
         assert.equal(await panel.locator('.stratum h4').count(), 6);
         assert.ok((await panel.locator('.stratum-tech li').count()) >= 6, `${key} names its technologies`);
