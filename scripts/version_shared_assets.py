@@ -1,6 +1,6 @@
-"""Give shared CSS/JS content-derived URLs so updated HTML bypasses old caches.
+"""Give shared assets content-derived URLs so updated HTML bypasses old caches.
 
-Run after editing a versioned stylesheet or script. The offline checker rejects stale
+Run after editing a versioned stylesheet, script or icon. The offline checker rejects stale
 versions, including the references in lab pages and the custom 404 page.
 """
 from pathlib import Path
@@ -14,7 +14,7 @@ PAGES = ("index.html", "404.html", "lab/pathfinding/index.html",
 
 def main() -> None:
     versions = {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()[:12]
-                for name in ("styles.css", "script.js", "project-previews.js", "lab/pathfinding/lab.css",
+                for name in ("styles.css", "script.js", "favicon.svg", "project-previews.js", "lab/pathfinding/lab.css",
                              "lab/nyc-rentals/lab.css", "lab/nyc-rentals/app.js")}
     for page in PAGES:
         file = ROOT / page

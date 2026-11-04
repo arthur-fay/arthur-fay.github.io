@@ -106,8 +106,9 @@ em.ink,.hero h1 em,.section-heading h2 em,.case-study-main h2 em,.about-heading 
 .header-inner{height:100%;display:flex;align-items:center;justify-content:space-between;gap:24px}
 .wordmark{display:flex;align-items:center;gap:14px;flex-shrink:0;min-width:0}
 .wordmark-symbol{width:42px;height:42px;flex-shrink:0;color:var(--text)}
-.wordmark-symbol .mark-pen{stroke:var(--accent)}
 .wordmark-symbol .mark-box{stroke:var(--line2)}
+.wordmark-symbol .mark-bar{stroke:var(--cyan)}
+.wordmark-symbol .mark-adjuster{fill:var(--cyan)}
 .wordmark-name{display:flex;flex-direction:column;gap:3px;font-family:var(--font-display);font-size:17px;letter-spacing:-.01em;line-height:1;color:var(--text)}
 .wordmark-sub{font-family:var(--font-mono);font-size:10px;letter-spacing:.18em;color:var(--fine);text-transform:uppercase}
 .desktop-nav{display:flex;align-items:center;gap:30px}
@@ -967,7 +968,6 @@ html[data-theme="light"] .contact-section .contact-card{--accent:#234fc1;--on-ac
 .hero-titleblock>div{border:1px solid color-mix(in srgb,var(--accent) 22%,var(--line));border-top:2px solid var(--accent);border-radius:4px;background:color-mix(in srgb,var(--accent) 5%,var(--surface))}
 .hero-titleblock>div::before{display:none}
 .wordmark-symbol{color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface));border-radius:4px}
-.wordmark-symbol .mark-pen{stroke:var(--cyan)}
 .site-header{border-bottom-color:color-mix(in srgb,var(--accent) 32%,var(--line))}
 .icon-button,.header-github{background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
 .desktop-nav a:hover,.desktop-nav a[aria-current="true"]{color:var(--accent)}
