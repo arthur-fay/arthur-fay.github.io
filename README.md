@@ -2,13 +2,14 @@
 
 ## Recruiter quick tour
 
-**[Open the live portfolio](https://arthur-fay.github.io/)** · **[Review professional experience](https://arthur-fay.github.io/#experience)** · **[Inspect source and tests](https://github.com/arthur-fay/arthur-fay.github.io/tree/main/tests)**
+**[Start with the work](https://arthur-fay.github.io/#hiring)** · **[Review professional experience](https://arthur-fay.github.io/#experience)** · **[Inspect source and tests](https://github.com/arthur-fay/arthur-fay.github.io/tree/main/tests)**
 
 | Engineering focus | Evidence |
 | --- | --- |
 | PostgreSQL transactions and retry handling | [Inventory API: run locally](https://github.com/arthur-fay/inventory-reservations-api#run-locally) · [Concurrency tests](https://github.com/arthur-fay/inventory-reservations-api/blob/main/tests/integration/test_concurrency.py) · [Schema migration](https://github.com/arthur-fay/inventory-reservations-api/blob/main/migrations/versions/0001_inventory.py) |
 | Backend APIs and applied forecasting | [ATLAS source](https://github.com/arthur-fay/demand-forecasting-model) · [API documentation](https://github.com/arthur-fay/demand-forecasting-model/blob/main/docs/API.md) · [Research qualifications](https://github.com/arthur-fay/demand-forecasting-model/blob/main/docs/BACKTESTING.md) |
 | Analytics and dimensional modeling | [Original Power BI project](https://github.com/arthur-fay/customer-revenue-analytics) · [Interactive analytics lab](https://arthur-fay.github.io/lab/ecommerce/) |
+| Housing market analytics | [NYC Rentals live lab](https://arthur-fay.github.io/lab/nyc-rentals/) · [Power BI project](https://github.com/arthur-fay/nyc-rental-market-analytics) |
 | Algorithm engineering | [Pathfinding live lab](https://arthur-fay.github.io/lab/pathfinding/) · [Source](lab/pathfinding/) |
 | Defensive investigation | [Synthetic Security Events live lab](https://arthur-fay.github.io/lab/security-events/) · [Source](lab/security-events/) |
 
@@ -18,7 +19,7 @@ A responsive, accessible, dependency-free engineering portfolio served at **http
 
 **Status:** The portfolio is served from `main` by GitHub Pages. New work is prepared on review branches and pull requests; the owner controls whether and when to merge, and merging into `main` publishes the change.
 
-**Review by role:** The [homepage evidence guide](https://arthur-fay.github.io/#hiring) maps backend/API, frontend/full-stack, data/BI and test-automation reviews to the relevant project, running lab, source and tests. It appears above the project filters. Direct project links restore **All work** when their target was hidden by a filter. See the [27 October readiness review](docs/JOB_READINESS_2026-10-27.md) for the evidence map and remaining gaps. The Inventory API is the first backend review path; its source and run instructions are public, and the API itself runs locally with synthetic data.
+**Review by role:** The [homepage evidence guide](https://arthur-fay.github.io/#hiring) maps backend/API, frontend/full-stack, data/BI and test-automation reviews to the relevant project, running lab, source and tests. The first button on the homepage leads to it, with a PostgreSQL race test and direct links to browser demos. Direct project links restore **All work** when their target was hidden by a filter. See the [27 October readiness review](docs/JOB_READINESS_2026-10-27.md) for the evidence map and remaining gaps. The Inventory API is the first backend review path; its source and run instructions are public, and the API itself runs locally with synthetic data.
 
 ## Featured work
 

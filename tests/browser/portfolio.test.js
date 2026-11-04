@@ -801,7 +801,7 @@ describe('portfolio: desktop-first hero hierarchy', () => {
         const strap = await page.locator('.hero-roleline').innerText();
         assert.match(strap, /software engineer/i, 'the role label remains visible even with uppercase styling');
         assert.doesNotMatch(strap, /^\/$/m, 'the decorative divider does not occupy its own line');
-        assert.equal(await page.locator('.hero-buttons a[href="#work"]').count(), 1);
+        assert.equal(await page.locator('.hero-buttons a[href="#hiring"]').count(), 1);
         assert.equal(await page.locator('.hero-buttons a[href="#experience"]').count(), 1);
         assert.ok((await overflow(page)) <= 1);
         assert.deepEqual(await clipped(page), []);
@@ -812,16 +812,23 @@ describe('portfolio: desktop-first hero hierarchy', () => {
 });
 
 describe('portfolio: recruiter path and evidence-based claims', () => {
-  it('leads from the hero straight to the five plates and keeps the section-cut explorer', async () => {
+  it('leads from the hero to hiring evidence and then the five case studies', async () => {
     const { page, close } = await open('/');
     try {
       const primary = page.locator('.hero .hero-buttons .button-primary');
-      assert.equal(await primary.getAttribute('href'), '#work');
-      assert.match((await primary.textContent()).replace(/\s+/g, ' ').trim(), /^View projects/);
+      assert.equal(await primary.getAttribute('href'), '#hiring');
+      assert.match((await primary.textContent()).replace(/\s+/g, ' ').trim(), /^Start with my work/);
       assert.equal(await page.locator('.hero .hero-buttons a[href="#systems"]').count(), 1, 'the section cut keeps its hero entry point');
       assert.equal(await page.locator('.hero .hero-buttons a[href="https://github.com/arthur-fay"]').count(), 1);
       assert.deepEqual(await page.$$eval('.hero-index a', (links) => links.map((a) => a.getAttribute('href'))), ['#plate-atlas', '#plate-commerce', '#plate-pathfinding', '#plate-security', '#plate-rentals']);
       await primary.click();
+      await page.waitForFunction(() => window.location.hash === '#hiring');
+      const guideTop = await page.$eval('#hiring', (el) => el.getBoundingClientRect().top);
+      assert.ok(guideTop >= 0 && guideTop <= 120, 'the guide starts below the sticky header');
+      assert.equal(await page.locator('#inventory-proof a').count(), 3);
+      assert.equal(await page.locator('#hiring a[href="/lab/pathfinding/"]').count(), 1);
+      assert.equal(await page.locator('#hiring a[href="/lab/nyc-rentals/"]').count(), 1);
+      await page.locator('#hiring a[href="#work"]').click();
       await page.waitForFunction(() => window.location.hash === '#work');
       const workTop = await page.$eval('#work', (el) => el.getBoundingClientRect().top);
       assert.ok(workTop >= 0 && workTop <= 120, `the projects section sits just below the sticky header (top=${workTop})`);
@@ -894,7 +901,7 @@ describe('portfolio: professional record desktop refinement', () => {
           assert.ok(layout.skillCount >= 30 && layout.chipBorder === 0, 'all technology terms remain, without excessive chip borders');
           assert.ok(layout.skillGroupRows.every((value, i, all) => i === 0 || value > all[i - 1]), 'skill groups retain a top-to-bottom hierarchy');
           assert.equal(layout.visibleEducation.length, 2, 'both degrees are visible in the academic panel');
-          assert.equal(layout.projectLinks, 4, 'the independent-work links are preserved');
+          assert.equal(layout.projectLinks, 5, 'all five case studies are reachable from independent work');
           assert.equal(await overflow(page), 0);
           assert.deepEqual(problems, []);
         } finally { await close(); }
@@ -923,8 +930,8 @@ describe('portfolio: experience, education, contact and privacy', () => {
       assert.deepEqual(await page.$$eval('#experience .record-kind', (els) => els.map((el) => el.textContent.trim())), ['Employment', 'Employment', 'Independent work']);
       assert.deepEqual(await page.$$eval('#experience .record-dates', (els) => els.map((el) => el.textContent.trim())), ['Mar 2026 — Present', 'Mar 2020 — Dec 2025', 'Jul 2026 — Present']);
       assert.deepEqual(await page.$$eval('#experience .record-body h3', (hs) => hs.map((h) => h.firstChild.textContent.trim())), ['Backend Software Engineer I', 'Data Analyst', 'Software & analytics projects']);
-      // The independent-work entry links to the plates; the employment entries link nowhere.
-      assert.deepEqual(await page.$$eval('#experience .record-entry-independent a', (as) => as.map((a) => a.getAttribute('href'))), ['#plate-atlas', '#plate-commerce', '#plate-pathfinding', '#plate-security']);
+      // Independent work links to the API evidence and case studies. Employment contains only public role descriptions.
+      assert.deepEqual(await page.$$eval('#experience .record-entry-independent a', (as) => as.map((a) => a.getAttribute('href'))), ['#inventory-proof', '#plate-atlas', '#plate-pathfinding', '#plate-security', '#plate-commerce', '#plate-rentals']);
       assert.equal(await page.locator('#experience .record-entry:not(.record-entry-independent) a').count(), 0);
       const education = page.locator('#education');
       assert.deepEqual(await education.locator('.edu-status').allTextContents(), ['In progress · expected Jan 2027', 'Completed · Aug 2024']);

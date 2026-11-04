@@ -22,7 +22,7 @@
   <meta name="twitter:image" content="https://arthur-fay.github.io/social-card.png" />
   <link rel="canonical" href="https://arthur-fay.github.io/" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=adb271fd623d" />
-  <link rel="stylesheet" href="/styles.css?v=8daa979d4c7d" />
+  <link rel="stylesheet" href="/styles.css?v=fed9a21d581e" />
   <script type="module" src="/project-previews.js?v=5dd8efbe3412"></script>
   <script defer src="/script.js?v=95b24d318901"></script>
   <title>Arthur Fay — Software Engineer · The Architect Lab · Python, TypeScript/React, FastAPI &amp; PostgreSQL</title>
@@ -83,9 +83,9 @@
             <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Arthur Fay <span class="eyebrow-sep" aria-hidden="true">—</span> The Architect Lab <span class="hero-serial">/ Sheet 00 · 2026</span></p>
             <p class="hero-roleline"><span class="hero-role-name">Software Engineer</span><span class="hero-role-divider" aria-hidden="true">/</span><span class="hero-role-specialty">Python · TypeScript/React · FastAPI · PostgreSQL</span></p>
             <h1 id="hero-title"><span class="outline">Systems</span> that<br/>show their <em>work<span class="period">.</span></em></h1>
-            <p class="hero-description">At Blue Sky Trading, I build <strong>Python REST APIs, PostgreSQL schemas and ERP-integrated internal applications</strong>. Independently, I've built the <strong>Inventory Reservations API</strong>, <strong>ATLAS</strong>—a contract-tested forecasting API with a React 19 dashboard—and four interactive labs. Each project links to its <strong>source code, evidence and limits</strong>.</p>
+            <p class="hero-description">At Blue Sky Trading, I build <strong>Python REST APIs, PostgreSQL schemas and ERP-integrated internal applications</strong>. My independent work includes a <strong>PostgreSQL inventory API tested under concurrent requests</strong>, ATLAS's typed React dashboard and four interactive browser labs.</p>
             <div class="hero-buttons">
-              <a class="button button-primary" href="#work">View projects <span aria-hidden="true">↓</span></a>
+              <a class="button button-primary" href="#hiring">Start with my work <span aria-hidden="true">↓</span></a>
               <a class="button button-secondary" href="#experience">Experience &amp; education <span aria-hidden="true">↓</span></a>
               <a class="text-link hero-link" href="#systems">Explore the section cut <span aria-hidden="true">↓</span></a>
               <a class="text-link hero-link" href="https://github.com/arthur-fay" target="_blank" rel="noopener noreferrer">Inspect GitHub <span aria-hidden="true">↗</span></a>
@@ -148,6 +148,64 @@
           <div class="stat"><span class="stat-number">04</span><span class="stat-description"><b>Interactive labs</b>Commerce, Rentals, Pathfinding and Security, running in your browser</span></div>
           <div class="stat"><span class="stat-number">03</span><span class="stat-description"><b>Core web technologies</b>This website uses HTML, CSS and JavaScript with system fonts</span></div>
           <div class="stat"><span class="stat-number">03</span><span class="stat-description"><b>Automated check categories</b>Static validation, unit tests and browser tests on every pull request</span></div>
+        </div>
+      </section>
+
+      <section class="container hiring-guide" id="hiring" aria-labelledby="hiring-title">
+        <div class="hiring-heading">
+          <div><p class="section-index">Start here</p><h2 id="hiring-title">Explore the work.</h2></div>
+          <p>Read a database test, try a browser demo or browse the case studies.</p>
+        </div>
+        <ol class="role-paths">
+          <li id="inventory-proof">
+            <span class="role-path-index" aria-hidden="true">01</span>
+            <div><h3>Backend &amp; API engineering</h3>
+              <p>In the <strong>Inventory Reservations API</strong> race test, 16 requests compete for seven units. Seven succeed and nine receive a conflict. PostgreSQL row locks keep the stock counts consistent.</p>
+              <p>Run this synthetic demonstration locally with Docker Compose.</p>
+              <div class="role-links">
+                <a href="https://github.com/arthur-fay/inventory-reservations-api/blob/main/tests/integration/test_concurrency.py#L25-L30" target="_blank" rel="noopener noreferrer">Read the race test <span aria-hidden="true">↗</span></a>
+                <a href="https://github.com/arthur-fay/inventory-reservations-api/blob/main/src/inventory_api/service.py" target="_blank" rel="noopener noreferrer">Read the service <span aria-hidden="true">↗</span></a>
+                <a href="https://github.com/arthur-fay/inventory-reservations-api#run-locally" target="_blank" rel="noopener noreferrer">Run the API locally <span aria-hidden="true">↗</span></a>
+              </div>
+            </div>
+          </li>
+          <li>
+            <span class="role-path-index" aria-hidden="true">02</span>
+            <div><h3>Frontend &amp; full-stack engineering</h3>
+              <p>Compare BFS, Dijkstra and A* on the same grid in the <strong>Pathfinding Lab</strong>. For React and TypeScript, see how ATLAS generates client types from its FastAPI contract. The ATLAS dashboard is documented in source and is not publicly deployed.</p>
+              <div class="role-links">
+                <a href="/lab/pathfinding/">Try pathfinding <span aria-hidden="true">↗</span></a>
+                <a href="https://github.com/arthur-fay/demand-forecasting-model/blob/main/docs/DASHBOARD.md" target="_blank" rel="noopener noreferrer">Read the React dashboard design <span aria-hidden="true">↗</span></a>
+              </div>
+            </div>
+          </li>
+          <li>
+            <span class="role-path-index" aria-hidden="true">03</span>
+            <div><h3>Data analysis &amp; business intelligence</h3>
+              <p>Scrub through 16 months of rent trends and compare all five boroughs in <strong>NYC Rental Market Analytics</strong>. The e-commerce case study shows how a dimensional model supports Power BI measures.</p>
+              <div class="role-links">
+                <a href="/lab/nyc-rentals/">Try the NYC Rentals lab <span aria-hidden="true">↗</span></a>
+                <a href="#plate-commerce">Read the e-commerce case study <span aria-hidden="true">↓</span></a>
+                <a href="/lab/ecommerce/">Try the e-commerce lab <span aria-hidden="true">↗</span></a>
+              </div>
+            </div>
+          </li>
+          <li>
+            <span class="role-path-index" aria-hidden="true">04</span>
+            <div><h3>Testing &amp; quality engineering</h3>
+              <p>See how the portfolio checks search algorithms against independent reference implementations, then tests keyboard interaction and mobile layouts in Playwright.</p>
+              <div class="role-links">
+                <a href="https://github.com/arthur-fay/arthur-fay.github.io/blob/main/tests/unit/pathfinding.test.js" target="_blank" rel="noopener noreferrer">Read the algorithm tests <span aria-hidden="true">↗</span></a>
+                <a href="https://github.com/arthur-fay/arthur-fay.github.io/blob/main/tests/browser/portfolio.test.js" target="_blank" rel="noopener noreferrer">Read the browser tests <span aria-hidden="true">↗</span></a>
+                <a href="https://github.com/arthur-fay/arthur-fay.github.io/actions/workflows/portfolio-ci.yml" target="_blank" rel="noopener noreferrer">See CI results <span aria-hidden="true">↗</span></a>
+              </div>
+            </div>
+          </li>
+        </ol>
+        <div class="role-links">
+          <a href="#work">All five case studies <span aria-hidden="true">↓</span></a>
+          <a href="#experience">Experience &amp; education <span aria-hidden="true">↓</span></a>
+          <a href="#contact">Get in touch <span aria-hidden="true">↓</span></a>
         </div>
       </section>
 
@@ -262,45 +320,8 @@
       <section class="section container work-section" id="work" aria-labelledby="work-title">
         <div class="section-heading" data-reveal>
           <div><p class="section-index">02 / Selected work</p><h2 id="work-title">Five plates, <em>drawn from real repositories.</em></h2></div>
-          <p class="section-intro">Each plate is a case study: the problem, the architecture, the evidence you can inspect, and the limits stated plainly. No invented results, screenshots or metrics.</p>
+          <p class="section-intro">Each case study explains the problem, how I built the solution and what I learned. Follow the links to try a demo, inspect the source or read the test results.</p>
         </div>
-        <section class="hiring-guide" id="hiring" aria-labelledby="hiring-title">
-          <div class="hiring-heading">
-            <div><p class="section-index">Review paths</p><h3 id="hiring-title">Start with your role.</h3></div>
-            <p>Choose the work closest to your team, then inspect its implementation and tests.</p>
-          </div>
-          <ol class="role-paths">
-            <li>
-              <span class="role-path-index" aria-hidden="true">01 /</span>
-              <div><h4>Backend &amp; API engineering</h4>
-                <p>Start with the Inventory Reservations API: FastAPI, PostgreSQL row locks, Alembic migrations and tested retry handling. Run this synthetic demonstration locally with Docker Compose. ATLAS adds typed API contracts and bounded workers.</p>
-                <div class="role-links"><a href="https://github.com/arthur-fay/inventory-reservations-api#run-locally" target="_blank" rel="noopener noreferrer">Local API run guide <span aria-hidden="true">↗</span></a><a href="https://github.com/arthur-fay/inventory-reservations-api/blob/main/tests/integration/test_concurrency.py" target="_blank" rel="noopener noreferrer">PostgreSQL race tests <span aria-hidden="true">↗</span></a><a href="#plate-atlas">ATLAS case study <span aria-hidden="true">↓</span></a><a href="https://github.com/arthur-fay/demand-forecasting-model/blob/main/docs/API.md" target="_blank" rel="noopener noreferrer">API design &amp; limits <span aria-hidden="true">↗</span></a><a href="#record-bst">Employment <span aria-hidden="true">↓</span></a></div>
-              </div>
-            </li>
-            <li>
-              <span class="role-path-index" aria-hidden="true">02 /</span>
-              <div><h4>Frontend &amp; full-stack engineering</h4>
-                <p>Run the keyboard-operable JavaScript labs. Inspect ATLAS's React/TypeScript dashboard, generated client types and browser-test design.</p>
-                <div class="role-links"><a href="/lab/pathfinding/">Try pathfinding <span aria-hidden="true">↗</span></a><a href="https://github.com/arthur-fay/demand-forecasting-model/blob/main/docs/DASHBOARD.md" target="_blank" rel="noopener noreferrer">React dashboard evidence <span aria-hidden="true">↗</span></a></div>
-              </div>
-            </li>
-            <li>
-              <span class="role-path-index" aria-hidden="true">03 /</span>
-              <div><h4>Data analysis &amp; business intelligence</h4>
-                <p>Explore the Power BI project's dimensional model and DAX measures, then compare reported KPIs with explicitly hypothetical scenarios in the companion lab.</p>
-                <div class="role-links"><a href="#plate-commerce">Analytics case study <span aria-hidden="true">↓</span></a><a href="/lab/ecommerce/">Try the analytics lab <span aria-hidden="true">↗</span></a><a href="#plate-rentals">NYC rental case study <span aria-hidden="true">↓</span></a><a href="https://github.com/arthur-fay/customer-revenue-analytics/blob/main/README.md#data-model" target="_blank" rel="noopener noreferrer">Model &amp; DAX <span aria-hidden="true">↗</span></a></div>
-              </div>
-            </li>
-            <li>
-              <span class="role-path-index" aria-hidden="true">04 /</span>
-              <div><h4>Quality &amp; test automation</h4>
-                <p>Inspect algorithm tests against independent reference implementations, browser checks for keyboard and mobile use, and the CI workflow that runs them.</p>
-                <div class="role-links"><a href="https://github.com/arthur-fay/arthur-fay.github.io/blob/main/tests/unit/pathfinding.test.js" target="_blank" rel="noopener noreferrer">Algorithm tests <span aria-hidden="true">↗</span></a><a href="https://github.com/arthur-fay/arthur-fay.github.io/blob/main/tests/browser/portfolio.test.js" target="_blank" rel="noopener noreferrer">Browser tests <span aria-hidden="true">↗</span></a><a href="https://github.com/arthur-fay/arthur-fay.github.io/blob/main/.github/workflows/portfolio-ci.yml" target="_blank" rel="noopener noreferrer">CI checks <span aria-hidden="true">↗</span></a></div>
-              </div>
-            </li>
-          </ol>
-          <p class="hiring-note">Also explore <a href="#plate-security">security detection on synthetic events</a> and <a href="#atlas-detail">forecasting research with its uncertainty disclosed</a>. These paths point to project evidence; employment and education are résumé-reported. The ATLAS dashboard is documented in source and is not publicly deployed.</p>
-        </section>
         <div class="filters" role="group" aria-label="Filter projects" data-reveal>
           <span class="filters-label" aria-hidden="true">Legend</span>
           <button class="filter-button is-active" type="button" data-filter="all" aria-pressed="true">All work <span class="filter-count">05</span></button>
@@ -610,11 +631,11 @@
             <article class="record-entry record-entry-independent" aria-labelledby="record-independent">
               <div class="record-when"><span class="record-dates">Jul 2026 — Present</span><span class="record-kind record-kind-independent">Independent work</span></div>
               <div class="record-body">
-                <h3 id="record-independent">Software &amp; analytics projects <small>Built outside employment · published on GitHub with tests and continuous integration</small></h3>
+                <h3 id="record-independent">Software &amp; analytics projects <small>Independent work · source code, demos and technical documentation</small></h3>
                 <ul class="record-points">
-                  <li><a href="#plate-atlas">ATLAS</a>: reproducible NYC 311 demand-forecasting research over 1,277 days, with seven models and 822 rolling backtests; a 14-operation FastAPI contract with API-key authentication, request limits and deadline-managed worker processes; a React 19/TypeScript dashboard typed from that contract and tested with Playwright and axe-core; and a hardened Linux deployment package exercised in a CI container. Measured model improvements are not robustly established; interval calibration failed.</li>
-                  <li><a href="#plate-commerce">E-Commerce Executive Analytics</a>: documented SQL/Google Colab workflow and a Power BI dimensional model for 99K reported orders, with an interactive web lab for DAX, hypothetical what-if analysis and model exploration.</li>
-                  <li>This portfolio, the <a href="#plate-pathfinding">Pathfinding Lab</a> and the <a href="#plate-security">Security Lab</a>: dependency-free, accessibility-tested pages in vanilla ES modules under a strict content security policy, with reduced-motion support and more than 300 automated unit and browser checks on every pull request.</li>
+                  <li><a href="#inventory-proof">Inventory Reservations API</a> uses PostgreSQL row locks, a stock ledger and retry keys. Its integration tests exercise competing requests against a real PostgreSQL database.</li>
+                  <li><a href="#plate-atlas">ATLAS</a> pairs a contract-tested FastAPI service with a React/TypeScript dashboard and reproducible backtests. The forecasting gains are not established, and the prediction intervals failed calibration.</li>
+                  <li><a href="#plate-pathfinding">Pathfinding</a>, <a href="#plate-security">Security Investigation</a>, <a href="#plate-commerce">E-Commerce</a> and <a href="#plate-rentals">NYC Rentals</a> run in the browser with automated unit and Playwright tests.</li>
                 </ul>
                 <ul class="record-tech" aria-label="Technologies"><li>Python</li><li>FastAPI</li><li>pytest</li><li>React · TypeScript</li><li>JavaScript</li><li>SQL · DAX</li><li>Playwright</li><li>GitHub Actions</li></ul>
               </div>
@@ -699,7 +720,7 @@
               <li><span class="field-index" aria-hidden="true">05</span>Forecasting research &amp; analytics</li>
               <li><span class="field-index" aria-hidden="true">06</span>Interactive engineering labs</li>
             </ul>
-            <ul class="about-tags" aria-label="Toolset in evidence across the five projects"><li>Python</li><li>FastAPI</li><li>PostgreSQL</li><li>SQLAlchemy</li><li>Alembic</li><li>pytest</li><li>React</li><li>TypeScript</li><li>Vite</li><li>D3</li><li>SQL</li><li>Power BI</li><li>DAX</li><li>JavaScript</li><li>Playwright</li><li>GitHub Actions</li></ul>
+            <ul class="about-tags" aria-label="Technologies used in the projects"><li>Python</li><li>FastAPI</li><li>PostgreSQL</li><li>SQLAlchemy</li><li>Alembic</li><li>pytest</li><li>React</li><li>TypeScript</li><li>Vite</li><li>D3</li><li>SQL</li><li>Power BI</li><li>DAX</li><li>JavaScript</li><li>Playwright</li><li>GitHub Actions</li></ul>
           </div>
         </div>
       </section>

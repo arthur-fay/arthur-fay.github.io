@@ -252,7 +252,7 @@ def main() -> None:
     assert hero_index, "index.html: the hero must carry the plate index"
     for plate in ("plate-atlas", "plate-commerce", "plate-pathfinding", "plate-security", "plate-rentals"):
         assert f'href="#{plate}"' in hero_index.group(1), f"index.html: the hero's plate index must link directly to #{plate}"
-    assert 'class="button button-primary" href="#work"' in folded_index, "index.html: the hero's primary call to action must lead to the projects"
+    assert 'class="button button-primary" href="#hiring"' in folded_index, "index.html: the hero's primary call to action must lead to the work guide"
     assert 'href="#experience"' in folded_index and 'href="#education"' in folded_index, "index.html: the hero must lead to the experience and education record"
     for outdated in ("Pharmacy Technician", "Backend Software Engineer · The Architect Lab", "B.S. Computer Science, completed", "Python Backend Developer"):
         assert outdated.casefold() not in folded_index, f"index.html: superseded by the latest résumé: {outdated!r}"
